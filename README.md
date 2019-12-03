@@ -1,4 +1,5 @@
-# Seismic Line Mapper (SLM): A tool for enhanced delineation and attribution of linear disturbances in forests
+# Seismic Line Mapper (SLM)
+## A tool for enhanced delineation and attribution of linear disturbances in forests
 
 *Copyright (C) 2019  Applied Geospatial Research Group*
 
