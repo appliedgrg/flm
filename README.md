@@ -25,6 +25,8 @@ This program is free software: you can redistribute it and/or modify it under th
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 ## How to use
+Click "Clone or download" in the [Seismic Line Mapper Github page](https://github.com/appliedgrg/seismic-line-mapper) to access the latest version of the tool.
+
 All SLM scripts require python 2.7 and ArcGIS 10 installed in order to run.
 
 All python scripts in the root folder are associated to an Arc-Toolbox file (.TBX), in that same folder, which can be opened directly in ArcMap or ArcCatalog.
