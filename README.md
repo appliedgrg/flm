@@ -45,17 +45,17 @@ All "GUI" python scripts in the Multiprocessing folder can be opened directly (i
 
 ## Limitations
  - This tool does not work automatically on completely (80% to 100%) regenerated seismic lines. 
-> If a human interpreter is not able to see the footprint on the CHM it is likely that the SLM tool will also not be able to properly map it without fine-tuning. Regenerated seismic line segments can either be removed from the inputs or digitized on a smaller scale (adding more vertices, explained below on step 3).
+> If a human interpreter is not able to see the footprint on the CHM it is likely that the SLM tool will also not be able to properly map it without fine-tuning. Regenerated seismic line segments can either be removed from the inputs or digitized on a smaller scale (adding more vertices, see step 3 in "Workflow").
  - The SLM tool was designed to work on seismic lines, which are usually narrow corridors (up to 15 meters wide). 
 > SLM can also be used to map the footprint of wide linear features such as roads, pipelines and power-lines (up to 80 meters wide) but this requires fine-tuning the input parameters (usually with a larger corridor threshold, and sometimes including additional input lines to capture separate portions of the same feature).
  - The input lines and their vertices must be contained within the input raster and not overlap with null (no data) cells. 
 > On the other hand, null cells are useful to represent unmapped regions and should be used (as opposed to extreme numeric values such as -9999 or +9999) especially in case there are "data holes" in the input raster.
  - Application areas with varying levels of tree density may require additional care.
-> Landscape feature polygons (optional input listed above) may be used to split seismic lines via the included "Split by Polygon" tool, enabling improved results on terrain with varying tree density. The included "Zonal Threshold" tool can help with  fine tuning individual line corridor thresholds (see step 5 below) to prevent the footprint polygons from invading the surrounding forest in sparsely vegetated areas.
+> Landscape feature polygons (optional input listed above) may be used to split seismic lines via the included "Split by Polygon" tool, enabling improved results on terrain with varying tree density. The included "Zonal Threshold" tool can help with  fine tuning individual line corridor thresholds (see step 5 in "Workflow" below) to prevent the footprint polygons from invading the surrounding forest in sparsely vegetated areas.
  - Water bodies (e.g.: rivers, ponds, lakes), cut-blocks and wide linear disturbances (e.g.: roads, pipelines) represent areas with extremely low tree density and may be confused as seismic line footprint. 
-> Therefore, to avoid this effect, seismic lines surrounding these features may have to be digitized on a smaller scale (1:2000), with more vertices than other input lines (step 3 detailed below).	
+> Therefore, to avoid this effect, seismic lines surrounding these features may have to be digitized on a smaller scale (1:2000), with more vertices than other input lines (see step 3 in "Workflow" below).	
  - The least-cost path solution incorporated in this tool may occasionally choose to "cut-corners" on windy seismic lines with sparcely vegetated surroundings.
-> This effect is worse if the input lines are too large-scale (e.g.: 1:20,000). To avoid this issue such corners may have to be enforced with additional vertices (step 3 below). Note that this effect is expected to be minimal, and may not be reflected in the output polygons even though output lines are affected.
+> This effect is worse if the input lines are too large-scale (e.g.: 1:20,000). To avoid this issue such corners may have to be enforced with additional vertices (see step 3 in "Workflow" below). Note that this effect is expected to be minimal, and may not be reflected in the output polygons even though output lines are affected.
 
 ## Workflow
  - Step 1: Prepare input raster layers. 
@@ -63,7 +63,7 @@ All "GUI" python scripts in the Multiprocessing folder can be opened directly (i
  - Step 2: Prepare input lines.
 	 - Digitize large scale (1:5,000 to 1:20,000) input lines. Preferably use the Cost Raster generated on step one as reference. Then, run the **Center Line** tool.
  - Step 3: Inspect center lines. 
-	 - If the center lines are appropriate upon inspection, move to Step 4. Otherwise correct input lines, adding vertices to guide the center lines then re-run the **Center Line** tool. It is expected that, following the recomendations listed in the "Limitations" section above, only minor corrections will be needed in this step.
+	 - Local canopy gaps, anomalies, and misplaced input lines may cause undesired deviations in the output center lines. If the center lines are appropriate upon inspection, move to Step 4. Otherwise correct the imperfect input lines, adding vertices on a smaller scale (1:2,000) to better guide the center lines towards the actual seismic line path, then re-run the **Center Line** tool. It is expected that, following the recomendations listed in the "Limitations" section above, only minor corrections will be needed in this step.
  - Step 4: Set up the least cost corridor threshold (LCCT). 
 	 - The LCCT parameter will determine how wide the footprint is and how far it can penetrate in the adjacent forest. If the forest composition is approximately homogeneous in the application area, then all lines may use the same value for the LCCT (default is 8.0). Otherwise, the center lines will need to be attributed individually with appropriate corridor thresholds. This attribution can be done automatically using the **Zonal Threshold** tool. For improved threshold estimation, first the lines may be segmented according to input landscape feature polygons using the **Split by Polygon** tool. When the LCCT has been set up for all lines run the **footprint solution***.
  - Step 5: Inspect footprint polygons. 
@@ -78,4 +78,5 @@ Multiprocessing scripts can make use of multiple CPU cores to process multiple l
 
 While running the multiprocessing tools make sure that files in the output folders are not opened in ArcGIS, as this will place a "lock" in the files preventing them from being edited. To make sure that there are no locks affecting the tools, clean the output folders before running any tools.
 	
-	
+## Future development
+ - Object attribution: We intend to add attribution functionalities to the SLM, with the aim of aiding ecology studies and recovery assessments looking at seismic lines.
