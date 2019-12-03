@@ -7,7 +7,7 @@
 This tool is part of the **Boreal Ecosystem Recovery and Assessment (BERA)** Project (http://www.beraproject.org/), and was developed by the **Applied Geospatial Research Group** (https://www.appliedgrg.ca/).
 
 ## Purpose / Description
-Script tool for facilitating the high-resolution mapping and studying of seismic lines (petroleum exploration corridors in forested areas) via processing LiDAR-derived canopy height models. 
+SLM is a series of script tools for facilitating the high-resolution mapping and studying of seismic lines (petroleum exploration corridors in forested areas) via processing LiDAR-derived canopy height models. 
 	
 ## Motivation
 Given that the process of manually digitizing detailed small-scale (boreal) seismic lines is slow and prone to human error, a semi-automated solution is preferred for large-scale application areas.
