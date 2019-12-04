@@ -84,7 +84,7 @@ All "GUI" python scripts in the Multiprocessing folder can be opened directly (i
 	 - Using the CHM raster as input, run the **Canopy Raster** tool, then the **Cost Raster** tool.
  - **Step 2: Prepare input lines.**
 	 - Digitize large scale (1:5,000 to 1:20,000) input lines. Preferably use the Cost Raster generated on step one as reference. Then, run the **Center Line** tool.
- - Step 3: Inspect center lines. 
+ - **Step 3: Inspect center lines**. 
 	 - Local canopy gaps, anomalies, and misplaced input lines may cause undesired deviations in the output center lines. If the center lines are appropriate upon inspection, move to Step 4. Otherwise correct the imperfect input lines, adding vertices on a smaller scale (1:2,000) to better guide the center lines towards the actual seismic line path, then re-run the **Center Line** tool. It is expected that, following the recomendations listed in the "Limitations" section above, only minor corrections will be needed in this step.
  - **Step 4: Set up the least cost corridor threshold (LCCT).**
 	 - The LCCT parameter will determine how wide the footprint is and how far it can penetrate in the adjacent forest. If the forest composition is approximately homogeneous in the application area, then all lines may use the same value for the LCCT (default is 8.0). Otherwise, the center lines will need to be attributed individually with appropriate corridor thresholds. This attribution can be done automatically using the **Zonal Threshold** tool. For improved threshold estimation, first the lines may be segmented according to input landscape feature polygons using the **Split by Polygon** tool. When the LCCT has been set up for all lines run the **footprint solution***.
