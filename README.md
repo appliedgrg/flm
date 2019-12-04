@@ -8,7 +8,7 @@
 ![Logos](/Images/SLM_logos.png)
 
 ## Credits
-This tool is part of the **Boreal Ecosystem Recovery and Assessment (BERA)** Project (http://www.beraproject.org/), and was developed by the **Applied Geospatial Research Group** (https://www.appliedgrg.ca/).
+This tool is part of the [**Boreal Ecosystem Recovery and Assessment (BERA)** Project](http://www.beraproject.org/), and was developed by the [**Applied Geospatial Research Group**](https://www.appliedgrg.ca/).
 
 ## Citation
 *Applied Geospatial Research Group, 2019. Seismic Line Mapper: A tool for enhanced delineation and attribution of linear disturbances in forests.*
@@ -25,16 +25,16 @@ Given that the process of manually digitizing detailed small-scale (boreal) seis
  - May, 2018: Initial concept (least cost path with ArcGIS model builder) by **Sarah Cole** and **Jerome Cranston**.
 
 ## Contact
-Contact the Applied Geospatial Research Group (https://www.appliedgrg.ca/) at appliedgrg@gmail.com
+Contact the [Applied Geospatial Research Group](https://www.appliedgrg.ca/) at appliedgrg@gmail.com
 
 ## License
-*SLM is still in alpha testing and is not yet available to the public. Predicted public release is early 2020.*
+***SLM is still in alpha testing and is not yet available to the public.** Predicted public release is early 2020.*
 
 ~~This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, version 3.
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.~~
 
 ## How to use
-*SLM is still in alpha testing and is not yet available to the public. Predicted public release is early 2020.*
+***SLM is still in alpha testing and is not yet available to the public.** Predicted public release is early 2020.*
 
 ~~Click "Clone or download" in the [Seismic Line Mapper Github page](https://github.com/appliedgrg/seismic-line-mapper) to access the latest version of the tool.~~
 
@@ -47,7 +47,7 @@ All "GUI" python scripts in the Multiprocessing folder can be opened directly (i
 ## Inputs
  1. Input raster: A high-resolution (pixel-size < 1m) canopy height model (CHM) raster image, preferably derived from high resolution LiDAR (>25 pts/m²), covering the area of interest.
  2. Input lines: A polyline feature class delineating the seismic lines in the area of interest, digitized at a large scale (1:5,000 to 1:20,000).
- 3. Optional: Polygon feature class delineating important landscape features which are distinct in terms of forest structure (eg.: wetland classes inventory according to ABMI, https://abmi.ca/)
+ 3. Optional: Polygon feature class delineating important landscape features which are distinct in terms of forest structure (eg.: wetland classes inventory according to [ABMI](https://abmi.ca/))
 
 ![ExampleArea](/Images/SLM_Example_Area.png)
 
@@ -80,15 +80,15 @@ All "GUI" python scripts in the Multiprocessing folder can be opened directly (i
 > This effect is worse if the input lines are too large-scale (e.g.: 1:20,000). To avoid this issue such corners may have to be enforced with additional vertices (see step 3 in "Workflow" below). Note that this effect is expected to be minimal, and may not be reflected in the output polygons even though output lines are affected.
 
 ## Workflow
- - Step 1: Prepare input raster layers. 
+ - **Step 1: Prepare input raster layers.**
 	 - Using the CHM raster as input, run the **Canopy Raster** tool, then the **Cost Raster** tool.
- - Step 2: Prepare input lines.
+ - **Step 2: Prepare input lines.**
 	 - Digitize large scale (1:5,000 to 1:20,000) input lines. Preferably use the Cost Raster generated on step one as reference. Then, run the **Center Line** tool.
  - Step 3: Inspect center lines. 
 	 - Local canopy gaps, anomalies, and misplaced input lines may cause undesired deviations in the output center lines. If the center lines are appropriate upon inspection, move to Step 4. Otherwise correct the imperfect input lines, adding vertices on a smaller scale (1:2,000) to better guide the center lines towards the actual seismic line path, then re-run the **Center Line** tool. It is expected that, following the recomendations listed in the "Limitations" section above, only minor corrections will be needed in this step.
- - Step 4: Set up the least cost corridor threshold (LCCT). 
+ - **Step 4: Set up the least cost corridor threshold (LCCT).**
 	 - The LCCT parameter will determine how wide the footprint is and how far it can penetrate in the adjacent forest. If the forest composition is approximately homogeneous in the application area, then all lines may use the same value for the LCCT (default is 8.0). Otherwise, the center lines will need to be attributed individually with appropriate corridor thresholds. This attribution can be done automatically using the **Zonal Threshold** tool. For improved threshold estimation, first the lines may be segmented according to input landscape feature polygons using the **Split by Polygon** tool. When the LCCT has been set up for all lines run the **footprint solution***.
- - Step 5: Inspect footprint polygons. 
+ - **Step 5: Inspect footprint polygons.**
 	 - Adjust LCCT of line segments as needed. Wide lines may need a threshold increase while narrow lines on sparcely vegetated terrain may need a decrease. This can be done manually for each line or automatically by fine-tuning the parameters of the **Zonal Threshold** tool. Certain segments may transition between forest types not captured in the input landscape features and may have to be segmented. Re-run the **footprint solution*** until results are satisfactory.
 	
 **Footprint solution***: There are two ways to generate the footprint layer. The **Line Footprint** tool will directly generate the footprint, while the **Corridor** tool will generate an intermediate corridor raster layer then the **Corridor Footprint** tool will use the intermediate corridor layer to generate the footprint. The advantage of using intermediate steps is to quickly investigate the appropriate LCCT directly on the corridor raster.
@@ -101,4 +101,4 @@ Multiprocessing scripts can make use of multiple CPU cores to process multiple l
 While running the multiprocessing tools make sure that files in the output folders are not opened in ArcGIS, as this will place a "lock" in the files preventing them from being edited. To make sure that there are no locks affecting the tools, clean the output folders before running any tools.
 	
 ## Future development
- - Object attribution: We intend to add attribution functionalities to the SLM, with the aim of aiding ecology studies and recovery assessments looking at seismic lines.
+ - Object attribution: We intend to add attribution functionalities to the SLM, with the aim of aiding ecology studies and recovery assessments looking at multi-scale seismic lines.
