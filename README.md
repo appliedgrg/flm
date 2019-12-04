@@ -49,9 +49,21 @@ All "GUI" python scripts in the Multiprocessing folder can be opened directly (i
  2. Input lines: A polyline feature class delineating the seismic lines in the area of interest, digitized at a large scale (1:5,000 to 1:20,000).
  3. Optional: Polygon feature class delineating important landscape features which are distinct in terms of forest structure (eg.: wetland classes inventory according to ABMI, https://abmi.ca/)
 
+![ExampleArea](/Images/SLM_Example_Area.png)
+
+***Figure 1.** Example study area displayed as an RGB orthophoto.*
+
+![ExampleInput](/Images/SLM_Example_Input.png)
+
+***Figure 2.** Example inputs for the study area: a canopy height model raster image and large-scale seismic line polylines.*
+
 ## Outputs
  1. Output lines: A detailed and corrected (according to the CHM) small scale version (approximately 1:1000) of the input seismic line feature class.
  2. Output polygons: A detailed areal footprint of the seismic lines in the form of small scale polygons (approximately 1:500).
+
+![ExampleOutput](/Images/SLM_Example_Output.png)
+
+***Figure 3.** Example outputs for the study area: corrected, small-scale center lines and areal footprint polygons for the seismic lines.*
 
 ## Limitations
  - This tool does not work automatically on completely (80% to 100%) regenerated seismic lines. 
