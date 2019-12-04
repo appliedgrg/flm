@@ -1,8 +1,9 @@
 # Seismic Line Mapper (SLM)
 ## A tool for enhanced delineation and attribution of linear disturbances in forests
 
+![Banner](https://raw.githubusercontent.com/appliedgrg/seismic-line-mapper/master/Images/SLM_banner.png)
 *Copyright (C) 2019  Applied Geospatial Research Group*
-![Logos](https://raw.githubusercontent.com/appliedgrg/seismic-line-mapper/master/SLM_logos.png)
+![Logos](https://raw.githubusercontent.com/appliedgrg/seismic-line-mapper/master/Images/SLM_logos.png)
 
 ## Credits
 This tool is part of the **Boreal Ecosystem Recovery and Assessment (BERA)** Project (http://www.beraproject.org/), and was developed by the **Applied Geospatial Research Group** (https://www.appliedgrg.ca/).
@@ -25,12 +26,15 @@ Given that the process of manually digitizing detailed small-scale (boreal) seis
 Contact the Applied Geospatial Research Group (https://www.appliedgrg.ca/) at appliedgrg@gmail.com
 
 ## License
-This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, version 3.
+*SLM is still in alpha testing and is not yet available to the public. Predicted public release is early 2020.*
 
-This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+~~This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, version 3.
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.~~
 
 ## How to use
-Click "Clone or download" in the [Seismic Line Mapper Github page](https://github.com/appliedgrg/seismic-line-mapper) to access the latest version of the tool.
+*SLM is still in alpha testing and is not yet available to the public. Predicted public release is early 2020.*
+
+~~Click "Clone or download" in the [Seismic Line Mapper Github page](https://github.com/appliedgrg/seismic-line-mapper) to access the latest version of the tool.~~
 
 All SLM scripts require python 2.7 and ArcGIS 10 installed in order to run.
 
