@@ -6,8 +6,11 @@
 ## Credits
 This tool is part of the **Boreal Ecosystem Recovery and Assessment (BERA)** Project (http://www.beraproject.org/), and was developed by the **Applied Geospatial Research Group** (https://www.appliedgrg.ca/).
 
+## Citation
+*Applied Geospatial Research Group, 2019. Seismic Line Mapper: A tool for enhanced delineation and attribution of linear disturbances in forests.*
+
 ## Purpose / Description
-SLM is a series of script tools for facilitating the high-resolution mapping and studying of seismic lines (petroleum exploration corridors in forested areas) via processing LiDAR-derived canopy height models. 
+SLM is a series of script tools for facilitating the high-resolution mapping and studying of seismic lines (petroleum exploration corridors in forested areas) via processing LiDAR-derived canopy height models (raster images where pixel-values represent the ground-height of vegetation). 
 	
 ## Motivation
 Given that the process of manually digitizing detailed small-scale (boreal) seismic lines is slow and prone to human error, a semi-automated solution is preferred for large-scale application areas.
