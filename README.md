@@ -20,9 +20,9 @@ SLM is a series of script tools for facilitating the high-resolution mapping and
 Given that the process of manually digitizing detailed small-scale (boreal) seismic lines is slow and prone to human error, a semi-automated solution is preferred for large-scale application areas.
 
 ## Development History
- - November, 2019: Workflow overhaul (least cost corridor & multiprocessing) by **Gustavo Lopes Queiroz**.
- - November, 2018: First version in Arcpy by **Silvia Losada**.
- - May, 2018: Initial concept (least cost path with ArcGIS model builder) by **Sarah Cole** and **Jerome Cranston**.
+ - November, 2019: Workflow overhaul (least cost corridor & multiprocessing) by [**Gustavo Lopes Queiroz**](https://www.linkedin.com/in/guslq/).
+ - November, 2018: First version in Arcpy by [**Silvia Losada**](https://www.linkedin.com/in/silvia-losada/).
+ - May, 2018: Initial concept (least cost path with ArcGIS model builder) by [**Sarah Cole**](https://www.linkedin.com/in/sarah-cole-b3009551/) and [**Jerome Cranston**](https://www.linkedin.com/in/jerome-cranston-551058142/).
 
 ## Contact
 Contact the [Applied Geospatial Research Group](https://www.appliedgrg.ca/) at appliedgrg@gmail.com
@@ -102,3 +102,6 @@ While running the multiprocessing tools make sure that files in the output folde
 	
 ## Future development
  - Object attribution: We intend to add attribution functionalities to the SLM, with the aim of aiding ecology studies and recovery assessments looking at multi-scale seismic lines.
+
+## 
+*Guide prepared by [Gustavo Lopes Queiroz](https://www.linkedin.com/in/guslq/)*
