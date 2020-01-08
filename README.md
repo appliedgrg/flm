@@ -1,3 +1,4 @@
+
 # Seismic Line Mapper (SLM)
 ## A tool for enhanced delineation and attribution of linear disturbances in forests
 
@@ -65,6 +66,13 @@ All "GUI" python scripts in the Multiprocessing folder can be opened directly (i
 
 ***Figure 3.** Example outputs for the study area: corrected, small-scale center lines and areal footprint polygons for the seismic lines.*
 
+## Line Attribution
+ - Attribution functionalities are being added to the SLM with the aim of providing supplementary information on seismic line conditions. Valuable information can be derived from the same inputs and outputs of the SLM as well as from external data provided by the user.
+Here are some examples of default attributes:
+|Average Width|Sinuosity|Fragmentation|Micro-topography|
+|--|--|--|--|
+|![Width](/Images/SLA_Width.png)|![Sinuosity](/Images/SLA_Sinuosity.png)|![Fragmentation](/Images/SLA_Fragmentation.png)|![Micro-topography](/Images/SLA_Height.png)|
+
 ## Limitations
  - This tool does not work automatically on completely (80% to 100%) regenerated seismic lines. 
 > If a human interpreter is not able to see the footprint on the CHM it is likely that the SLM tool will also not be able to properly map it without fine-tuning. Regenerated seismic line segments can either be removed from the inputs or digitized on a smaller scale (adding more vertices, see step 3 in "Workflow").
@@ -99,9 +107,19 @@ On large application areas (more than 4 lines or 20 km of cumulative length) it 
 Multiprocessing scripts can make use of multiple CPU cores to process multiple lines at once via parallel processing. While the single-processing SLM scripts can take "days" to process large areas, the multi-processing SLM scripts can process those same areas in the order of minutes.
 
 While running the multiprocessing tools make sure that files in the output folders are not opened in ArcGIS, as this will place a "lock" in the files preventing them from being edited. To make sure that there are no locks affecting the tools, clean the output folders before running any tools.
-	
-## Future development
- - Object attribution: We intend to add attribution functionalities to the SLM, with the aim of aiding ecology studies and recovery assessments looking at multi-scale seismic lines.
+
+## Included Scripts
+|Step|Script|Description|Inputs|Outputs|Multiprocessing|
+|--|--|--|--|--|--|
+|1|CanopyRaster|Filters CHM pixels above a certain canopy theshold| CHM, Canopy Threshold|Binary Canopy Raster|No|
+|1|CostRaster|Turns the canopy raster into a cost raster compatible with least cost algorithms| Canopy Raster, Parameters|Cost Raster|No|
+|2&3|CenterLine|Determines the least cost path between vertices of the input lines| Seismic Lines, Cost Raster|Corrected Seismic Lines|Yes|
+|4|SplitByPolygon|Splits the input lines where they intersect the edges of the input polygons| Input Lines, Input Polygons|Updated Lines|No|
+|4|ZonalThreshold|Assigns corridor thresholds to the input lines based on their surrounding canopy density| Seismic Lines, Canopy Raster, Parameters|Attributed Seismic Lines|No|
+|4&5|Corridor|Determines the least cost corridor between vertices of the input lines| Seismic Lines, Cost Raster|Corridor Raster|Yes|
+|4&5|CorridorFootprint|Determines the least cost corridor between the input lines according to their thresholds| Seismic Lines, Canopy Raster, Corridor Raster, Parameters|Footprint Polygons|Yes|
+|4&5|LineFootprint|Determines the least cost corridor between the input lines according to their thresholds| Seismic Lines, Canopy Raster, Cost Raster, Parameters|Footprint Polygons|Yes|
+
 
 ## 
 *Guide prepared by [Gustavo Lopes Queiroz](https://www.linkedin.com/in/guslq/)*
