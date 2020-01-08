@@ -68,7 +68,9 @@ All "GUI" python scripts in the Multiprocessing folder can be opened directly (i
 
 ## Line Attribution
  - Attribution functionalities are being added to the SLM with the aim of providing supplementary information on seismic line conditions. Valuable information can be derived from the same inputs and outputs of the SLM as well as from external data provided by the user.
+ 
 Here are some examples of default attributes:
+
 |Average Width|Sinuosity|Fragmentation|Micro-topography|
 |--|--|--|--|
 |![Width](/Images/SLA_Width.png)|![Sinuosity](/Images/SLA_Sinuosity.png)|![Fragmentation](/Images/SLA_Fragmentation.png)|![Micro-topography](/Images/SLA_Height.png)|
