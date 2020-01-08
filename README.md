@@ -18,7 +18,7 @@ This tool is part of the [**Boreal Ecosystem Recovery and Assessment (BERA)** Pr
 SLM is a series of script tools for facilitating the high-resolution mapping and studying of seismic lines (petroleum exploration corridors in forested areas) via processing canopy height models (LiDAR or photogrammetry derived raster images where pixel-values represent the ground-height of vegetation).
 	
 ## Motivation
-Given that the process of manually digitizing detailed small-scale (boreal) seismic lines is slow and prone to human error, a semi-automated solution is preferred for large-scale application areas.
+Given that the process of manually digitizing detailed small-scale (boreal) seismic lines is slow and prone to human error, a semi-automated solution is preferred for large-scale application areas. Additionally, high-resolution CHMs allow for improved seismic line spatial analysis.
 
 ## Development History
  - November, 2019: Workflow overhaul (least cost corridor & multiprocessing) by [**Gustavo Lopes Queiroz**](https://www.linkedin.com/in/guslq/).
