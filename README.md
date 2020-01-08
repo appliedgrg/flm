@@ -15,7 +15,7 @@ This tool is part of the [**Boreal Ecosystem Recovery and Assessment (BERA)** Pr
 *Applied Geospatial Research Group, 2019. Seismic Line Mapper: A tool for enhanced delineation and attribution of linear disturbances in forests.*
 
 ## Purpose / Description
-SLM is a series of script tools for facilitating the high-resolution mapping and studying of seismic lines (petroleum exploration corridors in forested areas) via processing LiDAR-derived canopy height models (raster images where pixel-values represent the ground-height of vegetation). 
+SLM is a series of script tools for facilitating the high-resolution mapping and studying of seismic lines (petroleum exploration corridors in forested areas) via processing canopy height models (LiDAR or photogrammetry derived raster images where pixel-values represent the ground-height of vegetation).
 	
 ## Motivation
 Given that the process of manually digitizing detailed small-scale (boreal) seismic lines is slow and prone to human error, a semi-automated solution is preferred for large-scale application areas.
@@ -46,7 +46,7 @@ All python scripts in the root folder are associated to an Arc-Toolbox file (.TB
 All "GUI" python scripts in the Multiprocessing folder can be opened directly (in file explorer) and require an ArcGIS license but do not require ArcGIS to be opened.
 
 ## Inputs
- 1. Input raster: A high-resolution (pixel-size < 1m) canopy height model (CHM) raster image, preferably derived from high resolution LiDAR (>25 pts/m²), covering the area of interest.
+ 1. Input raster: A high-resolution (pixel-size < 1m) canopy height model (CHM) raster image, preferably derived from high resolution LiDAR or photogrammetry (>25 pts/m²), covering the area of interest.
  2. Input lines: A polyline feature class delineating the seismic lines in the area of interest, digitized at a large scale (1:5,000 to 1:20,000).
  3. Optional: Polygon feature class delineating important landscape features which are distinct in terms of forest structure (eg.: wetland classes inventory according to [ABMI](https://abmi.ca/))
 
