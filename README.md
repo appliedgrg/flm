@@ -94,7 +94,7 @@ The mapping and attribution tools outlined in [Figure 1](https://github.com/appl
 
 |Description|Figure|
 |--|--|
-|Creates a canopy raster and a cost raster from a CHM input raster. The output rasters are used for subsequent SLM tools.|![Tool Figure](/Images/SLM_IO_CanopyCostRaster.gif) <!-- .element height="100px" -->|
+|Creates a canopy raster and a cost raster from a CHM input raster. The output rasters are used for subsequent SLM tools.|![Tool Figure](/Images/SLM_IO_CanopyCostRaster.gif) <!-- .element style="height:80px" -->|
 
 |Parameter|Type|Default|Description|
 |--|--|--|--|
@@ -113,7 +113,7 @@ The mapping and attribution tools outlined in [Figure 1](https://github.com/appl
 
 |Description|Figure|
 |--|--|
-|Determines the least cost path between vertices of the input lines.|![Tool Figure](/Images/SLM_IO_CenterLine.gif) <!-- .element height="100px" -->|
+|Determines the least cost path between vertices of the input lines.|![Tool Figure](/Images/SLM_IO_CenterLine.gif) <!-- .element style="height:80px" -->|
 
 |Parameter|Type|Default|Description|
 |--|--|--|--|
@@ -128,7 +128,7 @@ The mapping and attribution tools outlined in [Figure 1](https://github.com/appl
 
 |Description|Figure|
 |--|--|
-|Creates footprint polygons for each input line based on a least cost corridor method and individual line thresholds.|![Tool Figure](/Images/SLM_IO_LineFootprint.gif) <!-- .element height="100px" -->|
+|Creates footprint polygons for each input line based on a least cost corridor method and individual line thresholds.|![Tool Figure](/Images/SLM_IO_LineFootprint.gif) <!-- .element style="height:80px" -->|
 
 |Parameter|Type|Default|Description|
 |--|--|--|--|
@@ -147,7 +147,7 @@ The mapping and attribution tools outlined in [Figure 1](https://github.com/appl
 
 |Description|Figure|
 |--|--|
-|Calculates a series of attributes related to seismic line shape, size and microtopography.|![Tool Figure](/Images/SLM_IO_SeismicLineAttributes.gif)|
+|Calculates a series of attributes related to seismic line shape, size and microtopography.|![Tool Figure](/Images/SLM_IO_SeismicLineAttributes.gif) <!-- .element style="height:80px" -->|
 
 |Parameter|Type|Default|Description|
 |--|--|--|--|
@@ -166,7 +166,7 @@ The mapping and attribution tools outlined in [Figure 1](https://github.com/appl
 
 |Description|Figure|
 |--|--|
-|Samples a raster image along lines and assigns cell statistics to each line.|![Tool Figure](/Images/SLM_IO_RasterLineAttributes.gif)|
+|Samples a raster image along lines and assigns cell statistics to each line.|![Tool Figure](/Images/SLM_IO_RasterLineAttributes.gif) <!-- .element style="height:80px" -->|
 
 |Parameter|Type|Default|Description|
 |--|--|--|--|
