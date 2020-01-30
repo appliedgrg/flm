@@ -7,11 +7,11 @@
 
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-
     <title>Tool Documentation</title>
   </head>
   <body>
-    <div class="container-fluid">
+    <div id="header"></div>
+    <div class="container-fluid px-0 px-sm-2 px-md-3 px-lg-5">
         <div class="text-center">
         <img src="../Images/SLM_banner.png" class="img-fluid mt-3 mb-3" alt="..." style="max-height: 130px;">
         <h1>SLM - Tool Documentation</h1>
@@ -745,11 +745,619 @@
               </div>
             </div>
         </div>
-        <!-- Optional JavaScript -->
+
+        <div class="container-fluid mt-5">
+            <h2>Auxiliary Tools</h2>
+
+            <div id="accordionAux">
+              <div class="card">
+                <div class="card-header" id="headingCSR">
+                  <h5 class="mb-0">
+                    <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseCSR" aria-expanded="false" aria-controls="collapseCSR">
+                      Clip Shape By Raster
+                    </button>
+                  </h5>
+                </div>
+                <div id="collapseCSR" class="collapse" aria-labelledby="headingCSR" data-parent="#accordionAux">
+                  <div class="card-body">
+                    <div class="row">
+                        <div class="col-12 col-lg-9">
+                          <h5 class="mt-0 mb-1">Clip Shape By Raster</h5>
+                            <p>Extracts input features that overlay raster cells which are not NoData. This is useful to prepare input seismic lines for corridor analysis, since vertices must overlap with valid cells for least cost methods.</p>
+                          <table class="table table-striped">
+                              <thead class="thead-light">
+                                  <tr>
+                                    <th scope="col">
+                                      Parameter
+                                    </th>
+                                    <th scope="col">
+                                      Description
+                                    </th>
+                                    <th scope="col" class="d-none d-md-table-cell">
+                                      Type
+                                    </th>
+                                    <th scope="col" class="d-none d-md-table-cell">
+                                      Default
+                                    </th>
+                                  </tr>
+                              </thead>
+                              <tbody>
+                                  <tr>
+                                    <th scope="row">
+                                      Shapefile
+                                    </th>
+                                    <td>
+                                      	Input features to be clipped.
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      SHP
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <th scope="row">
+                                      Clip Raster
+                                    </th>
+                                    <td>
+                                      	Input raster used to clip the input features.
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      TIF
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <th scope="row">
+                                      Shrink Size
+                                    </th>
+                                    <td>
+                                      Number of cells to shrink in order to avoid raster edge contact.
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      number
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      1
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <th scope="row">
+                                      Output Shapefile
+                                    </th>
+                                    <td>
+                                      Output features that will be created.
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      SHP
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      
+                                    </td>
+                                  </tr>
+                              </tbody>
+                          </table>
+                        </div>
+                        <div class="col-12 col-lg-3 text-center">
+                            <img src="../Images/SLM_IO_ClipShapeByRaster.gif" class="" alt="..." style="max-height: 400px; max-width: 100%;">
+                        </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-header" id="headingSBP">
+                  <h5 class="mb-0">
+                    <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseSBP" aria-expanded="false" aria-controls="collapseSBP">
+                      Split By Polygon
+                    </button>
+                  </h5>
+                </div>
+                <div id="collapseSBP" class="collapse" aria-labelledby="headingSBP" data-parent="#accordionAux">
+                  <div class="card-body">
+                    <div class="row">
+                        <div class="col-12 col-lg-9">
+                          <h5 class="mt-0 mb-1">Split By Polygon</h5>
+                            <p>Splits the input lines where they intersect the edges of the input polygons.</p>
+                          <table class="table table-striped">
+                              <thead class="thead-light">
+                                  <tr>
+                                    <th scope="col">
+                                      Parameter
+                                    </th>
+                                    <th scope="col">
+                                      Description
+                                    </th>
+                                    <th scope="col" class="d-none d-md-table-cell">
+                                      Type
+                                    </th>
+                                    <th scope="col" class="d-none d-md-table-cell">
+                                      Default
+                                    </th>
+                                  </tr>
+                              </thead>
+                              <tbody>
+                                  <tr>
+                                    <th scope="row">
+                                      Input Lines
+                                    </th>
+                                    <td>
+                                      	Input polyline shapefile to be split.
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      SHP
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <th scope="row">
+                                      Clip Polygons
+                                    </th>
+                                    <td>
+                                      Input polygon shapefile that is used to split the input lines.
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      TIF
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <th scope="row">
+                                      Output Lines
+                                    </th>
+                                    <td>
+                                      Output features that will be created.
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      SHP
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      
+                                    </td>
+                                  </tr>
+                              </tbody>
+                          </table>
+                        </div>
+                        <div class="col-12 col-lg-3 text-center">
+                            <img src="../Images/SLM_IO_SBP.gif" class="" alt="..." style="max-height: 400px; max-width: 100%;">
+                        </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+			   <div class="card">
+                <div class="card-header" id="headingZT">
+                  <h5 class="mb-0">
+                    <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseZT" aria-expanded="false" aria-controls="collapseZT">
+                      Zonal Threshold
+                    </button>
+                  </h5>
+                </div>
+                <div id="collapseZT" class="collapse" aria-labelledby="headingZT" data-parent="#accordionAux">
+                  <div class="card-body">
+                    <div class="row">
+                        <div class="col-12 col-lg-9">
+                          <h5 class="mt-0 mb-1">Zonal Threshold</h5>
+                            <p>Assigns corridor thresholds to the input lines based on their surrounding canopy density.</p>
+                          <table class="table table-striped">
+                              <thead class="thead-light">
+                                  <tr>
+                                    <th scope="col">
+                                      Parameter
+                                    </th>
+                                    <th scope="col">
+                                      Description
+                                    </th>
+                                    <th scope="col" class="d-none d-md-table-cell">
+                                      Type
+                                    </th>
+                                    <th scope="col" class="d-none d-md-table-cell">
+                                      Default
+                                    </th>
+                                  </tr>
+                              </thead>
+                              <tbody>
+                                  <tr>
+                                    <th scope="row">
+                                      Input Lines
+                                    </th>
+                                    <td>
+                                      	Input polyline shapefile for which each feature will be assigned an unique corridor threshold.
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      SHP
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <th scope="row">
+                                      Corridor Threshold Field
+                                    </th>
+                                    <td>
+                                      Name of the field (within the input lines) that indicates the corridor thresholds.
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      text
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      CorridorTh
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <th scope="row">
+                                      Canopy Raster
+                                    </th>
+                                    <td>
+                                      Input canopy raster used to estimate canopy density.
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      TIF
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <th scope="row">
+                                      Canopy Search Radius
+                                    </th>
+                                    <td>
+                                      Search radius around line features where zonal statistics are calculated.
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      number
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      20
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <th scope="row">
+                                      Minimum Value
+                                    </th>
+                                    <td>
+                                      Minimum value for corridor threshold.
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      number
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      4
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <th scope="row">
+                                      Maximum Value
+                                    </th>
+                                    <td>
+                                      Maximum value for corridor threshold.
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      number
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      20
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <th scope="row">
+                                      Output Lines
+                                    </th>
+                                    <td>
+                                      Output features that will be created.
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      SHP
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      
+                                    </td>
+                                  </tr>
+                              </tbody>
+                          </table>
+                        </div>
+                        <div class="col-12 col-lg-3 text-center">
+                            <img src="../Images/SLM_IO_ZT.gif" class="" alt="..." style="max-height: 400px; max-width: 100%;">
+                        </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+        </div>
+
+        <div class="container-fluid mt-5">
+            <h2>Alternative Tools</h2>
+
+            <div id="accordionAlt">
+              <div class="card">
+                <div class="card-header" id="headingCR">
+                  <h5 class="mb-0">
+                    <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseCR" aria-expanded="false" aria-controls="collapseCR">
+                      Corridor Raster
+                    </button>
+                  </h5>
+                </div>
+                <div id="collapseCR" class="collapse" aria-labelledby="headingCR" data-parent="#accordionAlt">
+                  <div class="card-body">
+                    <div class="row">
+                        <div class="col-12 col-lg-9">
+                          <h5 class="mt-0 mb-1">Corridor Raster</h5>
+                            <p>Creates a least cost corridor raster between vertices of the input lines. This step can be skipped with the 'Line Footprint' tool.</p>
+                          <table class="table table-striped">
+                              <thead class="thead-light">
+                                  <tr>
+                                    <th scope="col">
+                                      Parameter
+                                    </th>
+                                    <th scope="col">
+                                      Description
+                                    </th>
+                                    <th scope="col" class="d-none d-md-table-cell">
+                                      Type
+                                    </th>
+                                    <th scope="col" class="d-none d-md-table-cell">
+                                      Default
+                                    </th>
+                                  </tr>
+                              </thead>
+                              <tbody>
+                                  <tr>
+                                    <th scope="row">
+                                      Centerlines Feature Class
+                                    </th>
+                                    <td>
+                                      Input polyline shapefile.
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      SHP
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <th scope="row">
+                                      Canopy Raster
+                                    </th>
+                                    <td>
+                                      Input raster image used to exclude canopy from line footprint.
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      TIF
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <th scope="row">
+                                      Cost Raster
+                                    </th>
+                                    <td>
+                                      Input raster image used to calculate the cost corridor.
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      TIF
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <th scope="row">
+                                      Maximum Line Width
+                                    </th>
+                                    <td>
+                                      Maximum processing width for each line. A large value may increase processing times whereas a small value may cause undesired clipping.
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      number
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      32
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <th scope="row">
+                                      Process Each Segment Individually
+                                    </th>
+                                    <td>
+                                      If set to False, will process each line from start to end ignoring midpoints, if set to True, will process each segment between each vertex of the input lines separately. The default is False, since it is assumed that the user will manually correct centerlines before running this tool.
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      True/False
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      False
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <th scope="row">
+                                      Output Raster File
+                                    </th>
+                                    <td>
+                                      Output corridor raster name.
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      TIF
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      
+                                    </td>
+                                  </tr>
+                              </tbody>
+                          </table>
+                        </div>
+                        <div class="col-12 col-lg-3 text-center">
+                            <img src="../Images/SLM_IO_CO.gif" class="" alt="..." style="max-height: 400px; max-width: 100%;">
+                        </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-header" id="headingCFP">
+                  <h5 class="mb-0">
+                    <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseCFP" aria-expanded="false" aria-controls="collapseCFP">
+                      Corridor Footprint
+                    </button>
+                  </h5>
+                </div>
+                <div id="collapseCFP" class="collapse" aria-labelledby="headingCFP" data-parent="#accordionAlt">
+                  <div class="card-body">
+                    <div class="row">
+                        <div class="col-12 col-lg-9">
+                          <h5 class="mt-0 mb-1">Corridor Footprint</h5>
+                            <p>Creates footprint polygons for each input line based on a least cost corridor raster and individual line thresholds. This step can be skipped with the 'Line Footprint' tool.</p>
+                          <table class="table table-striped">
+                              <thead class="thead-light">
+                                  <tr>
+                                    <th scope="col">
+                                      Parameter
+                                    </th>
+                                    <th scope="col">
+                                      Description
+                                    </th>
+                                    <th scope="col" class="d-none d-md-table-cell">
+                                      Type
+                                    </th>
+                                    <th scope="col" class="d-none d-md-table-cell">
+                                      Default
+                                    </th>
+                                  </tr>
+                              </thead>
+                              <tbody>
+                                  <tr>
+                                    <th scope="row">
+                                      Center-lines Feature Class
+                                    </th>
+                                    <td>
+                                      Input polyline shapefile.
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      SHP
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <th scope="row">
+                                      Canopy Raster
+                                    </th>
+                                    <td>
+                                      Input raster image used to exclude canopy from line footprint.
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      TIF
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <th scope="row">
+                                      Corridor Raster
+                                    </th>
+                                    <td>
+                                      Input corridor raster image where a threshold is applied to generate footprints.
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      TIF
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <th scope="row">
+                                      Corridor Threshold Field
+                                    </th>
+                                    <td>
+                                      Name of the field (within the input lines) that indicates the least cost corridor thresholds (LCCT).
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      text
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      CorridorTh
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <th scope="row">
+                                      Maximum Line Width
+                                    </th>
+                                    <td>
+                                      Maximum processing width for input lines. A large value may increase processing times whereas a small value may cause undesired clipping.
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      number
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      32
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <th scope="row">
+                                      Expand And Shrink Cell Range
+                                    </th>
+                                    <td>
+                                      Range used for cell erosion before final polygons are generated. Useful to remove small artifacts.
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      number
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      3
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <th scope="row">
+                                      Output Shapefile
+                                    </th>
+                                    <td>
+                                      Output footprint polygons.
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      SHP
+                                    </td>
+                                    <td  class="d-none d-md-table-cell">
+                                      
+                                    </td>
+                                  </tr>
+                              </tbody>
+                          </table>
+                        </div>
+                        <div class="col-12 col-lg-3 text-center">
+                            <img src="../Images/SLM_IO_CFP.gif" class="" alt="..." style="max-height: 400px; max-width: 100%;">
+                        </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+        </div>
+ 
+        
+        <br><br>
+        <div id="footer"></div>
+        <br><br>
+		<!-- Optional JavaScript -->
         <!-- jQuery first, then Popper.js, then Bootstrap JS -->
         <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
         <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
         <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+        <script> $(function(){ $("#header").load("header.html"); $("#footer").load("footer.html"); }); </script> 
     </div>
   </body>
 </html>
