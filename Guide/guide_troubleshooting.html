@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <title>Tool Documentation</title>
+  </head>
+  <body>
+    <div id="header"></div>
+
+    <div class="text-center text-white pb-2" style="background-color:#262626;">
+        <img src="../Images/SLM_banner.png" class="img-fluid mb-2" alt="..." style="max-height: 130px;">
+        <h1>Troubleshooting</h1>
+    </div>
+
+    <div class="container py-5">        
+
+    <div class="card border-secondary mb-3">
+      <div class="card-header">I can't open the Seismic Line Mapper interface.</div>
+      <div class="card-body text-secondary">
+        <p class="card-text">SLM relies on Python and ArcGIS to work. Make sure you have the latest version of ArcGIS installed. This installation normally includes a version of Python (2.7 or 3).</p>
+      </div>
+    </div>
+        
+    <div class="card border-secondary mb-3">
+      <div class="card-header">Seismic Line Mapper opens but when I run any tool I get an error message.</div>
+      <div class="card-body text-secondary">
+        <p class="card-text">Make sure you have a valid ArcGIS license as well as the spatial analyst extension. You should be able to import <span class="font-italic">arcpy</span> in any Python console without an error message.</p>
+      </div>
+    </div>
+        
+        
+    <div class="card border-secondary mb-3">
+      <div class="card-header">The <span class="font-italic">Canopy Cost Raster</span> tool works but <span class="font-italic">Center Line</span> does not.</div>
+      <div class="card-body text-secondary">
+          <p class="card-text">Try running the <span class="font-italic">Clip Shape By Raster</span> tool first. The input lines must be contained completely within the input raster without any overlap on <span class="font-italic">NoData</span> cells.</p>
+      </div>
+    </div>
+        
+    <div class="card border-secondary mb-3">
+      <div class="card-header">The <span class="font-italic">Center Line</span> tool works but following tools do not.</div>
+      <div class="card-body text-secondary">
+          <p class="card-text">Check that the input lines' attribute table contains a field for their Least Cost Corridor Threshold (LCCT). The default field is named <span class="font-italic">CorridorTh</span>. When running any tools that ask for a corridor threshold field, check that the name is an exact match. Invalid characters such as spaces may cause problems. </p>
+      </div>
+    </div>
+        
+    <div class="card border-secondary mb-3">
+      <div class="card-header">The <span class="font-italic">Line Footprint</span> tool is taking a disproportionately long time to process.</div>
+      <div class="card-body text-secondary">
+          <p class="card-text">Set <span class="font-italic">Process Segments</span> to False. Increase the number of processing cores.</p>
+      </div>
+    </div>
+        
+    <div class="card border-secondary mb-3">
+      <div class="card-header">I get the following error: <span class="font-italic">Cannot get exclusive schema lock</span>.</div>
+      <div class="card-body text-secondary">
+          <p class="card-text">Close the SLM and all ESRI ArcGIS software. Delete all subfolders in the Scripts folder (but not the scripts) before running any tools. Do not run more than one tool at once.</p>
+      </div>
+    </div>
+        
+        
+    </div>
+      
+    <div id="footer"></div>
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.4.1.js"></script>
+    <script> $(function(){ $("#header").load("include_header.html"); $("#footer").load("include_footer.html"); }); </script> 
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+  </body>
+</html>
