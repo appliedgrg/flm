@@ -2,6 +2,7 @@
 #
 # Tooltip.py
 # Script Author: SquareRoot17, retrieved at 01/01/2020 from https://stackoverflow.com/questions/20399243/display-message-when-hovering-over-something-with-mouse-cursor-in-python
+# Modified by Gustavo Lopes Queiroz
 # Date: 2020-Jan-22
 #
 # Purpose: Allows for GUI tooltips when user hovers the cursor over elements

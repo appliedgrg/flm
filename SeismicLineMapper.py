@@ -22,6 +22,22 @@
 #
 # ---------------------------------------------------------------------------
 #
+#    Copyright (C) 2020  Applied Geospatial Research Group
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, version 3.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <https://gnu.org/licenses/gpl-3.0>.
+#
+# ---------------------------------------------------------------------------
+#
 # SeismicLineMapper.py
 # Script Author: Gustavo Lopes Queiroz
 # Date: 2020-Jan-22
@@ -33,6 +49,7 @@
 # GUI is constructed based on calls contained within this script. 
 #
 # ---------------------------------------------------------------------------
+	
 version = ""
 
 class SLM_Tool_GUI:
@@ -141,6 +158,9 @@ else:
 	import Scripts.SLM_GUI_Tools as gui
 	
 	slmc.newLog(version)
-	
+		
+	print("SLM  Copyright (C) 2020  Applied Geospatial Research Group")
+	print("This program comes with ABSOLUTELY NO WARRANTY; This is free software, and you are welcome to redistribute it under certain conditions; See the license file distributed along with this program for details.")
+		
 	main()
 		
