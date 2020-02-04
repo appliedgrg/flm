@@ -1,6 +1,0 @@
-SLM is still in alpha testing and is not yet available to the public.
-Predicted public release is early 2020.
-
-For more information visit https://github.com/appliedgrg/seismic-line-mapper
-
-Contact the Applied Geospatial Research Group at appliedgrg@gmail.com
