@@ -96,7 +96,8 @@
         ga('send', 'event', {
             eventCategory: 'Outbound Link',
             eventAction: 'click',
-            eventLabel: event.target.formaction
+            eventLabel: event.target.formaction,
+            transport: 'beacon'
         });
       }
     </script>  
