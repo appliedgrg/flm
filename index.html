@@ -1,6 +1,16 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-157805465-1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'UA-157805465-1');
+    </script>
+
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -12,14 +22,18 @@
   <body>
     <div id="header"></div>
 
-    <div class="text-center text-white pb-2" style="background-color:#262626;">
+    <div class="text-center text-white p-2" style="background-color:#262626;">
         <img src="Images/SLM_banner.png" class="img-fluid mb-2" alt="..." style="max-height: 130px;">
         <h1>Seismic Line Mapper (SLM) <sup><h2 id="version" class="badge badge-light"></h2></sup></h1>
         <h3>A tool for enhanced delineation and attribution of linear disturbances in forests</h3>
+        
         <p class="font-italic">Copyright &copy; 2020 Applied Geospatial Research Group</p>
+                <div class="row text-center mb-1">
+            <a class = "mx-auto" href="https://zenodo.org/badge/latestdoi/225678777"><img class="mb-2" src="https://zenodo.org/badge/225678777.svg" alt="DOI"></a>
+        </div>
     </div>
 
-    <div class="container py-5">        
+    <div class="container py-5"> 
         <div class="row mx-auto">
             <form class="container-fluid mb-5 mx-auto text-center" method="get" target="_blank">
                 <button type="submit" class="mx-auto mx-sm-1 my-1 btn btn-primary" formaction="https://github.com/appliedgrg/seismic-line-mapper/archive/master.zip">
@@ -30,6 +44,7 @@
                 <button type="submit" class="mx-auto mx-sm-1 my-1 btn btn-success" formaction="https://forms.gle/eXBECeLTnt1gSsWs7">User Feedback <span class="badge badge-light">form</span></button>
             </form>
         </div>
+        
         
         <div class="card-columns">
           <a class="card" href="Guide/guide_about.html">
