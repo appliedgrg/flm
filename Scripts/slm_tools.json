@@ -171,10 +171,10 @@
                         },
                         {
                             "parameter": "Expand And Shrink Cell Range",
-                            "description": "Range used for cell erosion before final polygons are generated. Useful to remove small artifacts.",
+                            "description": "Range used for cell erosion before final polygons are generated. Useful to remove small artifacts.  If the cell size is 1m or larger then set this as zero.",
                             "type": "number",
                             "typelab": "number",
-                            "default": "3",
+                            "default": "0",
                             "output": false
                         },
                         {
@@ -611,10 +611,10 @@
                         },
                         {
                             "parameter": "Expand And Shrink Cell Range",
-                            "description": "Range used for cell erosion before final polygons are generated. Useful to remove small artifacts.",
+                            "description": "Range used for cell erosion before final polygons are generated. Useful to remove small artifacts. If the cell size is 1m or larger then set this as zero.",
                             "type": "number",
                             "typelab": "number",
-                            "default": "3",
+                            "default": "0",
                             "output": false
                         },
                         {

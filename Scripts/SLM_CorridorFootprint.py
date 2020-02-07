@@ -125,11 +125,14 @@ def workLines(lineNo):
 	RasterClass.save(fileThreshold)
 	del RasterCorridor, RasterClass
 	
-	# Process: Expand
-	arcpy.gp.Expand_sa(fileThreshold, fileExpand, Expand_And_Shrink_Cell_Range, "1")
+	if(int(Expand_And_Shrink_Cell_Range)>0):
+		# Process: Expand
+		arcpy.gp.Expand_sa(fileThreshold, fileExpand, Expand_And_Shrink_Cell_Range, "1")
 
-	# Process: Shrink
-	arcpy.gp.Shrink_sa(fileExpand, fileShrink, Expand_And_Shrink_Cell_Range, "1")
+		# Process: Shrink
+		arcpy.gp.Shrink_sa(fileExpand, fileShrink, Expand_And_Shrink_Cell_Range, "1")
+	else:
+		fileShrink = fileThreshold
 	
 	# Process: Boundary Clean
 	arcpy.gp.BoundaryClean_sa(fileShrink, fileClean, "NO_SORT", "TWO_WAY")
