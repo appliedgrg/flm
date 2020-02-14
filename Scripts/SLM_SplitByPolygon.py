@@ -45,18 +45,10 @@ def main():
 	Out_Features = args[2].rstrip()
 
 	# Local variables:
-	OutClip = outWorkspace+"\\SLM_SBP_OutClip.shp"
-	OutErase = outWorkspace+"\\SLM_SBP_OutErase.shp"
-	OutMerge = outWorkspace+"\\SLM_SBP_OutMerge.shp"
+	OutIdentity = outWorkspace+"\\SLM_SBP_OutIdentity.shp"
 	
-	# Process: Clip
-	arcpy.Clip_analysis(Input_Features, Clip_Features, OutClip, "")
-
-	# Process: Erase
-	arcpy.Erase_analysis(Input_Features, Clip_Features, OutErase, "")
-
-	# Process: Merge
-	arcpy.Merge_management([OutClip,OutErase], OutMerge, "")
-
+	# Process: Identity
+	arcpy.Identity_analysis(Input_Features, Clip_Features, OutIdentity, join_attributes="ALL", cluster_tolerance="", relationship="NO_RELATIONSHIPS")
+	
 	# Process: Multipart To Singlepart
-	arcpy.MultipartToSinglepart_management(OutMerge, Out_Features)
+	arcpy.MultipartToSinglepart_management(OutIdentity, Out_Features)

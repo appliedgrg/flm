@@ -159,8 +159,8 @@ else:
 	
 	slmc.newLog(version)
 		
-	print("SLM  Copyright (C) 2020  Applied Geospatial Research Group")
-	print("This program comes with ABSOLUTELY NO WARRANTY; This is free software, and you are welcome to redistribute it under certain conditions; See the license file distributed along with this program for details.")
+	print("-\nSLM  Copyright (C) 2020  Applied Geospatial Research Group")
+	print("This program comes with ABSOLUTELY NO WARRANTY;\nThis is free software, and you are welcome to redistribute it under certain conditions;\nSee the license file distributed along with this program for details.")
 		
 	main()
 		
