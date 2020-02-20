@@ -112,6 +112,14 @@
                             "output": false
                         },
                         {
+                            "parameter": "Process Segments",
+                            "description": "If set to True, will process each segment between each vertex of the input lines separately. If set to False, will process each line from start to end ignoring midpoints. The default is True, since it is assumed that the input lines for this tool are lines manually digitized at regional-scale with sparse vertices at a fine-scale. If using fine-scale (1:1,000) lines as input this may be set to False.",
+                            "type": "bool",
+                            "typelab": "True/False",
+                            "default": "True",
+                            "output": false
+                        },
+                        {
                             "parameter": "Output Center-Line",
                             "description": "Output center-line shapefile.",
                             "type": ".shp",
@@ -235,8 +243,8 @@
                         },
                         {
                             "parameter": "Sampling Type",
-                            "description": "How the input lines are segmented for attribution: WHOLE-LINE, the entire extent of each line is attributed without subdivisions; LINE-CROSSINGS, each line is split at line intersections; ARBITRARY, each line is segmented using an arbitrary length.",
-                            "type": "list:WHOLE-LINE,LINE-CROSSINGS,ARBITRARY",
+                            "description": "How the input lines are segmented for attribution: IN-FEATURES, the input features are attributed without subdivisions; WHOLE-LINE, the entire extent of each line is attributed without subdivisions; LINE-CROSSINGS, each line is split at line intersections; ARBITRARY, each line is segmented using an arbitrary length.",
+                            "type": "list:IN-FEATURES,WHOLE-LINE,LINE-CROSSINGS,ARBITRARY",
                             "typelab": "text",
                             "default": "LINE-CROSSINGS",
                             "output": false
@@ -301,8 +309,8 @@
                         },
                         {
                             "parameter": "Sampling Type",
-                            "description": "How the input lines are segmented for attribution: WHOLE-LINE, the entire extent of each line is attributed without subdivisions; LINE-CROSSINGS, each line is split at line intersections; ARBITRARY, each line is segmented using an arbitrary length.",
-                            "type": "list:WHOLE-LINE,LINE-CROSSINGS,ARBITRARY",
+                            "description": "How the input lines are segmented for attribution: IN-FEATURES, the input features are attributed without subdivisions; WHOLE-LINE, the entire extent of each line is attributed without subdivisions; LINE-CROSSINGS, each line is split at line intersections; ARBITRARY, each line is segmented using an arbitrary length.",
+                            "type": "list:IN-FEATURES,WHOLE-LINE,LINE-CROSSINGS,ARBITRARY",
                             "typelab": "text",
                             "default": "LINE-CROSSINGS",
                             "output": false

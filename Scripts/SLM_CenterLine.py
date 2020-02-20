@@ -45,7 +45,8 @@ args = slmc.GetArgs("SLM_CL_params.txt")
 Seismic_Line_Feature_Class = args[0].rstrip()
 Cost_Raster = args[1].rstrip()
 Line_Processing_Radius = args[2].rstrip()
-Output_Centerline = args[3].rstrip()
+ProcessSegments = args[3].rstrip()=="True"
+Output_Centerline = args[4].rstrip()
 
 def PathFile(path):
 	return path[path.rfind("\\")+1:]
@@ -61,7 +62,6 @@ def workLines(lineNo):
 	fileCostBack = outWorkspace+"\\SLM_CL_CostBack_" + str(lineNo) +".tif"
 	fileCenterLine = outWorkspace +"\\SLM_CL_CenterLine_" + str(lineNo) +".shp"
 
-	
 	# Load segment list
 	segment_list = []
 	rows = arcpy.SearchCursor(fileSeg)
@@ -97,19 +97,22 @@ def workLines(lineNo):
 	xy = (float(x2),float(y2))
 	cursor.insertRow([xy])
 	del cursor
-	
-	# Buffer around line
-	arcpy.Buffer_analysis(fileSeg, fileBuffer, Line_Processing_Radius, "FULL", "ROUND", "NONE", "", "PLANAR")
 
-	# Clip cost raster using buffer
-	DescBuffer = arcpy.Describe(fileBuffer)
-	SearchBox = str(DescBuffer.extent.XMin)+" "+str(DescBuffer.extent.YMin)+" "+str(DescBuffer.extent.XMax)+" "+str(DescBuffer.extent.YMax)
-	arcpy.Clip_management(Cost_Raster, SearchBox, fileClip, fileBuffer, "", "ClippingGeometry", "NO_MAINTAIN_EXTENT")
+	try:
+		# Buffer around line
+		arcpy.Buffer_analysis(fileSeg, fileBuffer, Line_Processing_Radius, "FULL", "ROUND", "NONE", "", "PLANAR")
+
+		# Clip cost raster using buffer
+		DescBuffer = arcpy.Describe(fileBuffer)
+		SearchBox = str(DescBuffer.extent.XMin)+" "+str(DescBuffer.extent.YMin)+" "+str(DescBuffer.extent.XMax)+" "+str(DescBuffer.extent.YMax)
+		arcpy.Clip_management(Cost_Raster, SearchBox, fileClip, fileBuffer, "", "ClippingGeometry", "NO_MAINTAIN_EXTENT")
+		
+		# Least cost path
+		arcpy.gp.CostDistance_sa(fileOrigin, fileClip, fileCostDist, "", fileCostBack, "", "", "", "", "TO_SOURCE")
+		arcpy.gp.CostPathAsPolyline_sa(fileDestination, fileCostDist, fileCostBack, fileCenterLine, "BEST_SINGLE", "")
 	
-	# Least cost path
-	arcpy.gp.CostDistance_sa(fileOrigin, fileClip, fileCostDist, "", fileCostBack, "", "", "", "", "TO_SOURCE")
-	arcpy.gp.CostPathAsPolyline_sa(fileDestination, fileCostDist, fileCostBack, fileCenterLine, "BEST_SINGLE", "")
-	
+	except:
+		print("Problem with line starting at X "+str(x1)+", Y "+str(y1)+"; and ending at X "+str(x1)+", Y "+str(y1)+".")
 	
 	#Clean temporary files
 	arcpy.Delete_management(fileSeg)
@@ -119,14 +122,13 @@ def workLines(lineNo):
 	arcpy.Delete_management(fileClip)
 	arcpy.Delete_management(fileCostDist)
 	arcpy.Delete_management(fileCostBack)
-	
 
 def main():	
 	global outWorkspace
 	outWorkspace = slmc.SetupWorkspace(workspaceName)
 
-	# Prepare input lines for multiprocessing
-	numLines = slmc.SplitLines(Seismic_Line_Feature_Class, outWorkspace, "CL", True)
+	#Prepare input lines for multiprocessing
+	numLines = slmc.SplitLines(Seismic_Line_Feature_Class, outWorkspace, "CL", ProcessSegments)
 	
 	pool = multiprocessing.Pool(processes=slmc.GetCores())
 	slmc.log("Multiprocessing center lines...")
