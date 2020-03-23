@@ -188,78 +188,31 @@ def SplitLines(linesFc, outWorkspace, toolCodename, ProcessSegments, KeepFieldNa
 	Files are placed in outWorkspace, named using toolCodename as a base name.
 	It is possible to transfer one field (KeepFieldName) from the inputs to the outputs."""
 	import arcpy
-	arcpy.env.workspace = outWorkspace
-	
-	rows = arcpy.SearchCursor(linesFc)
-	oid_fieldname = arcpy.Describe(linesFc).OIDFieldName
-	oids = []
-	for row in rows:
-		oids.append(int(row.getValue(oid_fieldname)))
-	
-	SetArgs("SplitLines_params.txt",[linesFc, outWorkspace, toolCodename, ProcessSegments, KeepFieldName])
-	
-	pool = multiprocessing.Pool(processes=GetCores())
-	log("Multiprocessing line setup...")
-	pool.map(workSplit, oids)
-	pool.close()
-	pool.join()
-	
-	#Rename line segments to keep a sequential order
-	shapefiles = arcpy.ListFeatureClasses()
-	line = 0
-	for shp in shapefiles:
-		line += 1
-		segment_fname = "SLM_"+toolCodename +"_Segment_"+ str(line) +".shp"
-		segment_fpath = outWorkspace +"\\"+ segment_fname
-		if arcpy.Exists(segment_fpath):
-			arcpy.Delete_management(segment_fpath)
-		
-		arcpy.Rename_management(shp,segment_fpath)
-	# At this point all lines have been separated into different feature classes located at the scratch workspace
-	numLines = line
-	log("There are " + str(numLines) + " lines to process.")  
-	logStep("Line Setup")
-	return numLines
-
-def workSplit(lineNo):
-	import arcpy
-	
-	# Load arguments from file
-	args = GetArgs("SplitLines_params.txt")
-
-	# Tool arguments
-	linesFc = args[0].rstrip()
-	outWorkspace = args[1].rstrip()
-	toolCodename = args[2].rstrip()
-	ProcessSegments = (args[3].rstrip() == "True")
-	
-	arcpy.env.workspace = outWorkspace
-	
-	#Temporary files
-	fileCopy = outWorkspace +"\\SLM_Split_Copy_" + str(lineNo) +".shp"
-	fileRow = outWorkspace +"\\SLM_Split_Row_" + str(lineNo) +".shp"
-	
-	# Create shapefile for individual line
-	arcpy.CopyFeatures_management(linesFc,fileCopy)
-	oid_fieldname = arcpy.Describe(fileCopy).OIDFieldName
-	arcpy.FeatureClassToFeatureClass_conversion(fileCopy, outWorkspace, PathFileName(fileRow), oid_fieldname+" = "+str(lineNo))
-	
-	if(ProcessSegments == False):
-		arcpy.Delete_management(fileCopy)
-		return True
 	
 	# Create search cursor on input center lines file
 	line = 0
-	rows = arcpy.SearchCursor(fileRow)
+	rows = arcpy.SearchCursor(linesFc)
+	
+	if(type(KeepFieldName)==str):
+		KeepFieldName = [KeepFieldName]
 	
 	#Separates the input feature class into multiple feature classes, each containing a single line, hereby referenced as "segment"
+	log("Lines Setup...")
+	
+	desc = arcpy.Describe(linesFc)
+	fieldDict = {}
+	for field in desc.fields:
+		fieldDict[field.name] = field.type
 
-	desc = arcpy.Describe(fileRow)
 	shapeField = desc.ShapeFieldName
 	del desc
 	
 	for row in rows:
 		feat = row.getValue(shapeField)   #creates a geometry object
+		
+		KeepField = []
+		for fieldName in KeepFieldName:
+			KeepField.append(row.getValue(fieldName))
 			
 		segmentnum = 0
 		for segment in feat: #loops through every segment in a line
@@ -273,31 +226,43 @@ def workSplit(lineNo):
 		
 			for vertexID in range(0, len(segment_list)-1):   #loops through every vertex in the list   #-1 is done so the second last vertex is the start of a segment and the code is within range...
 				line += 1
-				
-				segment_fname = "SLM_"+toolCodename +"_Segment_"+ str(lineNo)+"_"+str(line) +".shp"
+				segment_fname = "SLM_"+toolCodename +"_Segment_"+ str(line) +".shp"
 				segment_fpath = outWorkspace +"\\"+ segment_fname
 				if arcpy.Exists(segment_fpath):
 					arcpy.Delete_management(segment_fpath)
 				
-				#Copy feature class without any of the features (OID < 0 is an SQL expression that returns nothing)
-				arcpy.FeatureClassToFeatureClass_conversion(linesFc,outWorkspace,segment_fname,arcpy.Describe(linesFc).OIDFieldName+" < 0")
+				segmentFC = arcpy.CreateFeatureclass_management(outWorkspace,segment_fname,"POLYLINE","","DISABLED","DISABLED",linesFc)
 				
-				cursor = arcpy.da.InsertCursor(segment_fpath, ["SHAPE@"])
 				
-				array = arcpy.Array()
-				array.add(segment_list[vertexID])
-				array.add(segment_list[vertexID+1])
+				for fieldName in KeepFieldName:
+					if(fieldName in fieldDict):
+						arcpy.AddField_management(outWorkspace+"\\"+segment_fname,fieldName,fieldDict[fieldName])
+				
+				
+				cursor = arcpy.da.InsertCursor(segment_fpath, KeepFieldName+["SHAPE@"])
+					
+				if(ProcessSegments == False):
+					array = arcpy.Array(segment_list)
+				else:
+					array = arcpy.Array()
+					array.add(segment_list[vertexID])
+					array.add(segment_list[vertexID+1])
 				polyline = arcpy.Polyline(array, arcpy.Describe(segment_fpath).spatialReference)
 				
-				cursor.insertRow([polyline])
-				del cursor
+				cursor.insertRow(KeepField+[polyline])
+					
+				del cursor, segmentFC
+				
+				if(ProcessSegments == False):
+					break
+			
 	del rows
+	# At this point all lines have been separated into different feature classes located at the scratch workspace
+	numLines = line
+	log("There are " + str(numLines) + " lines to process.")  
+	logStep("Line Setup")
+	return numLines
 	
-	arcpy.Delete_management(fileCopy)
-	arcpy.Delete_management(fileRow)
-	return True
-	
-
 def SplitFeature (fc, idField, outWorkspace, toolCodename):
 	import arcpy
 	
