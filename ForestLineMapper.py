@@ -8,17 +8,17 @@
 #   First version in Arcpy by Silvia Losada, November 2018
 #   Initial concept by Sarah Cole and Jerome Cranston, May 2018
 #   
-# Citation: Applied Geospatial Research Group, 2020. Seismic Line Mapper: 
+# Citation: Applied Geospatial Research Group, 2020. Forest Line Mapper: 
 # A tool for enhanced delineation and attribution of linear disturbances in 
 # forests.
 #
-# SLM is a series of script tools for facilitating the high-resolution mapping 
-# and studying of seismic lines (petroleum exploration corridors in forested 
+# FLM is a series of script tools for facilitating the high-resolution mapping 
+# and studying of forest lines (petroleum exploration corridors in forested 
 # areas) via processing canopy height models (LiDAR or photogrammetry derived 
 # raster images where pixel-values represent the ground-height of vegetation).
 #
-# Usage: Follow the instructions available in the SLM webpage.
-# Webpage: https://github.com/appliedgrg/seismic-line-mapper
+# Usage: Follow the instructions available in the FLM webpage.
+# Webpage: https://github.com/appliedgrg/flm
 #
 # ---------------------------------------------------------------------------
 #
@@ -38,12 +38,12 @@
 #
 # ---------------------------------------------------------------------------
 #
-# SeismicLineMapper.py
+# ForestLineMapper.py
 # Script Author: Gustavo Lopes Queiroz
 # Date: 2020-Jan-22
 #
-# This script is part of the Seismic Line Mapper (SLM) toolset
-# Webpage: https://github.com/appliedgrg/seismic-line-mapper
+# This script is part of the Forest Line Mapper (FLM) toolset
+# Webpage: https://github.com/appliedgrg/flm
 #
 # Purpose: This script contains the tool names, parameters and decriptions.
 # GUI is constructed based on calls contained within this script. 
@@ -52,7 +52,7 @@
 	
 version = ""
 
-class SLM_Tool_GUI:
+class FLM_Tool_GUI:
 	def __init__(self, title, description, fields, types, tips, defaults, scriptFile, paramPath):
 		self.title = title
 		self.description = description
@@ -100,18 +100,18 @@ class SLM_Tool_GUI:
 				
 def main():
 
-	with open(scriptPath+"\\Scripts\\slm_tools.json") as json_file:
+	with open(scriptPath+"\\Scripts\\flm_tools.json") as json_file:
 		tools_json = json.load(json_file)
 		
-	SLM_tbx_name = []
-	SLM_tbx_len = []
-	SLM_tbx_desc = []
-	SLM_tools = []
+	FLM_tbx_name = []
+	FLM_tbx_len = []
+	FLM_tbx_desc = []
+	FLM_tools = []
 	
 	for tbx in tools_json["toolbox"]:
-		SLM_tbx_name.append(tbx["category"])
-		SLM_tbx_len.append(len(tbx["tools"]))
-		SLM_tbx_desc.append(tbx["description"])
+		FLM_tbx_name.append(tbx["category"])
+		FLM_tbx_len.append(len(tbx["tools"]))
+		FLM_tbx_desc.append(tbx["description"])
 		for tool in tbx["tools"]:
 			fields = []
 			types = []
@@ -122,13 +122,13 @@ def main():
 				types.append(param["type"])
 				tips.append(param["description"])
 				defaults.append(param["default"])
-			SLM_tools.append(SLM_Tool_GUI(tool["name"], tool["info"], fields, types, tips, defaults, tool["scriptFile"], scriptPath+tool["paramFile"]))
+			FLM_tools.append(FLM_Tool_GUI(tool["name"], tool["info"], fields, types, tips, defaults, tool["scriptFile"], scriptPath+tool["paramFile"]))
 	
 	exit = False
 	try:
-		exit = gui.main(version,SLM_tools,2,2,SLM_tbx_len,SLM_tbx_name,SLM_tbx_desc)
+		exit = gui.main(version,FLM_tools,2,2,FLM_tbx_len,FLM_tbx_name,FLM_tbx_desc)
 	except Exception as e: 
-		slmc.log(e.message)
+		flmc.log(e.message)
 	if(exit == False):
 		try:
 			input("\n<Press any key to exit>")
@@ -137,29 +137,29 @@ def main():
 		
 if __name__ != '__main__':
 	#If script is one of the child processes (multiprocessing) load associated scripts (otherwise parallel processing is avoided)
-	import Scripts.SLM_CenterLine
-	import Scripts.SLM_LineFootprint
-	import Scripts.SLM_Corridor
-	import Scripts.SLM_CorridorFootprint
-	import Scripts.SLM_ZonalThreshold
-	import Scripts.SLM_SeismicLineAttributes
+	import Scripts.FLM_CenterLine
+	import Scripts.FLM_LineFootprint
+	import Scripts.FLM_Corridor
+	import Scripts.FLM_CorridorFootprint
+	import Scripts.FLM_ZonalThreshold
+	import Scripts.FLM_ForestLineAttributes
 else:
 	#If script is main process, load and show GUI
 	import os
 	scriptPath = os.path.dirname(os.path.realpath(__file__))
 	
-	vfile = open(scriptPath+"\\Scripts\\SLM_VERSION","r")
+	vfile = open(scriptPath+"\\Scripts\\FLM_VERSION","r")
 	args = vfile.readlines()
 	vfile.close()
 	version = args[0]
 
 	import json
-	import Scripts.SLM_Common as slmc
-	import Scripts.SLM_GUI_Tools as gui
+	import Scripts.FLM_Common as flmc
+	import Scripts.FLM_GUI_Tools as gui
 	
-	slmc.newLog(version)
+	flmc.newLog(version)
 		
-	print("-\nSLM  Copyright (C) 2020  Applied Geospatial Research Group")
+	print("-\nFLM  Copyright (C) 2020  Applied Geospatial Research Group")
 	print("This program comes with ABSOLUTELY NO WARRANTY;\nThis is free software, and you are welcome to redistribute it under certain conditions;\nSee the license file distributed along with this program for details.")
 		
 	main()
