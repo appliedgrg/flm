@@ -15,12 +15,12 @@
 #
 # ---------------------------------------------------------------------------
 #
-# SLM_LineFootprint.py
+# FLM_LineFootprint.py
 # Script Author: Gustavo Lopes Queiroz
 # Date: 2020-Jan-22
 #
-# This script is part of the Seismic Line Mapper (SLM) toolset
-# Webpage: https://github.com/appliedgrg/seismic-line-mapper
+# This script is part of the Forest Line Mapper (FLM) toolset
+# Webpage: https://github.com/appliedgrg/flm
 #
 # Purpose: Creates footprint polygons for each input line based on a least 
 # cost corridor method and individual line thresholds.
@@ -31,16 +31,16 @@ import multiprocessing
 import arcpy
 from arcpy.sa import *
 arcpy.CheckOutExtension("Spatial")
-from . import SLM_Common as slmc
+from . import FLM_Common as flmc
 
 # Setup script path and workspace folder
-workspaceName = "SLM_LFP_output"
-outWorkspace = slmc.GetWorkspace(workspaceName)
+workspaceName = "FLM_LFP_output"
+outWorkspace = flmc.GetWorkspace(workspaceName)
 arcpy.env.workspace = outWorkspace
 arcpy.env.overwriteOutput = True
 
 # Load arguments from file
-args = slmc.GetArgs("SLM_LFP_params.txt")
+args = flmc.GetArgs("FLM_LFP_params.txt")
 
 # Tool arguments
 Centerline_Feature_Class = args[0].rstrip()
@@ -57,21 +57,21 @@ def PathFile(path):
 	
 def workLines(lineNo):
 	#Temporary files
-	fileSeg = outWorkspace +"\\SLM_LFP_Segment_" + str(lineNo) +".shp"
-	fileOrigin = outWorkspace +"\\SLM_LFP_Origin_" + str(lineNo) +".shp"
-	fileDestination = outWorkspace +"\\SLM_LFP_Destination_" + str(lineNo) +".shp"
-	fileBuffer = outWorkspace +"\\SLM_LFP_Buffer_" + str(lineNo) +".shp"
-	fileClip = outWorkspace+"\\SLM_LFP_Clip_" + str(lineNo) +".tif"
-	fileCostDa = outWorkspace+"\\SLM_LFP_CostDa_" + str(lineNo) +".tif"
-	fileCostDb = outWorkspace+"\\SLM_LFP_CostDb_" + str(lineNo) +".tif"
-	fileCorridor = outWorkspace+"\\SLM_LFP_Corridor_" + str(lineNo) +".tif"
-	fileCorridorMin = outWorkspace+"\\SLM_LFP_CorridorMin_" + str(lineNo) +".tif"
-	fileThreshold = outWorkspace+"\\SLM_LFP_Threshold_" + str(lineNo) +".tif"
-	fileExpand = outWorkspace+"\\SLM_LFP_Expand_" + str(lineNo) +".tif"
-	fileShrink = outWorkspace+"\\SLM_LFP_Shrink_" + str(lineNo) +".tif"
-	fileClean = outWorkspace+"\\SLM_LFP_Clean_" + str(lineNo) +".tif"
-	fileNull = outWorkspace+"\\SLM_LFP_Null_" + str(lineNo) +".tif"
-	fileFootprint = outWorkspace +"\\SLM_LFP_Footprint_" + str(lineNo) +".shp"
+	fileSeg = outWorkspace +"\\FLM_LFP_Segment_" + str(lineNo) +".shp"
+	fileOrigin = outWorkspace +"\\FLM_LFP_Origin_" + str(lineNo) +".shp"
+	fileDestination = outWorkspace +"\\FLM_LFP_Destination_" + str(lineNo) +".shp"
+	fileBuffer = outWorkspace +"\\FLM_LFP_Buffer_" + str(lineNo) +".shp"
+	fileClip = outWorkspace+"\\FLM_LFP_Clip_" + str(lineNo) +".tif"
+	fileCostDa = outWorkspace+"\\FLM_LFP_CostDa_" + str(lineNo) +".tif"
+	fileCostDb = outWorkspace+"\\FLM_LFP_CostDb_" + str(lineNo) +".tif"
+	fileCorridor = outWorkspace+"\\FLM_LFP_Corridor_" + str(lineNo) +".tif"
+	fileCorridorMin = outWorkspace+"\\FLM_LFP_CorridorMin_" + str(lineNo) +".tif"
+	fileThreshold = outWorkspace+"\\FLM_LFP_Threshold_" + str(lineNo) +".tif"
+	fileExpand = outWorkspace+"\\FLM_LFP_Expand_" + str(lineNo) +".tif"
+	fileShrink = outWorkspace+"\\FLM_LFP_Shrink_" + str(lineNo) +".tif"
+	fileClean = outWorkspace+"\\FLM_LFP_Clean_" + str(lineNo) +".tif"
+	fileNull = outWorkspace+"\\FLM_LFP_Null_" + str(lineNo) +".tif"
+	fileFootprint = outWorkspace +"\\FLM_LFP_Footprint_" + str(lineNo) +".shp"
 	
 	# Load segment list
 	segment_list = []
@@ -181,31 +181,31 @@ def HasField(fc, fi):
 	
 def main():
 	global outWorkspace
-	outWorkspace = slmc.SetupWorkspace(workspaceName)
+	outWorkspace = flmc.SetupWorkspace(workspaceName)
 
 	if(HasField(Centerline_Feature_Class, Corridor_Threshold_Field) == False):
-		slmc.log("ERROR: There is no field named "+Corridor_Threshold_Field+" in the input lines")
+		flmc.log("ERROR: There is no field named "+Corridor_Threshold_Field+" in the input lines")
 		return False
 
 	# Prepare input lines for multiprocessing
-	numLines = slmc.SplitLines(Centerline_Feature_Class, outWorkspace, "LFP", ProcessSegments, Corridor_Threshold_Field)
+	numLines = flmc.SplitLines(Centerline_Feature_Class, outWorkspace, "LFP", ProcessSegments, Corridor_Threshold_Field)
 	
-	pool = multiprocessing.Pool(processes=slmc.GetCores())
-	slmc.log("Multiprocessing line corridors...")
+	pool = multiprocessing.Pool(processes=flmc.GetCores())
+	flmc.log("Multiprocessing line corridors...")
 	pool.map(workLines, range(1,numLines+1))
 	pool.close()
 	pool.join()
-	slmc.logStep("Corridor multiprocessing")
+	flmc.logStep("Corridor multiprocessing")
 	
-	slmc.log("Merging footprint layers...")
+	flmc.log("Merging footprint layers...")
 	tempShapefiles = arcpy.ListFeatureClasses()
-	fileMerge = outWorkspace +"\\SLM_LFP_Merge.shp"
+	fileMerge = outWorkspace +"\\FLM_LFP_Merge.shp"
 	arcpy.Merge_management(tempShapefiles,fileMerge)
 	arcpy.Dissolve_management(fileMerge,Output_Footprint)
 	for shp in tempShapefiles:
 		arcpy.Delete_management(shp)
 	arcpy.Delete_management(fileMerge)
-	slmc.logStep("Merging")
+	flmc.logStep("Merging")
 	
 if __name__ == '__main__':
 	try:

@@ -15,14 +15,14 @@
 #
 # ---------------------------------------------------------------------------
 #
-# SLM_Common.py
+# FLM_Common.py
 # Script Author: Gustavo Lopes Queiroz
 # Date: 2020-Jan-22
 #
-# This script is part of the Seismic Line Mapper (SLM) toolset
-# Webpage: https://github.com/appliedgrg/seismic-line-mapper
+# This script is part of the Forest Line Mapper (FLM) toolset
+# Webpage: https://github.com/appliedgrg/flm
 #
-# Purpose: This script contains common functions used by many SLM tools.
+# Purpose: This script contains common functions used by many FLM tools.
 # Many functions are dedicated to setting up workspace and logging text.
 # Of special importance is the SplitLines function which prepares an
 # input polyline shapefile for multiprocessing.
@@ -85,7 +85,7 @@ def newLog(version):
 	text_file = open(r"log.txt","a")
 	text_file.write("\n\n###\n\n\n")
 	text_file.close() 
-	log("Seismic Line Mapper v. "+str(version))
+	log("Forest Line Mapper v. "+str(version))
 	log("Python "+str(sys.version))
 	log("Time: "+time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.localtime()))
 	del text_file
@@ -226,7 +226,7 @@ def SplitLines(linesFc, outWorkspace, toolCodename, ProcessSegments, KeepFieldNa
 		
 			for vertexID in range(0, len(segment_list)-1):   #loops through every vertex in the list   #-1 is done so the second last vertex is the start of a segment and the code is within range...
 				line += 1
-				segment_fname = "SLM_"+toolCodename +"_Segment_"+ str(line) +".shp"
+				segment_fname = "FLM_"+toolCodename +"_Segment_"+ str(line) +".shp"
 				segment_fpath = outWorkspace +"\\"+ segment_fname
 				if arcpy.Exists(segment_fpath):
 					arcpy.Delete_management(segment_fpath)
@@ -280,7 +280,7 @@ def SplitFeature (fc, idField, outWorkspace, toolCodename):
 		feat = row.getValue(shapeField)   #creates a geometry object
 		name = row.getValue(idField)   #creates a geometry object
 		
-		segment_fname = "SLM_"+toolCodename +"_Split_"+ str(name) +".shp"
+		segment_fname = "FLM_"+toolCodename +"_Split_"+ str(name) +".shp"
 		segment_fpath = outWorkspace +"\\"+ segment_fname
 		if arcpy.Exists(segment_fpath):
 			arcpy.Delete_management(segment_fpath)

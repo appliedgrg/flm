@@ -15,14 +15,14 @@
 #
 # ---------------------------------------------------------------------------
 #
-# SLM_GUI_Tools.py
+# FLM_GUI_Tools.py
 # Script Author: Gustavo Lopes Queiroz
 # Date: 2020-Jan-22
 #
-# This script is part of the Seismic Line Mapper (SLM) toolset
-# Webpage: https://github.com/appliedgrg/seismic-line-mapper
+# This script is part of the Forest Line Mapper (FLM) toolset
+# Webpage: https://github.com/appliedgrg/flm
 #
-# Purpose: Handles the GUI construction and interaction for SLM tools.
+# Purpose: Handles the GUI construction and interaction for FLM tools.
 #
 # ---------------------------------------------------------------------------
 
@@ -41,16 +41,16 @@ import importlib
 import webbrowser
 import multiprocessing
 from . import Tooltip as ttp
-from . import SLM_Common as slmc
+from . import FLM_Common as flmc
 
     
 # Initialize GUI
 scriptPath = os.path.dirname(os.path.realpath(__file__))
 master = tk.Tk()
-master.title("Seismic Line Mapper")
+master.title("Forest Line Mapper")
 minWidth = 420
 master.minsize(minWidth, 320)
-help_url = "http://slm.beraproject.org/"
+help_url = "http://flm.beraproject.org/"
 fontHeader = 'Helvetica 12 bold'
 fontText = 'Helvetica 10'
 fontBold = 'Helvetica 10 bold'
@@ -60,13 +60,13 @@ def RunTool():
 	master.destroy()
 	print("Initializing arcpy and other script dependencies...")
 	scriptTool = importlib.import_module(currentTool.scriptFile)
-	slmc.logStart(currentTool)
+	flmc.logStart(currentTool)
 	try:
 		r = scriptTool.main()
 		if(r != False):
-			slmc.logEnd(currentTool)
+			flmc.logEnd(currentTool)
 	except Exception as e: 
-		slmc.log("\n".join(e.args))
+		flmc.log("\n".join(e.args))
 
 def ToolDefaults():
 	currentTool.SetDefaults()
@@ -152,7 +152,7 @@ def ToolSetup( toolScreen, title, description, fields, types, tips, toolScript, 
 
 def OpenScreen( toolObj, screen ):
 	#Save cores
-	slmc.SetCores(mpc.get())
+	flmc.SetCores(mpc.get())
 	#Close tool selection screen
 	toolSelection.pack_forget()
 	#Close other tool screens
@@ -177,7 +177,7 @@ def BackToSelection():
 # GLOBAL VARS
 # Header image 
 rowHead = tk.Frame(master)
-photo = tk.PhotoImage(file=scriptPath+"//..//Images//SLM_banner.gif")
+photo = tk.PhotoImage(file=scriptPath+"//..//Images//FLM_banner.gif")
 header = tk.Label(rowHead,image=photo)
 header.image = photo # keep a reference!
 header.pack(side=tk.TOP)
@@ -196,9 +196,9 @@ userExit = False
 def main( version, tools, cols, rows, binSizes, binNames, binTips ):
 	"""Creates tool selection screen and handles GUI loop"""
 	
-	master.title("Seismic Line Mapper v."+str(version))
-	#SLM Header
-	lab = tk.Label(toolSelection, text="Seismic Line Mapper", font=fontHeader)
+	master.title("Forest Line Mapper v."+str(version))
+	#FLM Header
+	lab = tk.Label(toolSelection, text="Forest Line Mapper", font=fontHeader)
 	lab.pack(side=tk.TOP, fill=tk.X, padx=5, pady=0)
 	lab = tk.Label(toolSelection, text="A toolset for enhanced delineation and attribution of linear disturbances in forests. Copyright (C) 2019 Applied Geospatial Research Group.", font=fontText, wraplength = minWidth, justify=tk.LEFT)
 	lab.pack(side=tk.TOP, fill=tk.X, padx=5, pady=0)
@@ -255,12 +255,12 @@ def main( version, tools, cols, rows, binSizes, binNames, binTips ):
 	# Multiprocessing cores
 	row = tk.Frame(toolSelection)
 	lab = tk.Label(row, text="Multiprocessing Cores")
-	ttp.CreateToolTip(lab,"The number of CPU cores to be used in parallel processes. Not all SLM tools use multiprocessing.\nFor the most part a larger number of cores will decrease processing time. Small application \nareas (<100 hectares) may work best with a smaller number of cores.")
+	ttp.CreateToolTip(lab,"The number of CPU cores to be used in parallel processes. Not all FLM tools use multiprocessing.\nFor the most part a larger number of cores will decrease processing time. Small application \nareas (<100 hectares) may work best with a smaller number of cores.")
 	lab.pack(side=tk.LEFT, padx=5, pady=0)
 	global mpc
 	maxCores = multiprocessing.cpu_count()
 	mpc = tk.Scale(row, from_=1, to=maxCores, orient="horizontal")
-	mpc.set(slmc.GetCores())
+	mpc.set(flmc.GetCores())
 	mpc.pack(side=tk.TOP, fill=tk.X, padx=5, pady=0)
 	row.pack(side=tk.TOP, fill=tk.X, padx=5, pady=10)
 	

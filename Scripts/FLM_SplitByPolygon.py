@@ -15,12 +15,12 @@
 #
 # ---------------------------------------------------------------------------
 #
-# SLM_SplitByPolygon.py
+# FLM_SplitByPolygon.py
 # Script Author: Gustavo Lopes Queiroz
 # Date: 2020-Jan-22
 #
-# This script is part of the Seismic Line Mapper (SLM) toolset
-# Webpage: https://github.com/appliedgrg/seismic-line-mapper
+# This script is part of the Forest Line Mapper (FLM) toolset
+# Webpage: https://github.com/appliedgrg/flm
 #
 # Purpose: Splits the input lines where they intersect the edges of the input
 # polygons
@@ -28,16 +28,16 @@
 # ---------------------------------------------------------------------------
 
 import arcpy
-from . import SLM_Common as slmc
+from . import FLM_Common as flmc
 
 def main():
 	# Setup script path and workspace folder
-	outWorkspace = slmc.SetupWorkspace("SLM_SBP_output")
+	outWorkspace = flmc.SetupWorkspace("FLM_SBP_output")
 	arcpy.env.workspace = outWorkspace
 	arcpy.env.overwriteOutput = True
 	
 	# Load arguments from file
-	args = slmc.GetArgs("SLM_SBP_params.txt")
+	args = flmc.GetArgs("FLM_SBP_params.txt")
 	
 	# Tool arguments
 	Input_Features = args[0].rstrip()
@@ -45,7 +45,7 @@ def main():
 	Out_Features = args[2].rstrip()
 
 	# Local variables:
-	OutIdentity = outWorkspace+"\\SLM_SBP_OutIdentity.shp"
+	OutIdentity = outWorkspace+"\\FLM_SBP_OutIdentity.shp"
 	
 	# Process: Identity
 	arcpy.Identity_analysis(Input_Features, Clip_Features, OutIdentity, join_attributes="ALL", cluster_tolerance="", relationship="NO_RELATIONSHIPS")

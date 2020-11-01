@@ -15,12 +15,12 @@
 #
 # ---------------------------------------------------------------------------
 #
-# SLM_ZonalThreshold.py
+# FLM_ZonalThreshold.py
 # Script Author: Gustavo Lopes Queiroz
 # Date: 2020-Jan-22
 #
-# This script is part of the Seismic Line Mapper (SLM) toolset
-# Webpage: https://github.com/appliedgrg/seismic-line-mapper
+# This script is part of the Forest Line Mapper (FLM) toolset
+# Webpage: https://github.com/appliedgrg/flm
 #
 # Purpose: Assigns corridor thresholds to the input lines based on their 
 # surrounding canopy density
@@ -31,16 +31,16 @@ import multiprocessing
 import arcpy
 from arcpy.sa import *
 arcpy.CheckOutExtension("Spatial")
-from . import SLM_Common as slmc
+from . import FLM_Common as flmc
 
 # Setup script path and workspace folder
-workspaceName = "SLM_ZT_output"
-outWorkspace = slmc.GetWorkspace(workspaceName)
+workspaceName = "FLM_ZT_output"
+outWorkspace = flmc.GetWorkspace(workspaceName)
 arcpy.env.workspace = outWorkspace
 arcpy.env.overwriteOutput = True
 
 # Load arguments from file
-args = slmc.GetArgs("SLM_ZT_params.txt")
+args = flmc.GetArgs("FLM_ZT_params.txt")
 
 # Tool arguments
 Input_Feature_Class = args[0].rstrip()
@@ -55,9 +55,9 @@ OutputLines = args[6].rstrip()
 
 def workLines(lineNo):
 	#Temporary files
-	fileSeg = outWorkspace +"\\SLM_ZT_Segment_" + str(lineNo) +".shp"
-	fileBuffer = outWorkspace +"\\SLM_ZT_Buffer_" + str(lineNo) +".shp"
-	fileZonal = outWorkspace +"\\SLM_ZT_Zonal_" + str(lineNo) +".dbf"
+	fileSeg = outWorkspace +"\\FLM_ZT_Segment_" + str(lineNo) +".shp"
+	fileBuffer = outWorkspace +"\\FLM_ZT_Buffer_" + str(lineNo) +".shp"
+	fileZonal = outWorkspace +"\\FLM_ZT_Zonal_" + str(lineNo) +".dbf"
 
 	arcpy.Buffer_analysis(fileSeg, fileBuffer, Canopy_Search_Radius, "FULL", "ROUND", "NONE", "", "PLANAR")	
 
@@ -96,26 +96,26 @@ def workLines(lineNo):
 
 def main():	
 	global outWorkspace
-	outWorkspace = slmc.SetupWorkspace(workspaceName)
+	outWorkspace = flmc.SetupWorkspace(workspaceName)
 
 	# Prepare input lines for multiprocessing
-	numLines = slmc.SplitLines(Input_Feature_Class, outWorkspace, "ZT", False, ThresholdField)
+	numLines = flmc.SplitLines(Input_Feature_Class, outWorkspace, "ZT", False, ThresholdField)
 	
-	pool = multiprocessing.Pool(processes=slmc.GetCores())
-	slmc.log("Multiprocessing line zonal thresholds...")
+	pool = multiprocessing.Pool(processes=flmc.GetCores())
+	flmc.log("Multiprocessing line zonal thresholds...")
 	pool.map(workLines, range(1,numLines+1))
 	pool.close()
 	pool.join()
 	
-	slmc.logStep("Line multiprocessing")
+	flmc.logStep("Line multiprocessing")
 	
-	slmc.log("Merging layers...")
+	flmc.log("Merging layers...")
 	tempShapefiles = arcpy.ListFeatureClasses()
 	
 	arcpy.Merge_management(tempShapefiles,OutputLines)
 
 
-	slmc.logStep("Merge")
+	flmc.logStep("Merge")
 		
 	for shp in tempShapefiles:
 		arcpy.Delete_management(shp)

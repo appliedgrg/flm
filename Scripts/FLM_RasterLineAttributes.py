@@ -15,12 +15,12 @@
 #
 # ---------------------------------------------------------------------------
 #
-# SLM_RasterLineAttributes.py
+# FLM_RasterLineAttributes.py
 # Script Author: Gustavo Lopes Queiroz
 # Date: 2020-Jan-22
 #
-# This script is part of the Seismic Line Mapper (SLM) toolset
-# Webpage: https://github.com/appliedgrg/seismic-line-mapper
+# This script is part of the Forest Line Mapper (FLM) toolset
+# Webpage: https://github.com/appliedgrg/flm
 #
 # Purpose: Samples a raster image along lines and assigns cell statistics to 
 # each line
@@ -31,17 +31,17 @@
 import arcpy
 from arcpy.sa import *
 arcpy.CheckOutExtension("Spatial")
-from . import SLM_Common as slmc
-from . import SLM_Attribute_Functions as slma
+from . import FLM_Common as flmc
+from . import FLM_Attribute_Functions as flma
 
 def main():
 	# Setup script path and output folder
-	outWorkspace = slmc.SetupWorkspace("SLM_RLA_output")
+	outWorkspace = flmc.SetupWorkspace("FLM_RLA_output")
 	arcpy.env.workspace = outWorkspace
 	arcpy.env.overwriteOutput = True
 	
 	# Load arguments from file
-	args = slmc.GetArgs("SLM_RLA_params.txt")
+	args = flmc.GetArgs("FLM_RLA_params.txt")
 			
 	# Tool arguments
 	Input_Lines = args[0].rstrip()
@@ -54,29 +54,29 @@ def main():
 	Attributed_Segments = args[7].rstrip()
 
 	# Local variables:
-	SLM_RLA_Measure_Points = outWorkspace+"\\SLM_RLA_Measure_Points.shp"
-	SLM_RLA_Attributed_Points = outWorkspace+"\\SLM_RLA_Attributed_Points.shp"
+	FLM_RLA_Measure_Points = outWorkspace+"\\FLM_RLA_Measure_Points.shp"
+	FLM_RLA_Attributed_Points = outWorkspace+"\\FLM_RLA_Attributed_Points.shp"
 
-	slmc.log("Generating sample points along lines...")
-	arcpy.GeneratePointsAlongLines_management(Input_Lines, SLM_RLA_Measure_Points, "DISTANCE", Measure_Interval, "", "")
-	slmc.logStep("Spawning sample points")
+	flmc.log("Generating sample points along lines...")
+	arcpy.GeneratePointsAlongLines_management(Input_Lines, FLM_RLA_Measure_Points, "DISTANCE", Measure_Interval, "", "")
+	flmc.logStep("Spawning sample points")
 
-	slmc.log("Extracting raster values at sample points...")
-	arcpy.gp.ExtractValuesToPoints_sa(SLM_RLA_Measure_Points, Input_Raster, SLM_RLA_Attributed_Points)
-	slmc.logStep("Raster sampling")
+	flmc.log("Extracting raster values at sample points...")
+	arcpy.gp.ExtractValuesToPoints_sa(FLM_RLA_Measure_Points, Input_Raster, FLM_RLA_Attributed_Points)
+	flmc.logStep("Raster sampling")
 
 	# Find RASTERVALU field and set user defined sampling (merge) method
 	fieldmappings = arcpy.FieldMappings()
-	fieldmappings.addTable(SLM_RLA_Attributed_Points)
+	fieldmappings.addTable(FLM_RLA_Attributed_Points)
 	RastervaluIndex = fieldmappings.findFieldMapIndex("RASTERVALU")
 	fieldmap = fieldmappings.getFieldMap(RastervaluIndex)
 	fieldmap.mergeRule = Sampling_Method #Set sampling method (Mean, Minimum, Maximum, Standard Deviation, Etc..)
 	fieldmappings = arcpy.FieldMappings()
 	fieldmappings.addFieldMap (fieldmap)
 
-	slmc.log("Splitting lines...")
-	SLM_RLA_Segmented_Lines = slma.SlmLineSplit(outWorkspace,Input_Lines,SamplingType,Segment_Length,Tolerance_Radius)
-	slmc.logStep("Line split")
+	flmc.log("Splitting lines...")
+	FLM_RLA_Segmented_Lines = flma.FlmLineSplit(outWorkspace,Input_Lines,SamplingType,Segment_Length,Tolerance_Radius)
+	flmc.logStep("Line split")
 
-	slmc.log("Generating raster statistics along line segments")
-	arcpy.SpatialJoin_analysis(SLM_RLA_Segmented_Lines, SLM_RLA_Attributed_Points, Attributed_Segments, "JOIN_ONE_TO_ONE", "KEEP_COMMON", fieldmappings, "INTERSECT", Tolerance_Radius, "")
+	flmc.log("Generating raster statistics along line segments")
+	arcpy.SpatialJoin_analysis(FLM_RLA_Segmented_Lines, FLM_RLA_Attributed_Points, Attributed_Segments, "JOIN_ONE_TO_ONE", "KEEP_COMMON", fieldmappings, "INTERSECT", Tolerance_Radius, "")

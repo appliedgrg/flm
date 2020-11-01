@@ -15,12 +15,12 @@
 #
 # ---------------------------------------------------------------------------
 #
-# SLM_Corridor.py
+# FLM_Corridor.py
 # Script Author: Gustavo Lopes Queiroz
 # Date: 2020-Jan-22
 #
-# This script is part of the Seismic Line Mapper (SLM) toolset
-# Webpage: https://github.com/appliedgrg/seismic-line-mapper
+# This script is part of the Forest Line Mapper (FLM) toolset
+# Webpage: https://github.com/appliedgrg/flm
 #
 # Purpose: Creates a least cost corridor raster between vertices of the input
 # lines. This step can be skipped with the 'Line Footprint' tool.
@@ -32,17 +32,17 @@ import multiprocessing
 import arcpy
 from arcpy.sa import *
 arcpy.CheckOutExtension("Spatial")
-from . import SLM_Common as slmc
+from . import FLM_Common as flmc
 import math
 
 # Setup script path and workspace folder
-workspaceName = "SLM_CO_output"
-outWorkspace = slmc.GetWorkspace(workspaceName)
+workspaceName = "FLM_CO_output"
+outWorkspace = flmc.GetWorkspace(workspaceName)
 arcpy.env.workspace = outWorkspace
 arcpy.env.overwriteOutput = True
 
 # Load arguments from file
-args = slmc.GetArgs("SLM_CO_params.txt")
+args = flmc.GetArgs("FLM_CO_params.txt")
 
 # Tool arguments
 Centerline_Feature_Class = args[0].rstrip()
@@ -57,15 +57,15 @@ def PathFile(path):
 	
 def workLines(lineNo):
 	#Temporary files
-	fileSeg = outWorkspace +"\\SLM_CO_Segment_" + str(lineNo) +".shp"
-	fileOrigin = outWorkspace +"\\SLM_CO_Origin_" + str(lineNo) +".shp"
-	fileDestination = outWorkspace +"\\SLM_CO_Destination_" + str(lineNo) +".shp"
-	fileBuffer = outWorkspace +"\\SLM_CO_Buffer_" + str(lineNo) +".shp"
-	fileClip = outWorkspace+"\\SLM_CO_Clip_" + str(lineNo) +".tif"
-	fileCostDa = outWorkspace+"\\SLM_CO_CostDa_" + str(lineNo) +".tif"
-	fileCostDb = outWorkspace+"\\SLM_CO_CostDb_" + str(lineNo) +".tif"
-	fileCorridor = outWorkspace+"\\SLM_CO_Corridor_" + str(lineNo) +".tif"
-	fileCorridorMin = outWorkspace+"\\SLM_CO_CorridorMin_" + str(lineNo) +".tif"
+	fileSeg = outWorkspace +"\\FLM_CO_Segment_" + str(lineNo) +".shp"
+	fileOrigin = outWorkspace +"\\FLM_CO_Origin_" + str(lineNo) +".shp"
+	fileDestination = outWorkspace +"\\FLM_CO_Destination_" + str(lineNo) +".shp"
+	fileBuffer = outWorkspace +"\\FLM_CO_Buffer_" + str(lineNo) +".shp"
+	fileClip = outWorkspace+"\\FLM_CO_Clip_" + str(lineNo) +".tif"
+	fileCostDa = outWorkspace+"\\FLM_CO_CostDa_" + str(lineNo) +".tif"
+	fileCostDb = outWorkspace+"\\FLM_CO_CostDb_" + str(lineNo) +".tif"
+	fileCorridor = outWorkspace+"\\FLM_CO_Corridor_" + str(lineNo) +".tif"
+	fileCorridorMin = outWorkspace+"\\FLM_CO_CorridorMin_" + str(lineNo) +".tif"
 	
 	
 	# Load segment list
@@ -140,10 +140,10 @@ def workLines(lineNo):
 	
 def workMerge(workerNo):
 	# Worker 1 will merge files 1 and 2; worker 2 will merge files 3 and 4; and so on...
-	fileCorridorMinA = outWorkspace+"\\SLM_CO_CorridorMin_" + str(workerNo*2-1) +".tif"
-	fileCorridorMinB = outWorkspace+"\\SLM_CO_CorridorMin_" + str(workerNo*2) +".tif"
+	fileCorridorMinA = outWorkspace+"\\FLM_CO_CorridorMin_" + str(workerNo*2-1) +".tif"
+	fileCorridorMinB = outWorkspace+"\\FLM_CO_CorridorMin_" + str(workerNo*2) +".tif"
 	# Add an underline at the end of the name, so that it does not overwrite an existing file
-	outMergeName = outWorkspace+"\\SLM_CO_CorridorMin_" + str(workerNo) +"_.tif"
+	outMergeName = outWorkspace+"\\FLM_CO_CorridorMin_" + str(workerNo) +"_.tif"
 	if arcpy.Exists(fileCorridorMinB):
 		arcpy.MosaicToNewRaster_management([fileCorridorMinA,fileCorridorMinB],outWorkspace,PathFile(outMergeName), "", "32_BIT_FLOAT", "", "1", "MINIMUM", "MATCH")
 		#Clean old files
@@ -161,18 +161,18 @@ def renameMergedFiles(fileWorkspace):
 
 def main():
 	global outWorkspace
-	outWorkspace = slmc.SetupWorkspace(workspaceName)
+	outWorkspace = flmc.SetupWorkspace(workspaceName)
 
 	# Prepare input lines for multiprocessing
-	numLines = slmc.SplitLines(Centerline_Feature_Class, outWorkspace, "CO", ProcessSegments)
+	numLines = flmc.SplitLines(Centerline_Feature_Class, outWorkspace, "CO", ProcessSegments)
 	
-	pool = multiprocessing.Pool(processes=slmc.GetCores())
-	slmc.log("Multiprocessing line corridors...")
+	pool = multiprocessing.Pool(processes=flmc.GetCores())
+	flmc.log("Multiprocessing line corridors...")
 	pool.map(workLines, range(1,numLines+1))
 	pool.close()
 	pool.join()
 	
-	slmc.logStep("Corridor multiprocessing")
+	flmc.logStep("Corridor multiprocessing")
 	
 	nRasters = len(arcpy.ListRasters())
 	
@@ -180,11 +180,11 @@ def main():
 		arcpy.CopyRaster_management(arcpy.ListRasters()[0],Output_Corridor)
 	else:
 		mergeLoops = 0
-		slmc.log("Merging corridor rasters...")
+		flmc.log("Merging corridor rasters...")
 		while nRasters>1:
-			slmc.log("Multiprocessing line corridors... Round "+str(mergeLoops+1)+"; "+str(nRasters)+" rasters in output folder to process...")
+			flmc.log("Multiprocessing line corridors... Round "+str(mergeLoops+1)+"; "+str(nRasters)+" rasters in output folder to process...")
 			# Multiprocessing merge, so that every process merges two files at a time
-			pool = multiprocessing.Pool(processes=slmc.GetCores())
+			pool = multiprocessing.Pool(processes=flmc.GetCores())
 			
 			# Create a number of workers equal to half the number of rasters, rounded up
 			pool.map(workMerge, range(1,int(math.ceil(nRasters/2.0)+1)))
@@ -195,20 +195,20 @@ def main():
 			nRasters = len(arcpy.ListRasters())
 			
 			# Log round execution time
-			slmc.logStep("Merge Round "+str(mergeLoops+1))
+			flmc.logStep("Merge Round "+str(mergeLoops+1))
 			
 			# Prevent merging process from becoming an infinite loop
 			mergeLoops+=1
 			
 			if(mergeLoops>10 or nRasters<5):
 				corridorRasters = arcpy.ListRasters()
-				slmc.log("Merging remaining "+str(nRasters)+" files in a single process...")
+				flmc.log("Merging remaining "+str(nRasters)+" files in a single process...")
 				arcpy.MosaicToNewRaster_management(corridorRasters,os.path.dirname(Output_Corridor),os.path.basename(Output_Corridor), "", "32_BIT_FLOAT", "", "1", "MINIMUM", "MATCH")
-				slmc.log("Deleting temporary files...")
+				flmc.log("Deleting temporary files...")
 				for ras in corridorRasters:
 					arcpy.Delete_management(ras)
 				# Log round execution time
-				slmc.logStep("Merge Final Round")
+				flmc.logStep("Merge Final Round")
 				break
 		
 if __name__ == '__main__':

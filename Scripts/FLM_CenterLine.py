@@ -15,12 +15,12 @@
 #
 # ---------------------------------------------------------------------------
 #
-# SLM_CenterLine.py
+# FLM_CenterLine.py
 # Script Author: Gustavo Lopes Queiroz
 # Date: 2020-Jan-22
 #
-# This script is part of the Seismic Line Mapper (SLM) toolset
-# Webpage: https://github.com/appliedgrg/seismic-line-mapper
+# This script is part of the Forest Line Mapper (FLM) toolset
+# Webpage: https://github.com/appliedgrg/flm
 #
 # Purpose: Determines the least cost path between vertices of the input lines
 #
@@ -30,19 +30,19 @@ import multiprocessing
 import arcpy
 from arcpy.sa import *
 arcpy.CheckOutExtension("Spatial")
-from . import SLM_Common as slmc
+from . import FLM_Common as slmc
 
 # Setup script path and workspace folder
-workspaceName = "SLM_CL_output"
+workspaceName = "FLM_CL_output"
 outWorkspace = slmc.GetWorkspace(workspaceName)
 arcpy.env.workspace = outWorkspace
 arcpy.env.overwriteOutput = True
 
 # Load arguments from file
-args = slmc.GetArgs("SLM_CL_params.txt")
+args = slmc.GetArgs("FLM_CL_params.txt")
 
 # Tool arguments
-Seismic_Line_Feature_Class = args[0].rstrip()
+Forest_Line_Feature_Class = args[0].rstrip()
 Cost_Raster = args[1].rstrip()
 Line_Processing_Radius = args[2].rstrip()
 ProcessSegments = args[3].rstrip()=="True"
@@ -53,14 +53,14 @@ def PathFile(path):
 	
 def workLines(lineNo):
 	#Temporary files
-	fileSeg = outWorkspace +"\\SLM_CL_Segment_" + str(lineNo) +".shp"
-	fileOrigin = outWorkspace +"\\SLM_CL_Origin_" + str(lineNo) +".shp"
-	fileDestination = outWorkspace +"\\SLM_CL_Destination_" + str(lineNo) +".shp"
-	fileBuffer = outWorkspace +"\\SLM_CL_Buffer_" + str(lineNo) +".shp"
-	fileClip = outWorkspace+"\\SLM_CL_Clip_" + str(lineNo) +".tif"
-	fileCostDist = outWorkspace+"\\SLM_CL_CostDist_" + str(lineNo) +".tif"
-	fileCostBack = outWorkspace+"\\SLM_CL_CostBack_" + str(lineNo) +".tif"
-	fileCenterLine = outWorkspace +"\\SLM_CL_CenterLine_" + str(lineNo) +".shp"
+	fileSeg = outWorkspace +"\\FLM_CL_Segment_" + str(lineNo) +".shp"
+	fileOrigin = outWorkspace +"\\FLM_CL_Origin_" + str(lineNo) +".shp"
+	fileDestination = outWorkspace +"\\FLM_CL_Destination_" + str(lineNo) +".shp"
+	fileBuffer = outWorkspace +"\\FLM_CL_Buffer_" + str(lineNo) +".shp"
+	fileClip = outWorkspace+"\\FLM_CL_Clip_" + str(lineNo) +".tif"
+	fileCostDist = outWorkspace+"\\FLM_CL_CostDist_" + str(lineNo) +".tif"
+	fileCostBack = outWorkspace+"\\FLM_CL_CostBack_" + str(lineNo) +".tif"
+	fileCenterLine = outWorkspace +"\\FLM_CL_CenterLine_" + str(lineNo) +".shp"
 
 	# Load segment list
 	segment_list = []
@@ -85,14 +85,14 @@ def workLines(lineNo):
 	y2 = segment_list[-1].Y
 
 	# Create origin feature class
-	arcpy.CreateFeatureclass_management(outWorkspace,PathFile(fileOrigin),"POINT",Seismic_Line_Feature_Class,"DISABLED","DISABLED",Seismic_Line_Feature_Class)
+	arcpy.CreateFeatureclass_management(outWorkspace,PathFile(fileOrigin),"POINT",Forest_Line_Feature_Class,"DISABLED","DISABLED",Forest_Line_Feature_Class)
 	cursor = arcpy.da.InsertCursor(fileOrigin, ["SHAPE@XY"])
 	xy = (float(x1),float(y1))
 	cursor.insertRow([xy])
 	del cursor
 	
 	# Create destination feature class
-	arcpy.CreateFeatureclass_management(outWorkspace,PathFile(fileDestination),"POINT",Seismic_Line_Feature_Class,"DISABLED","DISABLED",Seismic_Line_Feature_Class)
+	arcpy.CreateFeatureclass_management(outWorkspace,PathFile(fileDestination),"POINT",Forest_Line_Feature_Class,"DISABLED","DISABLED",Forest_Line_Feature_Class)
 	cursor = arcpy.da.InsertCursor(fileDestination, ["SHAPE@XY"])
 	xy = (float(x2),float(y2))
 	cursor.insertRow([xy])
@@ -128,7 +128,7 @@ def main():
 	outWorkspace = slmc.SetupWorkspace(workspaceName)
 
 	#Prepare input lines for multiprocessing
-	numLines = slmc.SplitLines(Seismic_Line_Feature_Class, outWorkspace, "CL", ProcessSegments)
+	numLines = slmc.SplitLines(Forest_Line_Feature_Class, outWorkspace, "CL", ProcessSegments)
 	
 	pool = multiprocessing.Pool(processes=slmc.GetCores())
 	slmc.log("Multiprocessing center lines...")

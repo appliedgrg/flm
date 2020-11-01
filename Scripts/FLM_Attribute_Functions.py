@@ -19,11 +19,11 @@
 # Script Author: Gustavo Lopes Queiroz
 # Date: 2020-Jan-22
 #
-# This script is part of the Seismic Line Mapper (SLM) toolset
-# Webpage: https://github.com/appliedgrg/seismic-line-mapper
+# This script is part of the Forest Line Mapper (FLM) toolset
+# Webpage: https://github.com/appliedgrg/flm
 #
-# Purpose: This script contains common functions used by SLM attribution
-# tools. Of special importance is the SlmLineSplit function which prepares
+# Purpose: This script contains common functions used by FLM attribution
+# tools. Of special importance is the FlmLineSplit function which prepares
 # an input polyline shapefile for attribution.
 #
 # ---------------------------------------------------------------------------
@@ -31,36 +31,36 @@
 import arcpy
 arcpy.env.overwriteOutput = True
 arcpy.CheckOutExtension("Spatial")
-from . import SLM_Common as slmc
+from . import FLM_Common as flmc
 
 def PathFile(path):
 	return path[path.rfind("\\")+1:]
 
-def SlmLineSplit(workspace, Input_Lines,SamplingType,Segment_Length,Tolerance_Radius):
+def FlmLineSplit(workspace, Input_Lines,SamplingType,Segment_Length,Tolerance_Radius):
 
 	if (SamplingType == "IN-FEATURES"):
 		return Input_Lines
 		
 	arcpy.env.workspace = workspace
-	SLA_Line_Unsplit = workspace+"\\SLA_Line_Unsplit.shp"
-	SLA_Line_Unsplit_Single = workspace+"\\SLA_Line_Unsplit_Single.shp"
-	SLA_Line_Split_Vertices = workspace+"\\SLA_Line_Split_Vertices.shp"
-	SLA_Segmented_Lines = workspace+"\\SLA_Segmented_Lines.shp"
+	FLA_Line_Unsplit = workspace+"\\FLA_Line_Unsplit.shp"
+	FLA_Line_Unsplit_Single = workspace+"\\FLA_Line_Unsplit_Single.shp"
+	FLA_Line_Split_Vertices = workspace+"\\FLA_Line_Split_Vertices.shp"
+	FLA_Segmented_Lines = workspace+"\\FLA_Segmented_Lines.shp"
 	
-	arcpy.UnsplitLine_management(Input_Lines,SLA_Line_Unsplit)
-	arcpy.MultipartToSinglepart_management(SLA_Line_Unsplit,SLA_Line_Unsplit_Single)
-	arcpy.Delete_management(SLA_Line_Unsplit)
+	arcpy.UnsplitLine_management(Input_Lines,FLA_Line_Unsplit)
+	arcpy.MultipartToSinglepart_management(FLA_Line_Unsplit,FLA_Line_Unsplit_Single)
+	arcpy.Delete_management(FLA_Line_Unsplit)
 
 	if (SamplingType == "ARBITRARY"):
-		arcpy.GeneratePointsAlongLines_management(SLA_Line_Unsplit_Single, SLA_Line_Split_Vertices, "DISTANCE", Segment_Length, "", "NO_END_POINTS")
+		arcpy.GeneratePointsAlongLines_management(FLA_Line_Unsplit_Single, FLA_Line_Split_Vertices, "DISTANCE", Segment_Length, "", "NO_END_POINTS")
 	elif (SamplingType == "LINE-CROSSINGS"):
-		arcpy.Intersect_analysis( PathFile(SLA_Line_Unsplit_Single),  PathFile(SLA_Line_Split_Vertices), join_attributes="ALL", cluster_tolerance=Tolerance_Radius, output_type="POINT")
+		arcpy.Intersect_analysis( PathFile(FLA_Line_Unsplit_Single),  PathFile(FLA_Line_Split_Vertices), join_attributes="ALL", cluster_tolerance=Tolerance_Radius, output_type="POINT")
 		
 	if (SamplingType != "WHOLE-LINE"):
-		arcpy.SplitLineAtPoint_management(SLA_Line_Unsplit_Single, SLA_Line_Split_Vertices, SLA_Segmented_Lines, Tolerance_Radius)
-		arcpy.Delete_management(SLA_Line_Unsplit_Single)
-		arcpy.Delete_management(SLA_Line_Split_Vertices)
+		arcpy.SplitLineAtPoint_management(FLA_Line_Unsplit_Single, FLA_Line_Split_Vertices, FLA_Segmented_Lines, Tolerance_Radius)
+		arcpy.Delete_management(FLA_Line_Unsplit_Single)
+		arcpy.Delete_management(FLA_Line_Split_Vertices)
 	else:
-		SLA_Segmented_Lines = SLA_Line_Unsplit_Single
+		FLA_Segmented_Lines = FLA_Line_Unsplit_Single
 	
-	return SLA_Segmented_Lines
+	return FLA_Segmented_Lines

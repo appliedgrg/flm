@@ -15,14 +15,14 @@
 #
 # ---------------------------------------------------------------------------
 #
-# SLM_SeismicLineAttributes.py
+# FLM_ForestLineAttributes.py
 # Script Author: Gustavo Lopes Queiroz
 # Date: 2020-Jan-22
 #
-# This script is part of the Seismic Line Mapper (SLM) toolset
-# Webpage: https://github.com/appliedgrg/seismic-line-mapper
+# This script is part of the Forest Line Mapper (FLM) toolset
+# Webpage: https://github.com/appliedgrg/flm
 #
-# Purpose: Calculates a series of attributes related to seismic line shape, 
+# Purpose: Calculates a series of attributes related to forest line shape, 
 # size and microtopography.
 #
 # ---------------------------------------------------------------------------
@@ -31,17 +31,17 @@ import multiprocessing
 import math
 import arcpy
 arcpy.CheckOutExtension("Spatial")
-from . import SLM_Common as slmc
-from . import SLM_Attribute_Functions as slma
+from . import FLM_Common as flmc
+from . import FLM_Attribute_Functions as flma
 
 # Setup script path and workspace folder
-workspaceName = "SLM_SLA_output"
-outWorkspace = slmc.GetWorkspace(workspaceName)
+workspaceName = "FLM_SLA_output"
+outWorkspace = flmc.GetWorkspace(workspaceName)
 arcpy.env.workspace = outWorkspace
 arcpy.env.overwriteOutput = True
 
 # Load arguments from file
-args = slmc.GetArgs("SLM_SLA_params.txt")
+args = flmc.GetArgs("FLM_SLA_params.txt")
 
 # Tool arguments
 Input_Lines = args[0].rstrip()
@@ -57,20 +57,20 @@ areaAnalysis = arcpy.Exists(Input_Footprint)
 heightAnalysis = arcpy.Exists(Input_CHM)
 
 #Temporary layers
-fileBuffer = outWorkspace +"\\SLM_SLA_Buffer.shp"
-fileIdentity = outWorkspace+"\\SLM_SLA_Identity.shp"
-fileFootprints = outWorkspace+"\\SLM_SLA_Footprints.shp"
+fileBuffer = outWorkspace +"\\FLM_SLA_Buffer.shp"
+fileIdentity = outWorkspace+"\\FLM_SLA_Identity.shp"
+fileFootprints = outWorkspace+"\\FLM_SLA_Footprints.shp"
 
-footprintField = slmc.FileToField(fileBuffer)
+footprintField = flmc.FileToField(fileBuffer)
 
 def workLines(lineNo):
 	#Temporary files
-	lineSeg = outWorkspace +"\\SLM_SLA_Segment_" + str(lineNo) +".shp"
-	#fileFoot = outWorkspace +"\\SLM_SLA_Split_" + str(lineNo) +".shp"
-	lineBuffer = outWorkspace +"\\SLM_SLA_Buffer_" + str(lineNo) +".shp"
-	lineClip = outWorkspace+"\\SLM_SLA_Clip_" + str(lineNo) +".shp"
-	#fileFoot = outWorkspace+"\\SLM_SLA_Foot_" + str(lineNo) +".shp"
-	lineStats = outWorkspace+"\\SLM_SLA_Stats_" + str(lineNo) +".dbf"
+	lineSeg = outWorkspace +"\\FLM_SLA_Segment_" + str(lineNo) +".shp"
+	#fileFoot = outWorkspace +"\\FLM_SLA_Split_" + str(lineNo) +".shp"
+	lineBuffer = outWorkspace +"\\FLM_SLA_Buffer_" + str(lineNo) +".shp"
+	lineClip = outWorkspace+"\\FLM_SLA_Clip_" + str(lineNo) +".shp"
+	#fileFoot = outWorkspace+"\\FLM_SLA_Foot_" + str(lineNo) +".shp"
+	lineStats = outWorkspace+"\\FLM_SLA_Stats_" + str(lineNo) +".dbf"
 	
 	"""
 	arcpy.AddField_management(lineSeg,"Direction","TEXT")
@@ -190,12 +190,12 @@ def workLines(lineNo):
 
 def main():
 	global outWorkspace
-	outWorkspace = slmc.SetupWorkspace(workspaceName)
+	outWorkspace = flmc.SetupWorkspace(workspaceName)
 	
-	slmc.log("Preparing line segments...")
+	flmc.log("Preparing line segments...")
 	# Segment lines
-	SLA_Segmented_Lines = slma.SlmLineSplit(outWorkspace, Input_Lines,SamplingType,Segment_Length,Tolerance_Radius)
-	slmc.logStep("Line segmentation")
+	SLA_Segmented_Lines = flma.FlmLineSplit(outWorkspace, Input_Lines,SamplingType,Segment_Length,Tolerance_Radius)
+	flmc.logStep("Line segmentation")
 
 	# Linear attributes
 	arcpy.AddGeometryAttributes_management(SLA_Segmented_Lines, "LENGTH;LINE_BEARING", "METERS")
@@ -213,7 +213,7 @@ def main():
 		#arcpy.CalculateField_management(fileFootprints, footprintField, expression="!"+footprintField+"! -1", expression_type="PYTHON_9.3", code_block="")
 		arcpy.AddGeometryAttributes_management(fileFootprints, Geometry_Properties="AREA;PERIMETER_LENGTH", Length_Unit="METERS", Area_Unit="SQUARE_METERS", Coordinate_System="")
 		arcpy.JoinField_management(SLA_Segmented_Lines, arcpy.Describe(SLA_Segmented_Lines).OIDFieldName, fileFootprints, "ORIG_FID", fields="POLY_AREA;PERIMETER")
-		#slmc.SplitFeature(fileFootprints,footprintField,outWorkspace, "SLA")
+		#flmc.SplitFeature(fileFootprints,footprintField,outWorkspace, "SLA")
 		
 		arcpy.Delete_management(fileBuffer)
 		arcpy.Delete_management(fileIdentity)
@@ -240,24 +240,24 @@ def main():
 			keepFields += ["AvgHeight","Volume","Roughness"]
 	
 	# Prepare input lines for multiprocessing
-	numLines = slmc.SplitLines(SLA_Segmented_Lines, outWorkspace, "SLA", False, keepFields ) #,"Direction","Sinuosity","Area","AvgWidth","Perimeter","Fragment","SLA_Unity","AvgHeight","Volume","Roughness"])
+	numLines = flmc.SplitLines(SLA_Segmented_Lines, outWorkspace, "SLA", False, keepFields ) #,"Direction","Sinuosity","Area","AvgWidth","Perimeter","Fragment","SLA_Unity","AvgHeight","Volume","Roughness"])
 	
 	arcpy.Delete_management(SLA_Segmented_Lines)
 	
-	pool = multiprocessing.Pool(processes=slmc.GetCores())
-	slmc.log("Multiprocessing lines...")
+	pool = multiprocessing.Pool(processes=flmc.GetCores())
+	flmc.log("Multiprocessing lines...")
 	pool.map(workLines, range(1,numLines+1))
 	pool.close()
 	pool.join()
 	
-	slmc.logStep("Line multiprocessing")
+	flmc.logStep("Line multiprocessing")
 	
-	slmc.log("Merging lines...")
+	flmc.log("Merging lines...")
 	tempShapefiles = arcpy.ListFeatureClasses()
 	
 	arcpy.Merge_management(tempShapefiles,Attributed_Segments)
 
-	slmc.logStep("Merging")
+	flmc.logStep("Merging")
 		
 	for shp in tempShapefiles:
 		arcpy.Delete_management(shp)

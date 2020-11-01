@@ -7,15 +7,15 @@
             "tools": [
                 {
                     "name": "Canopy Cost Raster",
-                    "info": "Creates a canopy raster and a cost raster from a CHM input raster. The output rasters are used for subsequent SLM tools.",
+                    "info": "Creates a canopy raster and a cost raster from a CHM input raster. The output rasters are used for subsequent FLM tools.",
                     "multiprocessing": false,
-                    "scriptFile": "Scripts.SLM_CanopyCost",
-                    "paramFile": "\\Scripts\\SLM_CC_params.txt",
-                    "image": "../Images/SLM_IO_CanopyCostRaster.gif",
+                    "scriptFile": "Scripts.FLM_CanopyCost",
+                    "paramFile": "\\Scripts\\FLM_CC_params.txt",
+                    "image": "../Images/FLM_IO_CanopyCostRaster.gif",
                     "parameters":[
                         {
                             "parameter": "Canopy Height Model (CHM) Raster",
-                            "description": "Input CHM raster file used as basis for mapping seismic lines and their footprint. This layer should be projected in any Universal Transverse Mercator (UTM) coordinate system. The data should be preferably derived from high resolution LiDAR or photogrammetry (>25 pts/m²).",
+                            "description": "Input CHM raster file used as basis for mapping forest lines and their footprint. This layer should be projected in any Universal Transverse Mercator (UTM) coordinate system. The data should be preferably derived from high resolution LiDAR or photogrammetry (>25 pts/m²).",
                             "type": ".tif",
                             "typelab": "TIF",
                             "default": "",
@@ -31,7 +31,7 @@
                         },
                         {
                             "parameter": "Tree Search Radius",
-                            "description": "Radius of canopy influence in the cost raster. This factor smooths the canopy in the cost raster which helps to prevent gaps in sparsely vegetated areas (e.g. wetlands) to be incorrectly identified as footprint. A large search radius (>=5m) may cause excessive smoothing of the cost raster which can lead to least cost paths ignoring seismic-line nuances in sparsely vegetated forests. A small radius (<=1m) may cause the least cost path to cut corners through small gaps in sparse vegetation as well as avoid small obstacles that should not affect overall line shape.",
+                            "description": "Radius of canopy influence in the cost raster. This factor smooths the canopy in the cost raster which helps to prevent gaps in sparsely vegetated areas (e.g. wetlands) to be incorrectly identified as footprint. A large search radius (>=5m) may cause excessive smoothing of the cost raster which can lead to least cost paths ignoring forest-line nuances in sparsely vegetated forests. A small radius (<=1m) may cause the least cost path to cut corners through small gaps in sparse vegetation as well as avoid small obstacles that should not affect overall line shape.",
                             "type": "number",
                             "typelab": "number",
                             "default": "3",
@@ -39,7 +39,7 @@
                         },
                         {
                             "parameter": "Maximum Line Distance",
-                            "description": "Maximum euclidean distance from canopy. This is a second smoothing factor which helps to position the seismic line shape in the center of the line footprint. An excessively small (<=1m) or large (>20m) value may cause the center line to be positioned close to one of the edges of the footprint.",
+                            "description": "Maximum euclidean distance from canopy. This is a second smoothing factor which helps to position the forest line shape in the center of the line footprint. An excessively small (<=1m) or large (>20m) value may cause the center line to be positioned close to one of the edges of the footprint.",
                             "type": "number",
                             "typelab": "number",
                             "default": "10",
@@ -47,7 +47,7 @@
                         },
                         {
                             "parameter": "Canopy Avoidance",
-                            "description": "Ratio of importance between canopy search radius and euclidean distance. A value close to zero (0) prioritizes search radius whereas a value close to one (1) prioritizes euclidean distance. A small value (<=0.1) may cause the seismic lines to miss nuances in sparsely vegetated terrain whereas a big value (>=0.5) may overemphasize turns in complex trails. This factor influences final footprint size in a minor way.",
+                            "description": "Ratio of importance between canopy search radius and euclidean distance. A value close to zero (0) prioritizes search radius whereas a value close to one (1) prioritizes euclidean distance. A small value (<=0.1) may cause the forest lines to miss nuances in sparsely vegetated terrain whereas a big value (>=0.5) may overemphasize turns in complex trails. This factor influences final footprint size in a minor way.",
                             "type": "number",
                             "typelab": "number",
                             "default": "0.3",
@@ -71,7 +71,7 @@
                         },
                         {
                             "parameter": "Output Cost Raster",
-                            "description": "Output cost raster used in subsequent SLM tools for least-cost analysis.",
+                            "description": "Output cost raster used in subsequent FLM tools for least-cost analysis.",
                             "type": ".tif",
                             "typelab": "TIF",
                             "default": "",
@@ -83,12 +83,12 @@
                     "name": "Center Line",
                     "info": "Determines the least cost path between vertices of the input lines.",
                     "multiprocessing": true,
-                    "scriptFile": "Scripts.SLM_CenterLine",
-                    "paramFile": "\\Scripts\\SLM_CL_params.txt",
-                    "image": "../Images/SLM_IO_CenterLine.gif",
+                    "scriptFile": "Scripts.FLM_CenterLine",
+                    "paramFile": "\\Scripts\\FLM_CL_params.txt",
+                    "image": "../Images/FLM_IO_CenterLine.gif",
                     "parameters":[
                         {
-                            "parameter": "Seismic Lines Feature Class",
+                            "parameter": "Forest Lines Feature Class",
                             "description": "Input polyline shapefile.",
                             "type": ".shp",
                             "typelab": "SHP",
@@ -133,9 +133,9 @@
                     "name": "Line Footprint",
                     "info": "Creates footprint polygons for each input line based on a least cost corridor method and individual line thresholds.",
                     "multiprocessing": true,
-                    "scriptFile": "Scripts.SLM_LineFootprint",
-                    "paramFile": "\\Scripts\\SLM_LFP_params.txt",
-                    "image": "../Images/SLM_IO_LineFootprint.gif",
+                    "scriptFile": "Scripts.FLM_LineFootprint",
+                    "paramFile": "\\Scripts\\FLM_LFP_params.txt",
+                    "image": "../Images/FLM_IO_LineFootprint.gif",
                     "parameters":[
                         {
                             "parameter": "Center-lines Feature Class",
@@ -210,16 +210,16 @@
             "description":"Tools used to generate attributes in the lines created with the Mapping Tools.",
             "tools": [
                 {
-                    "name": "Seismic Line Attributes",
-                    "info": "Calculates a series of attributes related to seismic line shape, size and microtopography. Line-derived attributes include: length, bearing, orientation and sinuosity; Polygon-derived attributes include: area, average width, perimeter and perimeter-area ratio; CHM-derived attributes include: average vegetation height, vegetation volume and vegetation roughness.",
+                    "name": "Forest Line Attributes",
+                    "info": "Calculates a series of attributes related to forest line shape, size and microtopography. Line-derived attributes include: length, bearing, orientation and sinuosity; Polygon-derived attributes include: area, average width, perimeter and perimeter-area ratio; CHM-derived attributes include: average vegetation height, vegetation volume and vegetation roughness.",
                     "multiprocessing": true,
-                    "scriptFile": "Scripts.SLM_SeismicLineAttributes",
-                    "paramFile": "\\Scripts\\SLM_SLA_params.txt",
-                    "image": "../Images/SLM_IO_SeismicLineAttributes.gif",
+                    "scriptFile": "Scripts.FLM_ForestLineAttributes",
+                    "paramFile": "\\Scripts\\FLM_FLA_params.txt",
+                    "image": "../Images/FLM_IO_ForestLineAttributes.gif",
                     "parameters":[
                         {
                             "parameter": "Input Lines",
-                            "description": "Input seismic line center shapefile which will be segmented and attributed.",
+                            "description": "Input forest line center shapefile which will be segmented and attributed.",
                             "type": ".shp",
                             "typelab": "SHP",
                             "default": "",
@@ -227,7 +227,7 @@
                         },
                         {
                             "parameter": "Input Footprint Polygons",
-                            "description": "Input seismic line footprint shapefile used to derive spatial attributes.",
+                            "description": "Input forest line footprint shapefile used to derive spatial attributes.",
                             "type": ".shp",
                             "typelab": "SHP",
                             "default": "",
@@ -287,13 +287,13 @@
                     "name": "Raster Line Attributes",
                     "info": "Samples a raster image along lines and assigns cell statistics to each line.",
                     "multiprocessing": false,
-                    "scriptFile": "Scripts.SLM_RasterLineAttributes",
-                    "paramFile": "\\Scripts\\SLM_RLA_params.txt",
-                    "image": "../Images/SLM_IO_RasterLineAttributes.gif",
+                    "scriptFile": "Scripts.FLM_RasterLineAttributes",
+                    "paramFile": "\\Scripts\\FLM_RLA_params.txt",
+                    "image": "../Images/FLM_IO_RasterLineAttributes.gif",
                     "parameters":[
                         {
                             "parameter": "Input Lines",
-                            "description": "Input seismic line center shapefile which will be segmented and attributed.",
+                            "description": "Input forest line center shapefile which will be segmented and attributed.",
                             "type": ".shp",
                             "typelab": "SHP",
                             "default": "",
@@ -365,11 +365,11 @@
             "tools": [
                 {
                     "name": "Clip Shape By Raster",
-                    "info": "Extracts input features that overlay raster cells which are not NoData. This is useful to prepare input seismic lines for corridor analysis, since vertices must overlap with valid cells for least cost methods.",
+                    "info": "Extracts input features that overlay raster cells which are not NoData. This is useful to prepare input forest lines for corridor analysis, since vertices must overlap with valid cells for least cost methods.",
                     "multiprocessing": false,
-                    "scriptFile": "Scripts.SLM_ClipShapeByRaster",
-                    "paramFile": "\\Scripts\\SLM_CSR_params.txt",
-                    "image": "../Images/SLM_IO_ClipShapeByRaster.gif",
+                    "scriptFile": "Scripts.FLM_ClipShapeByRaster",
+                    "paramFile": "\\Scripts\\FLM_CSR_params.txt",
+                    "image": "../Images/FLM_IO_ClipShapeByRaster.gif",
                     "parameters":[
                         {
                             "parameter": "Shapefile",
@@ -409,9 +409,9 @@
                     "name": "Split By Polygon",
                     "info": "Splits the input lines where they intersect the edges of the input polygons.",
                     "multiprocessing": false,
-                    "scriptFile": "Scripts.SLM_SplitByPolygon",
-                    "paramFile": "\\Scripts\\SLM_SBP_params.txt",
-                    "image": "../Images/SLM_IO_SBP.gif",
+                    "scriptFile": "Scripts.FLM_SplitByPolygon",
+                    "paramFile": "\\Scripts\\FLM_SBP_params.txt",
+                    "image": "../Images/FLM_IO_SBP.gif",
                     "parameters":[
                         {
                             "parameter": "Input Lines",
@@ -443,9 +443,9 @@
                     "name": "Zonal Threshold",
                     "info": "Assigns corridor thresholds to the input lines based on their surrounding canopy density.",
                     "multiprocessing": true,
-                    "scriptFile": "Scripts.SLM_ZonalThreshold",
-                    "paramFile": "\\Scripts\\SLM_ZT_params.txt",
-                    "image": "../Images/SLM_IO_ZT.gif",
+                    "scriptFile": "Scripts.FLM_ZonalThreshold",
+                    "paramFile": "\\Scripts\\FLM_ZT_params.txt",
+                    "image": "../Images/FLM_IO_ZT.gif",
                     "parameters":[
                         {
                             "parameter": "Input Lines",
@@ -515,9 +515,9 @@
                     "name": "Corridor Raster",
                     "info": "Creates a least cost corridor raster between vertices of the input lines. This step can be skipped with the 'Line Footprint' tool.",
                     "multiprocessing": true,
-                    "scriptFile": "Scripts.SLM_Corridor",
-                    "paramFile": "\\Scripts\\SLM_CO_params.txt",
-                    "image": "../Images/SLM_IO_CO.gif",
+                    "scriptFile": "Scripts.FLM_Corridor",
+                    "paramFile": "\\Scripts\\FLM_CO_params.txt",
+                    "image": "../Images/FLM_IO_CO.gif",
                     "parameters":[
                         {
                             "parameter": "Centerlines Feature Class",
@@ -573,9 +573,9 @@
                     "name": "Corridor Footprint",
                     "info": "Creates footprint polygons for each input line based on a least cost corridor raster and individual line thresholds. This step can be skipped with the 'Line Footprint' tool.",
                     "multiprocessing": true,
-                    "scriptFile": "Scripts.SLM_CorridorFootprint",
-                    "paramFile": "\\Scripts\\SLM_CFP_params.txt",
-                    "image": "../Images/SLM_IO_CFP.gif",
+                    "scriptFile": "Scripts.FLM_CorridorFootprint",
+                    "paramFile": "\\Scripts\\FLM_CFP_params.txt",
+                    "image": "../Images/FLM_IO_CFP.gif",
                     "parameters":[
                         {
                             "parameter": "Center-lines Feature Class",
