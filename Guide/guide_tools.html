@@ -23,7 +23,7 @@
     <div id="header"></div>
 
     <div class="text-center text-white pb-2" style="background-color:#262626;">
-        <img src="../Images/SLM_banner.png" class="img-fluid mb-2" alt="..." style="max-height: 130px;">
+        <img src="../Images/FLM_banner.png" class="img-fluid mb-2" alt="..." style="max-height: 130px;">
         <h1>Tool Documentation  <sup><h2 id="latestVersion" class="badge badge-light"></h2></sup></h1>
     </div>
 
@@ -36,11 +36,11 @@
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.4.1.js"></script>
-    <script> $(function(){ $("#header").load("Includes/include_header.html"); $("#footer").load("Includes/include_footer.html"); $("#latestVersion").load("http://slm.beraproject.org/Scripts/SLM_VERSION"); }); </script> 
+    <script> $(function(){ $("#header").load("Includes/include_header.html"); $("#footer").load("Includes/include_footer.html"); $("#latestVersion").load("http://flm.beraproject.org/Scripts/FLM_VERSION"); }); </script> 
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
     <script>
-         $.getJSON( "http://slm.beraproject.org/Scripts/slm_tools.json", function(obj) {
+         $.getJSON( "http://flm.beraproject.org/Scripts/flm_tools.json", function(obj) {
             $.each(obj.toolbox, function(i, tbx) {
                 //Tool category header
                 var catId = "toolCat"+ i.toString()

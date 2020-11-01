@@ -1,5 +1,5 @@
 @echo off
-set scriptName=SeismicLineMapper.py
+set scriptName=ForestLineMapper.py
 set pro=%PROGRAMFILES%\ArcGIS\Pro\bin\Python\Scripts\propy
 set desktop=c:\python27\python.exe
 set default27=c:\python27\

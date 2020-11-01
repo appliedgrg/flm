@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------------
-# Seismic line Mapper
+# Forest line Mapper
 # Date: 2020-Jan-22
 #
 # Development history:

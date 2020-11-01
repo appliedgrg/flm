@@ -23,7 +23,7 @@
     <div id="header"></div>
 
     <div class="text-center text-white pb-2" style="background-color:#262626;">
-        <img src="../Images/SLM_banner.png" class="img-fluid mb-2" alt="..." style="max-height: 130px;">
+        <img src="../Images/FLM_banner.png" class="img-fluid mb-2" alt="..." style="max-height: 130px;">
         <h1>Instructions</h1>
     </div>
 
@@ -31,52 +31,52 @@
 
         <h4>How to use</h4>
 
-        <p>SLM can be opened by running the included <span class="font-italic">.py</span> script or <span class="font-italic">.bat</span> file. The latter automatically detects and uses the latest available version of Python. Upon opening one of these files the user should see a command prompt window as well as a graphical user interface (GUI; Figure 1).</p>
+        <p>FLM can be opened by running the included <span class="font-italic">.py</span> script or <span class="font-italic">.bat</span> file. The latter automatically detects and uses the latest available version of Python. Upon opening one of these files the user should see a command prompt window as well as a graphical user interface (GUI; Figure 1).</p>
         
         <div class="text-center mb-4">
-            <img src="../Images/SLM_GUI.png" class="img-fluid mb-2" alt="..." style="max-height: 450px;">
-            <div class="col-12 col-lg-8 m-auto px-md-5 text-muted"><span class="font-weight-bold">Figure 1.</span> SLM graphical user interface (GUI) with tools enumerated in sequential order as they would be normally used. Main tools (1, 2, 3 and 4) are numbered in green and connected with blue arrows. Optional tools (0, 2.5a, 2.5b, 3a, 3b and 5) are numbered in gray and connected with gray arrows. Output center lines are obtained in tool 2, output footprint polygons are obtained in tool 3. Lines receive attributes in tool 4. Tools 3a and 3b serve as alternatives to step 3.</div>
+            <img src="../Images/FLM_GUI.png" class="img-fluid mb-2" alt="..." style="max-height: 450px;">
+            <div class="col-12 col-lg-8 m-auto px-md-5 text-muted"><span class="font-weight-bold">Figure 1.</span> FLM graphical user interface (GUI) with tools enumerated in sequential order as they would be normally used. Main tools (1, 2, 3 and 4) are numbered in green and connected with blue arrows. Optional tools (0, 2.5a, 2.5b, 3a, 3b and 5) are numbered in gray and connected with gray arrows. Output center lines are obtained in tool 2, output footprint polygons are obtained in tool 3. Lines receive attributes in tool 4. Tools 3a and 3b serve as alternatives to step 3.</div>
         </div>
         
-        <p>There are currently four main categories of tools included in the SLM package: mapping, attribution, auxiliary and alternative. The two former are the main steps and the two latter are the optional steps outlined in Figure 1. Specific tool descriptions, inputs and outputs are outlined in the <a href="guide_documentation.html">documentation</a> section of this guide.</p>
+        <p>There are currently four main categories of tools included in the FLM package: mapping, attribution, auxiliary and alternative. The two former are the main steps and the two latter are the optional steps outlined in Figure 1. Specific tool descriptions, inputs and outputs are outlined in the <a href="guide_documentation.html">documentation</a> section of this guide.</p>
 
-        <p>SLM tools require ESRI ArcGIS to be installed with the Spatial Analyst extension in order to run. ArcMap uses Python 2.7, which is compatible with SLM tools. ArcGIS Pro uses Python 3, which is also compatible and enables SLM to run approximately 20% faster.</p>
+        <p>FLM tools require ESRI ArcGIS to be installed with the Spatial Analyst extension in order to run. ArcMap uses Python 2.7, which is compatible with FLM tools. ArcGIS Pro uses Python 3, which is also compatible and enables FLM to run approximately 20% faster.</p>
 
         <hr>
         <h4>Main Inputs</h4>
         <ul>
             <li><span class="font-weight-bold">Canopy height model (CHM) raster</span>: high-resolution (pixel-size &lt; 1m) CHM raster image, preferably derived from high density LiDAR or photogrammetry (&gt;25 pts/m²), covering the area of interest.</li>
-            <li><span class="font-weight-bold">Regional-scale polylines</span>: polyline shapefile delineating the seismic lines in the area of interest, digitized at a regional scale (1:5,000 to 1:20,000).</li>
+            <li><span class="font-weight-bold">Regional-scale polylines</span>: polyline shapefile delineating the forest lines in the area of interest, digitized at a regional scale (1:5,000 to 1:20,000).</li>
         </ul>
         
         
         <div class="text-center mb-4">
-            <img src="../Images/SLM_Example_Area.png" class="img-fluid mb-2" alt="..." style="max-height: 170px; max-width: 100%;">
+            <img src="../Images/FLM_Example_Area.png" class="img-fluid mb-2" alt="..." style="max-height: 170px; max-width: 100%;">
             <div class="col-12 col-lg-8 m-auto px-md-5 text-muted"><span class="font-weight-bold">Figure 2.</span> Example study area displayed as an RGB orthophoto.</div>
         </div>
         <div class="text-center mb-4">
-            <img src="../Images/SLM_Example_Input.png" class="img-fluid mb-2" alt="..." style="max-height: 170px; max-width: 100%;">
-            <div class="col-12 col-lg-8 m-auto px-md-5 text-muted"><span class="font-weight-bold">Figure 3.</span> Example inputs for the study area: a canopy height model raster image and large-scale seismic line polylines.</div>
+            <img src="../Images/FLM_Example_Input.png" class="img-fluid mb-2" alt="..." style="max-height: 170px; max-width: 100%;">
+            <div class="col-12 col-lg-8 m-auto px-md-5 text-muted"><span class="font-weight-bold">Figure 3.</span> Example inputs for the study area: a canopy height model raster image and large-scale forest line polylines.</div>
         </div>
         
         <hr>
         <h4>Main Outputs</h4>
         <ul>
-            <li><span class="font-weight-bold">Center lines</span>: detailed, corrected (according to the CHM) and attributed polylines at the center of the seismic line footprints.</li>
-            <li><span class="font-weight-bold">Footprint polygons</span>: detailed areal footprint polygons of the seismic lines (approximately equivalent to 1:500 scale).</li>
+            <li><span class="font-weight-bold">Center lines</span>: detailed, corrected (according to the CHM) and attributed polylines at the center of the forest line footprints.</li>
+            <li><span class="font-weight-bold">Footprint polygons</span>: detailed areal footprint polygons of the forest lines (approximately equivalent to 1:500 scale).</li>
         </ul>
         
         <div class="text-center mb-4">
-            <img src="../Images/SLM_Example_Output.png" class="img-fluid mb-2" alt="..." style="max-height: 170px; max-width: 100%;">
-            <div class="col-12 col-lg-8 m-auto px-md-5 text-muted"><span class="font-weight-bold">Figure 4.</span> Example outputs for the study area: corrected, small-scale center lines and areal footprint polygons for the seismic lines.</div>
+            <img src="../Images/FLM_Example_Output.png" class="img-fluid mb-2" alt="..." style="max-height: 170px; max-width: 100%;">
+            <div class="col-12 col-lg-8 m-auto px-md-5 text-muted"><span class="font-weight-bold">Figure 4.</span> Example outputs for the study area: corrected, small-scale center lines and areal footprint polygons for the forest lines.</div>
         </div>
         
         <hr>
         <h4>Line Attributes</h4>
-        <p>Once mapped with SLM tools, seismic lines can receive attributes which relate to their spatial properties. Additional information may allow for greater insight on seismic line conditions. SLM provides a series of standard line attributes as well as the capability of deriving attributes from external data provided by the user. Table 1 provides some examples of standard attributes and a full list of currently supported attributes is available in the <a href="guide_documentation.html">documentation</a> section of this guide.</p>
+        <p>Once mapped with FLM tools, forest lines can receive attributes which relate to their spatial properties. Additional information may allow for greater insight on forest line conditions. FLM provides a series of standard line attributes as well as the capability of deriving attributes from external data provided by the user. Table 1 provides some examples of standard attributes and a full list of currently supported attributes is available in the <a href="guide_documentation.html">documentation</a> section of this guide.</p>
 
         <div class="text-center">
-            <div class="col-12 col-lg-8 m-auto px-md-5 text-muted"><span class="font-weight-bold">Table 1.</span> Examples of information types provided by SLM default attributes.</div>
+            <div class="col-12 col-lg-8 m-auto px-md-5 text-muted"><span class="font-weight-bold">Table 1.</span> Examples of information types provided by FLM default attributes.</div>
             
             <table class="mt-2 mx-auto" style="height: 100px;">
               <tbody>
@@ -87,10 +87,10 @@
                     <td class="font-weight-bold">Micro-topography</td>
                 </tr>
                 <tr>
-                    <td><img src="../Images/SLA_Width.png" class="img-fluid mb-2 align-bottom" alt="..." style="max-height: 200px;"></td>
-                    <td><img src="../Images/SLA_Sinuosity.png" class="img-fluid mb-2 align-bottom" alt="..." style="max-height: 200px;"></td>
-                    <td><img src="../Images/SLA_Fragmentation.png" class="img-fluid mb-2 align-bottom" alt="..." style="max-height: 200px;"></td>
-                    <td><img src="../Images/SLA_Height.png" class="img-fluid mb-2 align-bottom" alt="..." style="max-height: 200px;"></td>
+                    <td><img src="../Images/FLA_Width.png" class="img-fluid mb-2 align-bottom" alt="..." style="max-height: 200px;"></td>
+                    <td><img src="../Images/FLA_Sinuosity.png" class="img-fluid mb-2 align-bottom" alt="..." style="max-height: 200px;"></td>
+                    <td><img src="../Images/FLA_Fragmentation.png" class="img-fluid mb-2 align-bottom" alt="..." style="max-height: 200px;"></td>
+                    <td><img src="../Images/FLA_Height.png" class="img-fluid mb-2 align-bottom" alt="..." style="max-height: 200px;"></td>
                 </tr>
               </tbody>
             </table>
@@ -104,9 +104,9 @@
             <li class="font-weight-bold">Step 2: Prepare input lines.</li>
             <ul><li>Digitize regional-scale (1:5,000 to 1:20,000) input lines. Preferably use the Cost Raster generated on step one as reference. Then, run the <span class="font-weight-bold">Center Line</span> tool.</li></ul>
             <li class="font-weight-bold">Step 3: Inspect center lines.</li>
-            <ul><li>Local canopy gaps, anomalies, and misplaced input lines may cause undesired deviations in the output center lines. If the center lines are appropriate upon inspection, move to Step 4. Otherwise, correct the input lines, adding vertices on a more detailed scale (1:2,000) to better guide the center lines towards the actual seismic line path, then re-run the <span class="font-weight-bold">Center Line</span> tool. It is expected that, following the recommendations listed in the limitations section below, only minor corrections will be needed in this step.</li></ul>
+            <ul><li>Local canopy gaps, anomalies, and misplaced input lines may cause undesired deviations in the output center lines. If the center lines are appropriate upon inspection, move to Step 4. Otherwise, correct the input lines, adding vertices on a more detailed scale (1:2,000) to better guide the center lines towards the actual forest line path, then re-run the <span class="font-weight-bold">Center Line</span> tool. It is expected that, following the recommendations listed in the limitations section below, only minor corrections will be needed in this step.</li></ul>
             <li class="font-weight-bold">Step 4: Set up the least cost corridor threshold (LCCT).</li>
-            <ul><li>The LCCT attribute within the center lines will influence the width of the output footprint polygons and how far they can penetrate in the adjacent forest. If the forest composition and seismic line width is approximately homogeneous in the application area, then all lines may use the same value for the LCCT (default is 3.0 for 3D lines and 8.0 for 2D lines). Otherwise, the center lines will need to be attributed individually with appropriate corridor thresholds. This attribution can be done automatically using the <span class="font-weight-bold">Zonal Threshold</span> tool. For improved threshold estimation, first the lines may be segmented according to input landscape feature polygons using the <span class="font-weight-bold">Split by Polygon</span> tool. When the LCCT has been set up for all lines run the <span class="font-weight-bold">Line Footprint</span> tool.</li></ul>
+            <ul><li>The LCCT attribute within the center lines will influence the width of the output footprint polygons and how far they can penetrate in the adjacent forest. If the forest composition and forest line width is approximately homogeneous in the application area, then all lines may use the same value for the LCCT (default is 3.0 for 3D lines and 8.0 for 2D lines). Otherwise, the center lines will need to be attributed individually with appropriate corridor thresholds. This attribution can be done automatically using the <span class="font-weight-bold">Zonal Threshold</span> tool. For improved threshold estimation, first the lines may be segmented according to input landscape feature polygons using the <span class="font-weight-bold">Split by Polygon</span> tool. When the LCCT has been set up for all lines run the <span class="font-weight-bold">Line Footprint</span> tool.</li></ul>
             <li class="font-weight-bold">Step 5: Inspect footprint polygons.</li>
             <ul><li>Adjust LCCT of line segments as needed. Wide lines may need a threshold increase while narrow lines on sparsely vegetated terrain may need a decrease. This can be done manually for each line or automatically by fine-tuning the parameters of the <span class="font-weight-bold">Zonal Threshold</span> tool. Certain segments may transition between forest types not captured in the input landscape features and may have to be segmented. Re-run the <span class="font-weight-bold">Line Footprint</span> tool until results are satisfactory.</li></ul>
         </ul>
@@ -116,27 +116,27 @@
         
         
         <ul>
-         <li>This tool does not work automatically on completely (80% to 100%) regenerated seismic lines.</li>
-            <p class="text-muted">If a human interpreter is not able to see the footprint on the CHM it is likely that the SLM tool will also not be able to properly map it without fine-tuning. Regenerated seismic line segments can either be removed from the inputs or digitized on a smaller scale (adding more vertices, see step 3 in "Workflow").</p>
-         <li>The SLM tool was designed to work on seismic lines, which are usually narrow corridors (up to 15 meters wide).</li>
-            <p class="text-muted">SLM can also be used to map the footprint of wide linear features such as roads, pipelines and power-lines (up to 80 meters wide) but this requires fine-tuning the input parameters (usually with a larger corridor threshold, and sometimes including additional input lines to capture separate portions of the same feature).</p>
+         <li>This tool does not work automatically on completely (80% to 100%) regenerated forest lines.</li>
+            <p class="text-muted">If a human interpreter is not able to see the footprint on the CHM it is likely that the FLM tool will also not be able to properly map it without fine-tuning. Regenerated forest line segments can either be removed from the inputs or digitized on a smaller scale (adding more vertices, see step 3 in "Workflow").</p>
+         <li>The FLM tool was designed to work on forest lines, which are usually narrow corridors (up to 15 meters wide).</li>
+            <p class="text-muted">FLM can also be used to map the footprint of wide linear features such as roads, pipelines and power-lines (up to 80 meters wide) but this requires fine-tuning the input parameters (usually with a larger corridor threshold, and sometimes including additional input lines to capture separate portions of the same feature).</p>
          <li>The input lines and their vertices must be contained within the input raster and not overlap with null (no data) cells.</li>
             <p class="text-muted">On the other hand, null cells are useful to represent unmapped regions and should be used (as opposed to extreme numeric values such as -9999 or +9999) especially in case there are "data holes" in the input raster.</p>
          <li>Application areas with varying levels of tree density may require additional care.</li>
-            <p class="text-muted">Landscape feature polygons (optional input listed above) may be used to split seismic lines via the included "Split by Polygon" tool, enabling improved results on terrain with varying tree density. The included "Zonal Threshold" tool can help with  fine tuning individual line corridor thresholds (see step 5 in "Workflow" below) to prevent the footprint polygons from invading the surrounding forest in sparsely vegetated areas.</p>
-         <li>Water bodies (e.g.: rivers, ponds, lakes), cut-blocks and wide linear disturbances (e.g.: roads, pipelines) represent areas with extremely low tree density and may be confused as seismic line footprint.</li>
-            <p class="text-muted">Therefore, to avoid this effect, seismic lines surrounding these features may have to be digitized on a smaller scale (1:2000), with more vertices than other input lines (see step 3 in "Workflow" below).</p>
-         <li>The least-cost path solution incorporated in this tool may occasionally choose to "cut-corners" on windy seismic lines with sparsely vegetated surroundings.</li>
+            <p class="text-muted">Landscape feature polygons (optional input listed above) may be used to split forest lines via the included "Split by Polygon" tool, enabling improved results on terrain with varying tree density. The included "Zonal Threshold" tool can help with  fine tuning individual line corridor thresholds (see step 5 in "Workflow" below) to prevent the footprint polygons from invading the surrounding forest in sparsely vegetated areas.</p>
+         <li>Water bodies (e.g.: rivers, ponds, lakes), cut-blocks and wide linear disturbances (e.g.: roads, pipelines) represent areas with extremely low tree density and may be confused as forest line footprint.</li>
+            <p class="text-muted">Therefore, to avoid this effect, forest lines surrounding these features may have to be digitized on a smaller scale (1:2000), with more vertices than other input lines (see step 3 in "Workflow" below).</p>
+         <li>The least-cost path solution incorporated in this tool may occasionally choose to "cut-corners" on windy forest lines with sparsely vegetated surroundings.</li>
             <p class="text-muted">This effect is worse if the input lines are too large-scale (e.g.: 1:20,000). To avoid this issue such corners may have to be enforced with additional vertices (see step 3 in "Workflow" below). Note that this effect is expected to be minimal, and may not be reflected in the output polygons even though output lines are affected.</p>
         </ul>
 		
         <hr>
         <h4>Multiprocessing</h4>
-        <p>The scripts included in this toolset make use of multiprocessing to split the task of mapping and attributing lines into multiple parallel processes. This factor allows several CPU cores to work at once dramatically reducing the processing time on extensive application areas. By default the maximum number of available cores is used by the SLM. This is usually desirable to process large inputs faster, but may temporarily slow down other processes in the computer. If the user wishes to specify the number cores to be used by SLM tools they can find this option within the user interface.</p>
+        <p>The scripts included in this toolset make use of multiprocessing to split the task of mapping and attributing lines into multiple parallel processes. This factor allows several CPU cores to work at once dramatically reducing the processing time on extensive application areas. By default the maximum number of available cores is used by the FLM. This is usually desirable to process large inputs faster, but may temporarily slow down other processes in the computer. If the user wishes to specify the number cores to be used by FLM tools they can find this option within the user interface.</p>
 
         <hr>
         <h4>Temporary Files</h4>
-        <p>All subfolders within the Scripts folder are temporary workspaces. These are used to store temporary files which are automatically deleted upon the end of execution. While running SLM tools make sure that files in the temporary folders are not opened in ArcGIS, as this will place a "lock" in these files preventing them from being edited by the SLM. To make sure that there are no locks affecting the tools, clean the temporary folders or delete the folders themselves before running the SLM.</p>
+        <p>All subfolders within the Scripts folder are temporary workspaces. These are used to store temporary files which are automatically deleted upon the end of execution. While running FLM tools make sure that files in the temporary folders are not opened in ArcGIS, as this will place a "lock" in these files preventing them from being edited by the FLM. To make sure that there are no locks affecting the tools, clean the temporary folders or delete the folders themselves before running the FLM.</p>
 
         
 
