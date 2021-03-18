@@ -31,39 +31,27 @@ import multiprocessing
 import math
 import arcpy
 arcpy.CheckOutExtension("Spatial")
-from . import FLM_Common as flmc
-from . import FLM_Attribute_Functions as flma
+import FLM_Common as flmc
+import FLM_Attribute_Functions as flma
 
-# Setup script path and workspace folder
 workspaceName = "FLM_SLA_output"
-outWorkspace = flmc.GetWorkspace(workspaceName)
-arcpy.env.workspace = outWorkspace
-arcpy.env.overwriteOutput = True
-
-# Load arguments from file
-args = flmc.GetArgs("FLM_SLA_params.txt")
-
-# Tool arguments
-Input_Lines = args[0].rstrip()
-Input_Footprint = args[1].rstrip()
-Input_CHM = args[2].rstrip()
-SamplingType = args[3].rstrip()
-Segment_Length = float(args[4].rstrip())
-Tolerance_Radius = float(args[5].rstrip())
-LineSearchRadius = float(args[6].rstrip())
-Attributed_Segments = args[7].rstrip()
-
-areaAnalysis = arcpy.Exists(Input_Footprint)
-heightAnalysis = arcpy.Exists(Input_CHM)
-
-#Temporary layers
-fileBuffer = outWorkspace +"\\FLM_SLA_Buffer.shp"
-fileIdentity = outWorkspace+"\\FLM_SLA_Identity.shp"
-fileFootprints = outWorkspace+"\\FLM_SLA_Footprints.shp"
-
-footprintField = flmc.FileToField(fileBuffer)
 
 def workLines(lineNo):
+	outWorkspace = flmc.GetWorkspace(workspaceName)
+	f = open(outWorkspace + "\\params.txt")
+	outWorkspace = f.readline().strip()
+	Input_Lines = f.readline().strip()
+	Input_Footprint = f.readline().strip()
+	Input_CHM = f.readline().strip()
+	SamplingType = f.readline().strip()
+	Segment_Length = float(f.readline().strip())
+	Tolerance_Radius = float(f.readline().strip())
+	LineSearchRadius = float(f.readline().strip())
+	Attributed_Segments = f.readline().strip()
+	areaAnalysis = True if f.readline().strip() == "True" else False
+	heightAnalysis = True if  f.readline().strip() == "True" else False
+	f.close()
+
 	#Temporary files
 	lineSeg = outWorkspace +"\\FLM_SLA_Segment_" + str(lineNo) +".shp"
 	#fileFoot = outWorkspace +"\\FLM_SLA_Split_" + str(lineNo) +".shp"
@@ -169,10 +157,7 @@ def workLines(lineNo):
 			sqStdPop = math.pow(chm_std,2)*(chm_count-1)/chm_count
 			#Obtain RMSH from mean and STD
 			row.setValue("Roughness",math.sqrt(math.pow(chm_mean,2)+sqStdPop))
-				
-				
-			
-		
+
 	rows.updateRow(row)
 
 	del row, rows
@@ -188,16 +173,63 @@ def workLines(lineNo):
 	if(arcpy.Exists(lineStats)):
 		arcpy.Delete_management(lineStats)
 
-def main():
+def main(argv):
+	# Setup script path and workspace folder
 	global outWorkspace
 	outWorkspace = flmc.SetupWorkspace(workspaceName)
+	#outWorkspace = flmc.GetWorkspace(workspaceName)
+	arcpy.env.workspace = outWorkspace
+	arcpy.env.overwriteOutput = True
+
+	# Load arguments from file
+	if argv:
+		args = argv
+	else:
+		args = flmc.GetArgs("FLM_FLA_params.txt")
+
+	# Tool arguments
+	Input_Lines = args[0].rstrip()
+	Input_Footprint = args[1].rstrip()
+	Input_CHM = args[2].rstrip()
+	SamplingType = args[3].rstrip()
+	Segment_Length = float(args[4].rstrip())
+	Tolerance_Radius = float(args[5].rstrip())
+	LineSearchRadius = float(args[6].rstrip())
+	Attributed_Segments = args[7].rstrip()
+
+	areaAnalysis = arcpy.Exists(Input_Footprint)
+	heightAnalysis = arcpy.Exists(Input_CHM)
+
+	# write params to text file
+	f = open(outWorkspace + "\\params.txt", "w")
+	f.write(outWorkspace + "\n")
+	f.write(Input_Lines + "\n")
+	f.write(Input_Footprint + "\n")
+	f.write(Input_CHM + "\n")
+	f.write(SamplingType + "\n")
+	f.write(str(Segment_Length) + "\n")
+	f.write(str(Tolerance_Radius) + "\n")
+	f.write(str(LineSearchRadius) + "\n")
+	f.write(Attributed_Segments + "\n")
+	f.write(str(areaAnalysis) + "\n")
+	f.write(str(heightAnalysis) + "\n")
+	f.close()
+
+	# Temporary layers
+	fileBuffer = outWorkspace + "\\FLM_SLA_Buffer.shp"
+	fileIdentity = outWorkspace + "\\FLM_SLA_Identity.shp"
+	fileFootprints = outWorkspace + "\\FLM_SLA_Footprints.shp"
+
+	footprintField = flmc.FileToField(fileBuffer)
 	
 	flmc.log("Preparing line segments...")
 	# Segment lines
-	SLA_Segmented_Lines = flma.FlmLineSplit(outWorkspace, Input_Lines,SamplingType,Segment_Length,Tolerance_Radius)
+	flmc.log("FlmLineSplit: Input_Lines = " + Input_Lines)
+	SLA_Segmented_Lines = flma.FlmLineSplit(outWorkspace, Input_Lines, SamplingType, Segment_Length, Tolerance_Radius)
 	flmc.logStep("Line segmentation")
 
 	# Linear attributes
+	flmc.log("Adding attributes...")
 	arcpy.AddGeometryAttributes_management(SLA_Segmented_Lines, "LENGTH;LINE_BEARING", "METERS")
 	
 	if(areaAnalysis):
