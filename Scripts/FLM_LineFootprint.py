@@ -31,31 +31,29 @@ import multiprocessing
 import arcpy
 from arcpy.sa import *
 arcpy.CheckOutExtension("Spatial")
-from . import FLM_Common as flmc
+import FLM_Common as flmc
 
-# Setup script path and workspace folder
 workspaceName = "FLM_LFP_output"
-outWorkspace = flmc.GetWorkspace(workspaceName)
-arcpy.env.workspace = outWorkspace
-arcpy.env.overwriteOutput = True
-
-# Load arguments from file
-args = flmc.GetArgs("FLM_LFP_params.txt")
-
-# Tool arguments
-Centerline_Feature_Class = args[0].rstrip()
-Canopy_Raster = args[1].rstrip()
-Cost_Raster = args[2].rstrip()
-Corridor_Threshold_Field = args[3].rstrip()
-Maximum_distance_from_centerline = float(args[4].rstrip())  / 2.0
-Expand_And_Shrink_Cell_Range = args[5].rstrip()
-ProcessSegments = args[6].rstrip()=="True"
-Output_Footprint = args[7].rstrip()
+outWorkspace = ""
+Corridor_Threshold_Field = ""
+Maximum_distance_from_centerline = 0
 
 def PathFile(path):
 	return path[path.rfind("\\")+1:]
 	
 def workLines(lineNo):
+	# read params from text file
+	outWorkspace = flmc.GetWorkspace(workspaceName)
+	f = open(outWorkspace + "\\params.txt")
+	outWorkspace = f.readline().strip()
+	Centerline_Feature_Class = f.readline().strip()
+	Canopy_Raster = f.readline().strip()
+	Cost_Raster = f.readline().strip()
+	Corridor_Threshold_Field = f.readline().strip()
+	Maximum_distance_from_centerline = float(f.readline().strip())
+	Expand_And_Shrink_Cell_Range = f.readline().strip()
+	f.close()
+
 	#Temporary files
 	fileSeg = outWorkspace +"\\FLM_LFP_Segment_" + str(lineNo) +".shp"
 	fileOrigin = outWorkspace +"\\FLM_LFP_Origin_" + str(lineNo) +".shp"
@@ -179,9 +177,43 @@ def HasField(fc, fi):
   else:
     return False
 	
-def main():
+def main(argv):
+	# Setup script path and workspace folder
+	workspaceName = "FLM_LFP_output"
 	global outWorkspace
+	outWorkspace = flmc.GetWorkspace(workspaceName)
+	arcpy.env.workspace = outWorkspace
+	arcpy.env.overwriteOutput = True
+
+	# Load arguments from file
+	if argv:
+		args = argv
+	else:
+		args = flmc.GetArgs("FLM_LFP_params.txt")
+
+	# Tool arguments
+	Centerline_Feature_Class = args[0].rstrip()
+	Canopy_Raster = args[1].rstrip()
+	Cost_Raster = args[2].rstrip()
+	global Corridor_Threshold_Field
+	Corridor_Threshold_Field = args[3].rstrip()
+	global Maximum_distance_from_centerline
+	Maximum_distance_from_centerline = float(args[4].rstrip()) / 2.0
+	Expand_And_Shrink_Cell_Range = args[5].rstrip()
+	ProcessSegments = args[6].rstrip() == "True"
+	Output_Footprint = args[7].rstrip()
 	outWorkspace = flmc.SetupWorkspace(workspaceName)
+
+	# write params to text file
+	f = open(outWorkspace + "\\params.txt", "w")
+	f.write(outWorkspace + "\n")
+	f.write(Centerline_Feature_Class + "\n")
+	f.write(Canopy_Raster + "\n")
+	f.write(Cost_Raster + "\n")
+	f.write(Corridor_Threshold_Field + "\n")
+	f.write(str(Maximum_distance_from_centerline) + "\n")
+	f.write(Expand_And_Shrink_Cell_Range + "\n")
+	f.close()
 
 	if(HasField(Centerline_Feature_Class, Corridor_Threshold_Field) == False):
 		flmc.log("ERROR: There is no field named "+Corridor_Threshold_Field+" in the input lines")
