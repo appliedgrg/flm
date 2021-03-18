@@ -31,16 +31,20 @@
 import arcpy
 from arcpy.sa import *
 arcpy.CheckOutExtension("Spatial")
-from . import FLM_Common as flmc
+import FLM_Common as flmc
 
-def main():
+def main(argv):
 	# Setup script path and output folder
 	outWorkspace = flmc.SetupWorkspace("FLM_CC_output")
 	arcpy.env.workspace = outWorkspace
+	arcpy.env.scratchWorkspace = outWorkspace
 	arcpy.env.overwriteOutput = True
 	
 	# Load arguments from file
-	args = flmc.GetArgs("FLM_CC_params.txt")
+	if argv:
+		args = argv
+	else:
+		args = flmc.GetArgs("FLM_CC_params.txt")
 
 	# Tool arguments
 	CHM_Raster = args[0].rstrip()
@@ -96,3 +100,4 @@ def main():
 	
 	flmc.log("Saving Outputs...")
 	arcpy.CopyRaster_management(outRas,Output_Cost_Raster,"DEFAULTS")
+	arcpy.ClearWorkspaceCache_management()
