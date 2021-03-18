@@ -30,13 +30,12 @@
 
 import arcpy
 arcpy.env.overwriteOutput = True
-arcpy.CheckOutExtension("Spatial")
-from . import FLM_Common as flmc
+import FLM_Common as flmc
 
 def PathFile(path):
 	return path[path.rfind("\\")+1:]
 
-def FlmLineSplit(workspace, Input_Lines,SamplingType,Segment_Length,Tolerance_Radius):
+def FlmLineSplit(workspace, Input_Lines, SamplingType, Segment_Length, Tolerance_Radius):
 
 	if (SamplingType == "IN-FEATURES"):
 		return Input_Lines
@@ -46,6 +45,10 @@ def FlmLineSplit(workspace, Input_Lines,SamplingType,Segment_Length,Tolerance_Ra
 	FLA_Line_Unsplit_Single = workspace+"\\FLA_Line_Unsplit_Single.shp"
 	FLA_Line_Split_Vertices = workspace+"\\FLA_Line_Split_Vertices.shp"
 	FLA_Segmented_Lines = workspace+"\\FLA_Segmented_Lines.shp"
+	
+	flmc.log("FlmLineSplit: Executing UnsplitLine")
+	flmc.log("Input_Lines: " + Input_Lines)
+	flmc.log("FLA_Line_Unsplit: " + FLA_Line_Unsplit)
 	
 	arcpy.UnsplitLine_management(Input_Lines,FLA_Line_Unsplit)
 	arcpy.MultipartToSinglepart_management(FLA_Line_Unsplit,FLA_Line_Unsplit_Single)
