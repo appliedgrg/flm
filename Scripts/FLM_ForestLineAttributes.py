@@ -173,7 +173,7 @@ def workLines(lineNo):
 	if(arcpy.Exists(lineStats)):
 		arcpy.Delete_management(lineStats)
 
-def main(argv):
+def main(argv=None):
 	# Setup script path and workspace folder
 	global outWorkspace
 	outWorkspace = flmc.SetupWorkspace(workspaceName)

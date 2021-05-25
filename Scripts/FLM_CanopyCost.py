@@ -33,7 +33,7 @@ from arcpy.sa import *
 arcpy.CheckOutExtension("Spatial")
 import FLM_Common as flmc
 
-def main(argv):
+def main(argv=None):
 	# Setup script path and output folder
 	outWorkspace = flmc.SetupWorkspace("FLM_CC_output")
 	arcpy.env.workspace = outWorkspace

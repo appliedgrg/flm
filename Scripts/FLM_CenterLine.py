@@ -118,7 +118,7 @@ def workLines(lineNo):
 	arcpy.Delete_management(fileCostDist)
 	arcpy.Delete_management(fileCostBack)
 
-def main(argv):
+def main(argv=None):
 	# Setup script path and workspace folder
 	global workspaceName
 	workspaceName = "FLM_CL_output"
