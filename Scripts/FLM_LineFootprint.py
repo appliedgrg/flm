@@ -30,6 +30,7 @@
 import multiprocessing
 import arcpy
 from arcpy.sa import *
+
 arcpy.CheckOutExtension("Spatial")
 import FLM_Common as flmc
 
@@ -38,54 +39,58 @@ outWorkspace = ""
 Corridor_Threshold_Field = ""
 Maximum_distance_from_centerline = 0
 
+
 def PathFile(path):
-    return path[path.rfind("\\")+1:]
+    return path[path.rfind("\\") + 1:]
+
 
 def workLines(lineNo):
-	# read params from text file
-	outWorkspace = flmc.GetWorkspace(workspaceName)
-	f = open(outWorkspace + "\\params.txt")
-	outWorkspace = f.readline().strip()
-	Centerline_Feature_Class = f.readline().strip()
-	Canopy_Raster = f.readline().strip()
-	Cost_Raster = f.readline().strip()
-	Corridor_Threshold_Field = f.readline().strip()
-	Maximum_distance_from_centerline = float(f.readline().strip())
-	Expand_And_Shrink_Cell_Range = f.readline().strip()
-	f.close()
+    # read params from text file
+    outWorkspace = flmc.GetWorkspace(workspaceName)
+    f = open(outWorkspace + "\\params.txt")
+    outWorkspace = f.readline().strip()
+    Centerline_Feature_Class = f.readline().strip()
+    Canopy_Raster = f.readline().strip()
+    Cost_Raster = f.readline().strip()
+    Corridor_Threshold_Field = f.readline().strip()
+    Maximum_distance_from_centerline = float(f.readline().strip())
+    Expand_And_Shrink_Cell_Range = f.readline().strip()
+    f.close()
 
-	#Temporary files
-	fileSeg = outWorkspace +"\\FLM_LFP_Segment_" + str(lineNo) +".shp"
-	fileOrigin = outWorkspace +"\\FLM_LFP_Origin_" + str(lineNo) +".shp"
-	fileDestination = outWorkspace +"\\FLM_LFP_Destination_" + str(lineNo) +".shp"
-	fileBuffer = outWorkspace +"\\FLM_LFP_Buffer_" + str(lineNo) +".shp"
-	fileClip = outWorkspace+"\\FLM_LFP_Clip_" + str(lineNo) +".tif"
-	fileCostDa = outWorkspace+"\\FLM_LFP_CostDa_" + str(lineNo) +".tif"
-	fileCostDb = outWorkspace+"\\FLM_LFP_CostDb_" + str(lineNo) +".tif"
-	fileCorridor = outWorkspace+"\\FLM_LFP_Corridor_" + str(lineNo) +".tif"
-	fileCorridorMin = outWorkspace+"\\FLM_LFP_CorridorMin_" + str(lineNo) +".tif"
-	fileThreshold = outWorkspace+"\\FLM_LFP_Threshold_" + str(lineNo) +".tif"
-	fileExpand = outWorkspace+"\\FLM_LFP_Expand_" + str(lineNo) +".tif"
-	fileShrink = outWorkspace+"\\FLM_LFP_Shrink_" + str(lineNo) +".tif"
-	fileClean = outWorkspace+"\\FLM_LFP_Clean_" + str(lineNo) +".tif"
-	fileNull = outWorkspace+"\\FLM_LFP_Null_" + str(lineNo) +".tif"
-	fileFootprint = outWorkspace +"\\FLM_LFP_Footprint_" + str(lineNo) +".shp"
-	
-	# Load segment list
-	segment_list = []
-	rows = arcpy.SearchCursor(fileSeg)
-	shapeField = arcpy.Describe(fileSeg).ShapeFieldName
-	for row in rows:
-		feat = row.getValue(shapeField)   #creates a geometry object
-		Corridor_Threshold = float(row.getValue(Corridor_Threshold_Field))
-		segmentnum = 0
-		for segment in feat: #loops through every segment in a line
-			#loops through every vertex of every segment
-			for pnt in feat.getPart(segmentnum):                 #get.PArt returns an array of points for a particular part in the geometry
-				if pnt:                  #adds all the vertices to segment_list, which creates an array
-					segment_list.append(arcpy.Point(float(pnt.X), float(pnt.Y)))
+    # Temporary files
+    fileSeg = outWorkspace + "\\FLM_LFP_Segment_" + str(lineNo) + ".shp"
+    fileOrigin = outWorkspace + "\\FLM_LFP_Origin_" + str(lineNo) + ".shp"
+    fileDestination = outWorkspace + "\\FLM_LFP_Destination_" + str(lineNo) + ".shp"
+    fileBuffer = outWorkspace + "\\FLM_LFP_Buffer_" + str(lineNo) + ".shp"
+    fileClip = outWorkspace + "\\FLM_LFP_Clip_" + str(lineNo) + ".tif"
+    fileCostDa = outWorkspace + "\\FLM_LFP_CostDa_" + str(lineNo) + ".tif"
+    fileCostDb = outWorkspace + "\\FLM_LFP_CostDb_" + str(lineNo) + ".tif"
+    fileCorridor = outWorkspace + "\\FLM_LFP_Corridor_" + str(lineNo) + ".tif"
+    fileCorridorMin = outWorkspace + "\\FLM_LFP_CorridorMin_" + str(lineNo) + ".tif"
+    fileThreshold = outWorkspace + "\\FLM_LFP_Threshold_" + str(lineNo) + ".tif"
+    fileExpand = outWorkspace + "\\FLM_LFP_Expand_" + str(lineNo) + ".tif"
+    fileShrink = outWorkspace + "\\FLM_LFP_Shrink_" + str(lineNo) + ".tif"
+    fileClean = outWorkspace + "\\FLM_LFP_Clean_" + str(lineNo) + ".tif"
+    fileNull = outWorkspace + "\\FLM_LFP_Null_" + str(lineNo) + ".tif"
+    fileFootprint = outWorkspace + "\\FLM_LFP_Footprint_" + str(lineNo) + ".shp"
 
-            segmentnum += 1
+    # Load segment list
+    segment_list = []
+    rows = arcpy.SearchCursor(fileSeg)
+    shapeField = arcpy.Describe(fileSeg).ShapeFieldName
+    for row in rows:
+        feat = row.getValue(shapeField)  # creates a geometry object
+        Corridor_Threshold = float(row.getValue(Corridor_Threshold_Field))
+        segmentnum = 0
+        for segment in feat:  # loops through every segment in a line
+            # loops through every vertex of every segment
+            for pnt in feat.getPart(
+                    segmentnum):  # get.PArt returns an array of points for a particular part in the geometry
+                if pnt:  # adds all the vertices to segment_list, which creates an array
+                    segment_list.append(arcpy.Point(float(pnt.X), float(pnt.Y)))
+
+        segmentnum += 1
+
     del rows
 
     # Find origin and destination coordinates
@@ -95,16 +100,18 @@ def workLines(lineNo):
     y2 = segment_list[-1].Y
 
     # Create origin feature class
-    arcpy.CreateFeatureclass_management(outWorkspace,PathFile(fileOrigin),"POINT",Centerline_Feature_Class,"DISABLED","DISABLED",Centerline_Feature_Class)
+    arcpy.CreateFeatureclass_management(outWorkspace, PathFile(fileOrigin), "POINT", Centerline_Feature_Class, "DISABLED",
+                                        "DISABLED", Centerline_Feature_Class)
     cursor = arcpy.da.InsertCursor(fileOrigin, ["SHAPE@XY"])
-    xy = (float(x1),float(y1))
+    xy = (float(x1), float(y1))
     cursor.insertRow([xy])
     del cursor
 
     # Create destination feature class
-    arcpy.CreateFeatureclass_management(outWorkspace,PathFile(fileDestination),"POINT",Centerline_Feature_Class,"DISABLED","DISABLED",Centerline_Feature_Class)
+    arcpy.CreateFeatureclass_management(outWorkspace, PathFile(fileDestination), "POINT", Centerline_Feature_Class,
+                                        "DISABLED", "DISABLED", Centerline_Feature_Class)
     cursor = arcpy.da.InsertCursor(fileDestination, ["SHAPE@XY"])
-    xy = (float(x2),float(y2))
+    xy = (float(x2), float(y2))
     cursor.insertRow([xy])
     del cursor
 
@@ -113,7 +120,8 @@ def workLines(lineNo):
 
     # Clip cost raster using buffer
     DescBuffer = arcpy.Describe(fileBuffer)
-    SearchBox = str(DescBuffer.extent.XMin)+" "+str(DescBuffer.extent.YMin)+" "+str(DescBuffer.extent.XMax)+" "+str(DescBuffer.extent.YMax)
+    SearchBox = str(DescBuffer.extent.XMin) + " " + str(DescBuffer.extent.YMin) + " " + str(
+        DescBuffer.extent.XMax) + " " + str(DescBuffer.extent.YMax)
     arcpy.Clip_management(Cost_Raster, SearchBox, fileClip, fileBuffer, "", "ClippingGeometry", "NO_MAINTAIN_EXTENT")
 
     # Process: Cost Distance
@@ -128,15 +136,15 @@ def workLines(lineNo):
     CorrMin = float(RasterCorridor.minimum)
 
     # Set minimum as zero and save minimum file
-    RasterCorridor = ( (RasterCorridor-CorrMin) > Corridor_Threshold)
+    RasterCorridor = ((RasterCorridor - CorrMin) > Corridor_Threshold)
     RasterCorridor.save(fileCorridorMin)
 
     # Process: Stamp CC and Max Line Width
-    RasterClass = SetNull(IsNull(Raster(fileCorridorMin)),(Raster(fileCorridorMin)+(Raster(Canopy_Raster)>=1))>0)
+    RasterClass = SetNull(IsNull(Raster(fileCorridorMin)), (Raster(fileCorridorMin) + (Raster(Canopy_Raster) >= 1)) > 0)
     RasterClass.save(fileThreshold)
     del RasterCorridor, RasterClass
 
-    if(int(Expand_And_Shrink_Cell_Range)>0):
+    if (int(Expand_And_Shrink_Cell_Range) > 0):
         # Process: Expand
         arcpy.gp.Expand_sa(fileThreshold, fileExpand, Expand_And_Shrink_Cell_Range, "1")
 
@@ -146,8 +154,8 @@ def workLines(lineNo):
         fileShrink = fileThreshold
 
     # Process: Boundary Clean
-    #arcpy.gp.BoundaryClean_sa(fileShrink, fileClean, "ASCEND", "ONE_WAY")
-    #arcpy.gp.BoundaryClean_sa(fileShrink, fileClean, "NO_SORT", "ONE_WAY")
+    # arcpy.gp.BoundaryClean_sa(fileShrink, fileClean, "ASCEND", "ONE_WAY")
+    # arcpy.gp.BoundaryClean_sa(fileShrink, fileClean, "NO_SORT", "ONE_WAY")
     fileClean = fileShrink
 
     # Process: Set Null
@@ -173,12 +181,14 @@ def workLines(lineNo):
     arcpy.Delete_management(fileClean)
     arcpy.Delete_management(fileNull)
 
+
 def HasField(fc, fi):
-  fieldnames = [field.name for field in arcpy.ListFields(fc)]
-  if fi in fieldnames:
-    return True
-  else:
-    return False
+    fieldnames = [field.name for field in arcpy.ListFields(fc)]
+    if fi in fieldnames:
+        return True
+    else:
+        return False
+
 
 def main(argv=None):
     # Setup script path and workspace folder
@@ -224,8 +234,8 @@ def main(argv=None):
     f.write(Expand_And_Shrink_Cell_Range + "\n")
     f.close()
 
-    if(HasField(Centerline_Feature_Class, Corridor_Threshold_Field) == False):
-        flmc.log("ERROR: There is no field named "+Corridor_Threshold_Field+" in the input lines")
+    if (HasField(Centerline_Feature_Class, Corridor_Threshold_Field) == False):
+        flmc.log("ERROR: There is no field named " + Corridor_Threshold_Field + " in the input lines")
         return False
 
     # Prepare input lines for multiprocessing
@@ -233,20 +243,21 @@ def main(argv=None):
 
     pool = multiprocessing.Pool(processes=flmc.GetCores())
     flmc.log("Multiprocessing line corridors...")
-    pool.map(workLines, range(1,numLines+1))
+    pool.map(workLines, range(1, numLines + 1))
     pool.close()
     pool.join()
     flmc.logStep("Corridor multiprocessing")
 
     flmc.log("Merging footprint layers...")
     tempShapefiles = arcpy.ListFeatureClasses()
-    fileMerge = outWorkspace +"\\FLM_LFP_Merge.shp"
-    arcpy.Merge_management(tempShapefiles,fileMerge)
-    arcpy.Dissolve_management(fileMerge,Output_Footprint)
+    fileMerge = outWorkspace + "\\FLM_LFP_Merge.shp"
+    arcpy.Merge_management(tempShapefiles, fileMerge)
+    arcpy.Dissolve_management(fileMerge, Output_Footprint)
     for shp in tempShapefiles:
         arcpy.Delete_management(shp)
     arcpy.Delete_management(fileMerge)
     flmc.logStep("Merging")
+
 
 if __name__ == '__main__':
     try:
