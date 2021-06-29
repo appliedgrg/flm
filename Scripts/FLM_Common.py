@@ -142,21 +142,21 @@ def SetCores(cores):
     cfile.close()
 
 def SetupWorkspace (outWorkName):
-	"""This function creates a folder outWorkName in the scriptPath folder.
-	If it already exists, all shapefiles and rasters in it are deleted."""
-	import arcpy
-	
-	outWorkspace = scriptPath + "\\" + outWorkName
-	
-	# Setup output folder
-	try:
-		#arcpy.CreateFileGDB_management(scriptPath, outWorkName +".gdb")
-		os.mkdir(outWorkspace)
-		log("Scratch workspace " + str(outWorkspace) +  " created.") 
-	except:
-		log("Scratch workspace " + str(outWorkspace) +  " already exists.")
+    """This function creates a folder outWorkName in the scriptPath folder.
+    If it already exists, all shapefiles and rasters in it are deleted."""
+    import arcpy
+    
+    outWorkspace = scriptPath + "\\" + outWorkName
+    
+    # Setup output folder
+    try:
+        #arcpy.CreateFileGDB_management(scriptPath, outWorkName +".gdb")
+        os.mkdir(outWorkspace)
+        log("Scratch workspace " + str(outWorkspace) +  " created.")
+    except:
+        log("Scratch workspace " + str(outWorkspace) +  " already exists.")
 
-        arcpy.env.workspace = outWorkspace
+    arcpy.env.workspace = outWorkspace
 
     # Delete old files
     oldShapefiles = arcpy.ListFeatureClasses()
@@ -178,9 +178,9 @@ def SetupWorkspace (outWorkName):
     return outWorkspace
 
 def GetWorkspace(outWorkName):
-	outWorkspace = scriptPath + "\\" + outWorkName
-	return outWorkspace
-	
+    outWorkspace = scriptPath + "\\" + outWorkName
+    return outWorkspace
+    
 def SplitLines(linesFc, outWorkspace, toolCodename, ProcessSegments, KeepFieldName = []):
     """This function splits the input polyline shapefile (linesFc) into several shapefiles.
     If ProcessSegments is False one shapefile will be created for each feature.
@@ -226,7 +226,7 @@ def SplitLines(linesFc, outWorkspace, toolCodename, ProcessSegments, KeepFieldNa
 
             for vertexID in range(0, len(segment_list)-1):   #loops through every vertex in the list   #-1 is done so the second last vertex is the start of a segment and the code is within range...
                 line += 1
-                segment_fname = "FLM_"+toolCodename +"_Segment_"+ str(line) + GetFeatureClassSuffix()
+                segment_fname = "FLM_"+toolCodename +"_Segment_"+ str(line) + ".shp"
                 segment_fpath = outWorkspace +"\\"+ segment_fname
                 if arcpy.Exists(segment_fpath):
                     arcpy.Delete_management(segment_fpath)
@@ -280,7 +280,7 @@ def SplitFeature (fc, idField, outWorkspace, toolCodename):
         feat = row.getValue(shapeField)   #creates a geometry object
         name = row.getValue(idField)   #creates a geometry object
         ()
-        segment_fname = "FLM_"+toolCodename +"_Split_"+ str(name) + GetFeatureClassSuffix()
+        segment_fname = "FLM_"+toolCodename +"_Split_"+ str(name) + ".shp"
         segment_fpath = outWorkspace +"\\"+ segment_fname
         if arcpy.Exists(segment_fpath):
             arcpy.Delete_management(segment_fpath)
