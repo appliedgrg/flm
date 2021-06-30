@@ -32,7 +32,7 @@ import arcpy
 from arcpy.sa import *
 
 arcpy.CheckOutExtension("Spatial")
-import FLM_Common as flmc
+from . import FLM_Common as flmc
 
 workspaceName = "FLM_LFP_output"
 outWorkspace = ""
