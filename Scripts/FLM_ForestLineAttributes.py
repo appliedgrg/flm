@@ -32,7 +32,7 @@ import math
 import arcpy
 arcpy.CheckOutExtension("Spatial")
 from . import FLM_Common as flmc
-import FLM_Attribute_Functions as flma
+from . import FLM_Attribute_Functions as flma 
 
 workspaceName = "FLM_SLA_output"
 
