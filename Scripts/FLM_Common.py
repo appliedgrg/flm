@@ -231,30 +231,32 @@ def SplitLines(linesFc, outWorkspace, toolCodename, ProcessSegments, KeepFieldNa
                 if arcpy.Exists(segment_fpath):
                     arcpy.Delete_management(segment_fpath)
 
-                segmentFC = arcpy.CreateFeatureclass_management(outWorkspace,segment_fname,"POLYLINE","","DISABLED","DISABLED",linesFc)
+                try:
+                    segmentFC = arcpy.CreateFeatureclass_management(outWorkspace, segment_fname, "POLYLINE", "", "DISABLED", "DISABLED", linesFc)
+
+                    for fieldName in KeepFieldName:
+                        if(fieldName in fieldDict):
+                            arcpy.AddField_management(outWorkspace+"\\"+segment_fname,fieldName,fieldDict[fieldName])
 
 
-                for fieldName in KeepFieldName:
-                    if(fieldName in fieldDict):
-                        arcpy.AddField_management(outWorkspace+"\\"+segment_fname,fieldName,fieldDict[fieldName])
+                    cursor = arcpy.da.InsertCursor(segment_fpath, KeepFieldName+["SHAPE@"])
 
+                    if(ProcessSegments == False):
+                        array = arcpy.Array(segment_list)
+                    else:
+                        array = arcpy.Array()
+                        array.add(segment_list[vertexID])
+                        array.add(segment_list[vertexID+1])
+                    polyline = arcpy.Polyline(array, arcpy.Describe(segment_fpath).spatialReference)
 
-                cursor = arcpy.da.InsertCursor(segment_fpath, KeepFieldName+["SHAPE@"])
+                    cursor.insertRow(KeepField+[polyline])
 
-                if(ProcessSegments == False):
-                    array = arcpy.Array(segment_list)
-                else:
-                    array = arcpy.Array()
-                    array.add(segment_list[vertexID])
-                    array.add(segment_list[vertexID+1])
-                polyline = arcpy.Polyline(array, arcpy.Describe(segment_fpath).spatialReference)
+                    del cursor, segmentFC
 
-                cursor.insertRow(KeepField+[polyline])
-
-                del cursor, segmentFC
-
-                if(ProcessSegments == False):
-                    break
+                    if(ProcessSegments == False):
+                        break
+                except:
+                    print("Creating segment feature class failed: " + segment_fname + ".")
 
     del rows
     # At this point all lines have been separated into different feature classes located at the scratch workspace

@@ -84,20 +84,26 @@ def workLines(lineNo):
     y2 = segment_list[-1].Y
 
     # Create origin feature class
-    arcpy.CreateFeatureclass_management(outWorkspace, PathFile(fileOrigin), "POINT", Forest_Line_Feature_Class,
-                                        "DISABLED", "DISABLED", Forest_Line_Feature_Class)
-    cursor = arcpy.da.InsertCursor(fileOrigin, ["SHAPE@XY"])
-    xy = (float(x1), float(y1))
-    cursor.insertRow([xy])
-    del cursor
+    try:
+        arcpy.CreateFeatureclass_management(outWorkspace, PathFile(fileOrigin), "POINT", Forest_Line_Feature_Class,
+                                            "DISABLED", "DISABLED", Forest_Line_Feature_Class)
+        cursor = arcpy.da.InsertCursor(fileOrigin, ["SHAPE@XY"])
+        xy = (float(x1), float(y1))
+        cursor.insertRow([xy])
+        del cursor
+    except:
+        print("Creating origin feature class failed: at X, Y" + str(xy) + ".")
 
     # Create destination feature class
-    arcpy.CreateFeatureclass_management(outWorkspace, PathFile(fileDestination), "POINT", Forest_Line_Feature_Class,
-                                        "DISABLED", "DISABLED", Forest_Line_Feature_Class)
-    cursor = arcpy.da.InsertCursor(fileDestination, ["SHAPE@XY"])
-    xy = (float(x2), float(y2))
-    cursor.insertRow([xy])
-    del cursor
+    try:
+        arcpy.CreateFeatureclass_management(outWorkspace, PathFile(fileDestination), "POINT", Forest_Line_Feature_Class,
+                                            "DISABLED", "DISABLED", Forest_Line_Feature_Class)
+        cursor = arcpy.da.InsertCursor(fileDestination, ["SHAPE@XY"])
+        xy = (float(x2), float(y2))
+        cursor.insertRow([xy])
+        del cursor
+    except:
+        print("Creating destination feature class failed: at X, Y" + str(xy) + ".")
 
     try:
         # Buffer around line
