@@ -31,7 +31,7 @@
 import arcpy
 from arcpy.sa import *
 arcpy.CheckOutExtension("Spatial")
-from . import FLM_Common as flmc
+import FLM_Common as flmc
 
 def main(argv=None):
 	# Setup script path and output folder

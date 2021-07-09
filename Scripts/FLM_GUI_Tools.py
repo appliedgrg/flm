@@ -40,8 +40,8 @@ import os
 import importlib
 import webbrowser
 import multiprocessing
-from . import Tooltip as ttp
-from . import FLM_Common as flmc
+import Tooltip as ttp
+import FLM_Common as flmc
 
     
 # Initialize GUI

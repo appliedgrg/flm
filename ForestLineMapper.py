@@ -49,7 +49,9 @@
 # GUI is constructed based on calls contained within this script. 
 #
 # ---------------------------------------------------------------------------
-	
+import os
+import sys
+
 version = ""
 
 class FLM_Tool_GUI:
@@ -145,17 +147,19 @@ if __name__ != '__main__':
 	import Scripts.FLM_ForestLineAttributes
 else:
 	#If script is main process, load and show GUI
-	import os
 	scriptPath = os.path.dirname(os.path.realpath(__file__))
+
+	# add scriptPath to sys.path
+	sys.path.append(os.path.join(scriptPath, "Scripts"))
 	
-	vfile = open(scriptPath+"\\Scripts\\FLM_VERSION","r")
+	vfile = open(scriptPath+"\\Scripts\\FLM_VERSION", "r")
 	args = vfile.readlines()
 	vfile.close()
 	version = args[0]
 
 	import json
-	import Scripts.FLM_Common as flmc
-	import Scripts.FLM_GUI_Tools as gui
+	import FLM_Common as flmc
+	import FLM_GUI_Tools as gui
 	
 	flmc.newLog(version)
 		

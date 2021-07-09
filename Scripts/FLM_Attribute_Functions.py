@@ -30,7 +30,7 @@
 
 import arcpy
 arcpy.env.overwriteOutput = True
-from . import FLM_Common as flmc
+import FLM_Common as flmc
 
 def PathFile(path):
 	return path[path.rfind("\\")+1:]

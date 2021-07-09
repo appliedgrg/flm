@@ -32,7 +32,7 @@ import multiprocessing
 import arcpy
 from arcpy.sa import *
 arcpy.CheckOutExtension("Spatial")
-from . import FLM_Common as flmc
+import FLM_Common as flmc
 import math
 
 # Setup script path and workspace folder
