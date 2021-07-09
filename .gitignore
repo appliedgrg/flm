@@ -2,3 +2,10 @@
 *.pyc
 *.lock
 log.txt
+.idea/vcs.xml
+.idea/modules.xml
+.idea/misc.xml
+.idea/inspectionProfiles/profiles_settings.xml
+.idea/flm-Richard.iml
+Examples/Inputs/Thumbs.db
+Examples/Inputs/Thumbs.db
