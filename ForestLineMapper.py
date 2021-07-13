@@ -85,7 +85,7 @@ class FLM_Tool_GUI:
 				if(len(args)<=i):
 					break
 				self.input[i].insert(0, args[i])
-		except:
+		except Exception as e:
 			self.SetDefaults()
 	def GetParams(self):
 		params = []
@@ -134,7 +134,7 @@ def main():
 	if(exit == False):
 		try:
 			input("\n<Press any key to exit>")
-		except:
+		except Exception as e:
 			print("")
 		
 if __name__ != '__main__':

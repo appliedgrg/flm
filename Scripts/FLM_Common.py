@@ -30,11 +30,15 @@
 # ---------------------------------------------------------------------------
 
 import time
+import os
+import sys
+import multiprocessing
+
 try:
     import tkinter as tk
 except ImportError:
     import Tkinter as tk
-import os, sys, multiprocessing
+
 timeStart = time.clock()
 timeLast = timeStart
 scriptPath = os.path.dirname(os.path.realpath(__file__))
@@ -104,7 +108,7 @@ def GetArgs(paramFile):
         args = pfile.readlines()
         pfile.close()
         return args
-    except:
+    except Exception as e:
         return ["-1"]*100
 
 def SetArgs(paramFile, args):
@@ -129,7 +133,7 @@ def GetCores():
             cfile.write(str(maxCores))
             cfile.close()
             return maxCores
-    except:
+    except Exception as e:
         cfile = open(coresPath,"w")
         cfile.write(str(maxCores))
         cfile.close()
@@ -153,7 +157,7 @@ def SetupWorkspace (outWorkName):
         #arcpy.CreateFileGDB_management(scriptPath, outWorkName +".gdb")
         os.mkdir(outWorkspace)
         log("Scratch workspace " + str(outWorkspace) +  " created.")
-    except:
+    except Exception as e:
         log("Scratch workspace " + str(outWorkspace) +  " already exists.")
 
     arcpy.env.workspace = outWorkspace
@@ -255,7 +259,7 @@ def SplitLines(linesFc, outWorkspace, toolCodename, ProcessSegments, KeepFieldNa
 
                     if(ProcessSegments == False):
                         break
-                except:
+                except Exception as e:
                     print("Creating segment feature class failed: " + segment_fname + ".")
 
     del rows

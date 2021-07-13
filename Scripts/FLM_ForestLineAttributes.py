@@ -81,7 +81,7 @@ def workLines(lineNo):
 		if (heightAnalysis and arcpy.Exists(lineClip)):
 			try:
 				arcpy.gp.ZonalStatisticsAsTable_sa(lineClip, arcpy.Describe(lineClip).OIDFieldName, Input_CHM, lineStats, "DATA", "ALL")
-			except:
+			except Exception as e:
 				lineStats = ""
 	
 	rows = arcpy.UpdateCursor(lineSeg)
@@ -93,7 +93,7 @@ def workLines(lineNo):
 	
 	try:
 		bearing = float(row.getValue("BEARING"))   #creates a geometry object
-	except:
+	except Exception as e:
 		bearing = 0
 		
 	segmentnum = 0
@@ -108,7 +108,7 @@ def workLines(lineNo):
 	eucDistance = arcpy.PointGeometry(feat.firstPoint).distanceTo(arcpy.PointGeometry(feat.lastPoint))
 	try:
 		row.setValue("Sinuosity",length/eucDistance)
-	except:
+	except Exception as e:
 		row.setValue("Sinuosity",float("inf"))
 		
 	#Direction based on bearing
@@ -130,7 +130,7 @@ def workLines(lineNo):
 	
 		try:
 			row.setValue("Fragment",totalPerim/totalArea)
-		except:
+		except Exception as e:
 			row.setValue("Fragment",float("inf"))
 		
 		if(arcpy.Exists(lineStats)):

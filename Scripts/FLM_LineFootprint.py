@@ -182,7 +182,7 @@ def workLines(lineNo):
         arcpy.Delete_management(fileShrink)
         arcpy.Delete_management(fileClean)
         arcpy.Delete_management(fileNull)
-    except:
+    except Exception as e:
         print("Line Footprint: Deleting temporary file failed. Inspect later.")
 
 

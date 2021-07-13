@@ -91,7 +91,7 @@ def workLines(lineNo):
         xy = (float(x1), float(y1))
         cursor.insertRow([xy])
         del cursor
-    except:
+    except Exception as e:
         print("Creating origin feature class failed: at X, Y" + str(xy) + ".")
 
     # Create destination feature class
@@ -102,7 +102,7 @@ def workLines(lineNo):
         xy = (float(x2), float(y2))
         cursor.insertRow([xy])
         del cursor
-    except:
+    except Exception as e:
         print("Creating destination feature class failed: at X, Y" + str(xy) + ".")
 
     try:
@@ -120,7 +120,7 @@ def workLines(lineNo):
         arcpy.gp.CostDistance_sa(fileOrigin, fileClip, fileCostDist, "", fileCostBack, "", "", "", "", "TO_SOURCE")
         arcpy.gp.CostPathAsPolyline_sa(fileDestination, fileCostDist, fileCostBack, fileCenterLine, "BEST_SINGLE", "")
 
-    except:
+    except Exception as e:
         print("Problem with line starting at X " + str(x1) + ", Y " + str(y1) + "; and ending at X " + str(
             x1) + ", Y " + str(y1) + ".")
 
