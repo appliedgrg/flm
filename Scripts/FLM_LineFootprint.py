@@ -154,9 +154,9 @@ def workLines(lineNo):
         fileShrink = fileThreshold
 
     # Process: Boundary Clean
-    # arcpy.gp.BoundaryClean_sa(fileShrink, fileClean, "ASCEND", "ONE_WAY")
-    # arcpy.gp.BoundaryClean_sa(fileShrink, fileClean, "NO_SORT", "ONE_WAY")
-    fileClean = fileShrink
+    arcpy.gp.BoundaryClean_sa(fileShrink, fileClean, "ASCEND", "ONE_WAY")
+    # arcpy.gp.BoundaryClean_sa(fileShrink, fileClean, "NO_SORT", "ONE_WAY")  # This is original code
+    #fileClean = fileShrink
 
     # Process: Set Null
     arcpy.gp.SetNull_sa(fileClean, "1", fileNull, "VALUE > 0")
@@ -164,22 +164,26 @@ def workLines(lineNo):
     # Process: Raster to Polygon
     arcpy.RasterToPolygon_conversion(fileNull, fileFootprint, "SIMPLIFY", "VALUE", "SINGLE_OUTER_PART", "")
 
-    flmc.log("Processing line {} done".format(fileSeg))
+    #flmc.log("Processing line {} done".format(fileSeg))
+
     # Clean temporary files
-    arcpy.Delete_management(fileSeg)
-    arcpy.Delete_management(fileOrigin)
-    arcpy.Delete_management(fileDestination)
-    arcpy.Delete_management(fileBuffer)
-    arcpy.Delete_management(fileClip)
-    arcpy.Delete_management(fileCostDa)
-    arcpy.Delete_management(fileCostDb)
-    arcpy.Delete_management(fileThreshold)
-    arcpy.Delete_management(fileCorridor)
-    arcpy.Delete_management(fileCorridorMin)
-    arcpy.Delete_management(fileExpand)
-    arcpy.Delete_management(fileShrink)
-    arcpy.Delete_management(fileClean)
-    arcpy.Delete_management(fileNull)
+    try:
+        arcpy.Delete_management(fileSeg)
+        arcpy.Delete_management(fileOrigin)
+        arcpy.Delete_management(fileDestination)
+        arcpy.Delete_management(fileBuffer)
+        arcpy.Delete_management(fileClip)
+        arcpy.Delete_management(fileCostDa)
+        arcpy.Delete_management(fileCostDb)
+        arcpy.Delete_management(fileThreshold)
+        arcpy.Delete_management(fileCorridor)
+        arcpy.Delete_management(fileCorridorMin)
+        arcpy.Delete_management(fileExpand)
+        arcpy.Delete_management(fileShrink)
+        arcpy.Delete_management(fileClean)
+        arcpy.Delete_management(fileNull)
+    except:
+        print("Line Footprint: Deleting temporary file failed. Inspect later.")
 
 
 def HasField(fc, fi):
