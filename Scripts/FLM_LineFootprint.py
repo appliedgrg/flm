@@ -116,7 +116,11 @@ def workLines(lineNo):
     del cursor
 
     # Buffer around line
-    arcpy.Buffer_analysis(fileSeg, fileBuffer, Maximum_distance_from_centerline, "FULL", "ROUND", "NONE", "", "PLANAR")
+    try:
+        arcpy.Buffer_analysis(fileSeg, fileBuffer, Maximum_distance_from_centerline, "FULL", "ROUND", "NONE", "", "PLANAR")
+    except Exception as e:
+        print("Create buffer for {} failed".format(fileSeg))
+        print(e)
 
     # Clip cost raster using buffer
     DescBuffer = arcpy.Describe(fileBuffer)
@@ -156,7 +160,6 @@ def workLines(lineNo):
     # Process: Boundary Clean
     arcpy.gp.BoundaryClean_sa(fileShrink, fileClean, "ASCEND", "ONE_WAY")
     # arcpy.gp.BoundaryClean_sa(fileShrink, fileClean, "NO_SORT", "ONE_WAY")  # This is original code
-    #fileClean = fileShrink
 
     # Process: Set Null
     arcpy.gp.SetNull_sa(fileClean, "1", fileNull, "VALUE > 0")
@@ -164,7 +167,7 @@ def workLines(lineNo):
     # Process: Raster to Polygon
     arcpy.RasterToPolygon_conversion(fileNull, fileFootprint, "SIMPLIFY", "VALUE", "SINGLE_OUTER_PART", "")
 
-    #flmc.log("Processing line {} done".format(fileSeg))
+    flmc.log("Processing line {} done".format(fileSeg))
 
     # Clean temporary files
     try:
@@ -238,7 +241,7 @@ def main(argv=None):
     f.write(Expand_And_Shrink_Cell_Range + "\n")
     f.close()
 
-    if (HasField(Centerline_Feature_Class, Corridor_Threshold_Field) == False):
+    if not HasField(Centerline_Feature_Class, Corridor_Threshold_Field):
         flmc.log("ERROR: There is no field named " + Corridor_Threshold_Field + " in the input lines")
         return False
 
