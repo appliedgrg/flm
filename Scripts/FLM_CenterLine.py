@@ -93,6 +93,7 @@ def workLines(lineNo):
         del cursor
     except Exception as e:
         print("Creating origin feature class failed: at X, Y" + str(xy) + ".")
+        print(e)
 
     # Create destination feature class
     try:
@@ -104,6 +105,7 @@ def workLines(lineNo):
         del cursor
     except Exception as e:
         print("Creating destination feature class failed: at X, Y" + str(xy) + ".")
+        print(e)
 
     try:
         # Buffer around line
@@ -123,6 +125,7 @@ def workLines(lineNo):
     except Exception as e:
         print("Problem with line starting at X " + str(x1) + ", Y " + str(y1) + "; and ending at X " + str(
             x1) + ", Y " + str(y1) + ".")
+        print(e)
 
     # Clean temporary files
     arcpy.Delete_management(fileSeg)
