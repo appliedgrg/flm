@@ -44,6 +44,7 @@ timeLast = timeStart
 scriptPath = os.path.dirname(os.path.realpath(__file__))
 coresFile = "mpc.txt"
 
+
 def logStart(tool):
     log("----------")
     global timeStart, timeLast
@@ -58,6 +59,7 @@ def logStart(tool):
         log(tool.fields[i]+": "+params[i])
     log("----------")
 
+
 def logStep(stepName):
     global timeLast
     timeThis = time.clock()
@@ -65,11 +67,13 @@ def logStep(stepName):
     timeLast = timeThis
     log("----------")
 
+
 def logEnd(tool):
     log("\nTool "+tool.title+" has executed successfully!")
     timeEnd = time.clock()
     global timeStart
     log("Total Execution Time: "+"{:.2f}".format(timeEnd-timeStart)+" seconds")
+
 
 def log(text, onlyFile = False):
     if(onlyFile == False):
@@ -79,11 +83,13 @@ def log(text, onlyFile = False):
     text_file.close()
     del text_file
 
+
 def refreshLog():
     text_file = open(r"log.txt","w")
     text_file.write("")
     text_file.close()
     del text_file
+
 
 def newLog(version):
     text_file = open(r"log.txt","a")
@@ -94,11 +100,14 @@ def newLog(version):
     log("Time: "+time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.localtime()))
     del text_file
 
+
 def PathFileName (path):
     return os.path.basename(path)
 
+
 def FileToField(filen):
     return ("FID_"+os.path.basename(os.path.splitext(filen)[0]).replace(" ","_"))[:10]
+
 
 def GetArgs(paramFile):
     # Load arguments from file
@@ -111,12 +120,14 @@ def GetArgs(paramFile):
     except Exception as e:
         return ["-1"]*100
 
+
 def SetArgs(paramFile, args):
         paramFile = scriptPath+"\\"+paramFile
         pfile = open(paramFile,"w")
         for arg in args:
             pfile.write(str(arg)+"\n")
         pfile.close()
+
 
 def GetCores():
     maxCores = multiprocessing.cpu_count()
@@ -126,7 +137,7 @@ def GetCores():
         args = cfile.readlines()
         cfile.close()
         cores = int(args[0])
-        if(cores>0 and cores<=maxCores):
+        if cores>0 and cores<=maxCores:
             return cores
         else:
             cfile = open(coresPath,"w")
@@ -139,22 +150,26 @@ def GetCores():
         cfile.close()
         return maxCores
 
+
 def SetCores(cores):
     coresPath = scriptPath+"\\"+coresFile
     cfile = open(coresPath,"w")
     cfile.write(str(cores))
     cfile.close()
 
+
 def SetupWorkspace (outWorkName):
-    """This function creates a folder outWorkName in the scriptPath folder.
-    If it already exists, all shapefiles and rasters in it are deleted."""
+    """
+    This function creates a folder outWorkName in the scriptPath folder.
+    If it already exists, all shapefiles and rasters in it are deleted.
+    """
     import arcpy
     
     outWorkspace = scriptPath + "\\" + outWorkName
     
     # Setup output folder
     try:
-        #arcpy.CreateFileGDB_management(scriptPath, outWorkName +".gdb")
+        # arcpy.CreateFileGDB_management(scriptPath, outWorkName +".gdb")
         os.mkdir(outWorkspace)
         log("Scratch workspace " + str(outWorkspace) +  " created.")
     except Exception as e:
@@ -171,7 +186,7 @@ def SetupWorkspace (outWorkName):
     del oldShapefiles
 
     oldRasters = arcpy.ListRasters()
-    if(len(oldRasters)>0):
+    if len(oldRasters) > 0:
         log("There are "+str(len(oldRasters))+" old rasters in workspace folder. These will be deleted.")
         for ras in oldRasters:
             arcpy.Delete_management(ras)
@@ -181,10 +196,12 @@ def SetupWorkspace (outWorkName):
 
     return outWorkspace
 
+
 def GetWorkspace(outWorkName):
     outWorkspace = scriptPath + "\\" + outWorkName
     return outWorkspace
-    
+
+
 def SplitLines(linesFc, outWorkspace, toolCodename, ProcessSegments, KeepFieldName = []):
     """This function splits the input polyline shapefile (linesFc) into several shapefiles.
     If ProcessSegments is False one shapefile will be created for each feature.
@@ -197,10 +214,11 @@ def SplitLines(linesFc, outWorkspace, toolCodename, ProcessSegments, KeepFieldNa
     line = 0
     rows = arcpy.SearchCursor(linesFc)
 
-    if(type(KeepFieldName)==str):
+    if type(KeepFieldName)==str:
         KeepFieldName = [KeepFieldName]
 
-    #Separates the input feature class into multiple feature classes, each containing a single line, hereby referenced as "segment"
+    # Separates the input feature class into multiple feature classes,
+    # each containing a single line, hereby referenced as "segment"
     log("Lines Setup...")
 
     desc = arcpy.Describe(linesFc)
@@ -212,23 +230,26 @@ def SplitLines(linesFc, outWorkspace, toolCodename, ProcessSegments, KeepFieldNa
     del desc
 
     for row in rows:
-        feat = row.getValue(shapeField)   #creates a geometry object
+        feat = row.getValue(shapeField)   # creates a geometry object
 
         KeepField = []
         for fieldName in KeepFieldName:
             KeepField.append(row.getValue(fieldName))
 
         segmentnum = 0
-        for segment in feat: #loops through every segment in a line
+        for segment in feat: # loops through every segment in a line
             segment_list = []
-            #loops through every vertex of every segment
-            for pnt in feat.getPart(segmentnum):				 #get.PArt returns an array of points for a particular part in the geometry
-                if pnt:				  #adds all the vertices to segment_list, which creates an array
+            # loops through every vertex of every segment
+            # get.PArt returns an array of points for a particular part in the geometry
+            for pnt in feat.getPart(segmentnum):
+                if pnt:	 # adds all the vertices to segment_list, which creates an array
                     segment_list.append(arcpy.Point(float(pnt.X), float(pnt.Y)))
 
             segmentnum += 1
 
-            for vertexID in range(0, len(segment_list)-1):   #loops through every vertex in the list   #-1 is done so the second last vertex is the start of a segment and the code is within range...
+            # loops through every vertex in the list   #-1 is done
+            # so the second last vertex is the start of a segment and the code is within range...
+            for vertexID in range(0, len(segment_list)-1):
                 line += 1
                 segment_fname = "FLM_"+toolCodename +"_Segment_"+ str(line) + ".shp"
                 segment_fpath = outWorkspace +"\\"+ segment_fname
@@ -236,7 +257,8 @@ def SplitLines(linesFc, outWorkspace, toolCodename, ProcessSegments, KeepFieldNa
                     arcpy.Delete_management(segment_fpath)
 
                 try:
-                    segmentFC = arcpy.CreateFeatureclass_management(outWorkspace, segment_fname, "POLYLINE", "", "DISABLED", "DISABLED", linesFc)
+                    segmentFC = arcpy.CreateFeatureclass_management(outWorkspace, segment_fname, "POLYLINE",
+                                                                    "", "DISABLED", "DISABLED", linesFc)
 
                     for fieldName in KeepFieldName:
                         if(fieldName in fieldDict):
@@ -245,7 +267,7 @@ def SplitLines(linesFc, outWorkspace, toolCodename, ProcessSegments, KeepFieldNa
 
                     cursor = arcpy.da.InsertCursor(segment_fpath, KeepFieldName+["SHAPE@"])
 
-                    if(ProcessSegments == False):
+                    if not ProcessSegments:
                         array = arcpy.Array(segment_list)
                     else:
                         array = arcpy.Array()
@@ -257,10 +279,11 @@ def SplitLines(linesFc, outWorkspace, toolCodename, ProcessSegments, KeepFieldNa
 
                     del cursor, segmentFC
 
-                    if(ProcessSegments == False):
+                    if not ProcessSegments:
                         break
                 except Exception as e:
                     print("Creating segment feature class failed: " + segment_fname + ".")
+                    print(e)
 
     del rows
     # At this point all lines have been separated into different feature classes located at the scratch workspace
@@ -268,6 +291,7 @@ def SplitLines(linesFc, outWorkspace, toolCodename, ProcessSegments, KeepFieldNa
     log("There are " + str(numLines) + " lines to process.")
     logStep("Line Setup")
     return numLines
+
 
 def SplitFeature (fc, idField, outWorkspace, toolCodename):
     import arcpy
@@ -283,8 +307,8 @@ def SplitFeature (fc, idField, outWorkspace, toolCodename):
     del desc
 
     for row in rows:
-        feat = row.getValue(shapeField)   #creates a geometry object
-        name = row.getValue(idField)   #creates a geometry object
+        feat = row.getValue(shapeField)   # creates a geometry object
+        name = row.getValue(idField)   # creates a geometry object
         ()
         segment_fname = "FLM_"+toolCodename +"_Split_"+ str(name) + ".shp"
         segment_fpath = outWorkspace +"\\"+ segment_fname
@@ -300,3 +324,4 @@ def SplitFeature (fc, idField, outWorkspace, toolCodename):
     del rows
 
     logStep("Feature Split")
+
