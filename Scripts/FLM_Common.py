@@ -237,7 +237,7 @@ def SplitLines(linesFc, outWorkspace, toolCodename, ProcessSegments, KeepFieldNa
             KeepField.append(row.getValue(fieldName))
 
         segmentnum = 0
-        for segment in feat: # loops through every segment in a line
+        for segment in feat:  # loops through every segment in a line
             segment_list = []
             # loops through every vertex of every segment
             # get.PArt returns an array of points for a particular part in the geometry
