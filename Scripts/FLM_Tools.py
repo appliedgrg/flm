@@ -68,9 +68,9 @@ def lineFootprint(in_center_line, in_canopy_raster, in_cost_raster,
     argv[1] = in_canopy_raster  # canopy raster
     argv[2] = in_cost_raster  # Cost raster
     argv[3] = corridor_thresh  # corridor threshold field
-    argv[4] = max_line_width  # maximam line width
+    argv[4] = str(max_line_width)  # maximam line width
     argv[5] = str(expand_shrink_range)  # expand and shrink cell range
-    argv[6] = process_segments  # process segments
+    argv[6] = str(process_segments)  # process segments
     argv[7] = out_footprint  # Output line foot print
 
     if os.path.exists(in_center_line) and not os.path.exists(out_footprint):
