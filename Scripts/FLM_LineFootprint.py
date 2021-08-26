@@ -74,6 +74,12 @@ def workLines(lineNo):
     fileNull = outWorkspace + "\\FLM_LFP_Null_" + str(lineNo) + ".tif"
     fileFootprint = outWorkspace + "\\FLM_LFP_Footprint_" + str(lineNo) + ".shp"
 
+    # When segment file is missing, just quit and log message
+    # This segment will be recorded for later re-processing
+    if not arcpy.Exists(fileSeg):
+        print("{} doesn't exist, ignore.".format(fileSeg))
+        return
+
     # Load segment list
     segment_list = []
     rows = arcpy.SearchCursor(fileSeg)
