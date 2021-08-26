@@ -8,7 +8,7 @@ parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
 
 def canopyCost(in_raster,
-               output_canopy_raster, output_cost_raster,
+               out_canopy_raster, out_cost_raster,
                height_thresh=1, search_radius=3,
                max_line_dist=10, canopy_avoidance=0.3,
                cost_exponent=1.5):
@@ -17,7 +17,7 @@ def canopyCost(in_raster,
     """
     import FLM_CanopyCost
 
-    print("Processing canopy cost: ", output_canopy_raster)
+    print("Processing canopy cost: ", out_canopy_raster)
     argv = [None] * 8
     argv[0] = in_raster  # CHM raster
     argv[1] = height_thresh  # Canopy Height Threshold
@@ -25,11 +25,11 @@ def canopyCost(in_raster,
     argv[3] = max_line_dist  # Maximum Line Distance
     argv[4] = canopy_avoidance  # Canopy Avoidance
     argv[5] = cost_exponent  # Cost Raster Exponent
-    argv[6] = output_canopy_raster  # Output Canopy Raster
-    argv[7] = output_cost_raster  # Output Cost Raster
+    argv[6] = out_canopy_raster  # Output Canopy Raster
+    argv[7] = out_cost_raster  # Output Cost Raster
     print(argv[6])
 
-    if not os.path.exists(output_canopy_raster) and not os.path.exists(output_cost_raster):
+    if not os.path.exists(out_canopy_raster) and not os.path.exists(out_cost_raster):
         FLM_CanopyCost.main(argv)
 
 
@@ -49,7 +49,7 @@ def centerline(in_line, in_cost_raster, out_center_line,
     argv[3] = process_segments  # Process segments
     argv[4] = out_center_line  # Output center line
 
-    if not os.path.exists(output_center_line):
+    if not os.path.exists(out_center_line):
         FLM_CenterLine.main(argv)
 
 
