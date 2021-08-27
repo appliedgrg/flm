@@ -215,9 +215,13 @@ def SplitLines(linesFc, outWorkspace, toolCodename, ProcessSegments, KeepFieldNa
     outWorkspace: where files are placed in
     toolCodename: base name to make subfolder for tools in workspace in format FLM_toolCodename_output
     KeepFieldName: fileds to transfer from the inputs to the outputs.
+
+    Return:
+      numLines: total number of segments cached
+      all_segments: all segment polylines in a list which is intended to be used in multiprocessing
     """
 
-    if KeepFieldName = None:
+    if KeepFieldName is None:
         KeepFieldName = []
     elif isinstance(KeepFieldName, str):
         KeepFieldName = [KeepFieldName]
@@ -225,6 +229,7 @@ def SplitLines(linesFc, outWorkspace, toolCodename, ProcessSegments, KeepFieldNa
     # Create search cursor on input center lines file
     line = 0
     rows = arcpy.SearchCursor(linesFc)
+    all_segments = []  # return all segment polylines
 
     # Separates the input feature class into multiple feature classes,
     # each containing a single line, hereby referenced as "segment"
@@ -266,13 +271,12 @@ def SplitLines(linesFc, outWorkspace, toolCodename, ProcessSegments, KeepFieldNa
                     arcpy.Delete_management(segment_fpath)
 
                 try:
-                    segmentFC = arcpy.CreateFeatureclass_management(outWorkspace, segment_fname, "POLYLINE",
+                    arcpy.CreateFeatureclass_management(outWorkspace, segment_fname, "POLYLINE",
                                                                     "", "DISABLED", "DISABLED", linesFc)
 
                     for fieldName in KeepFieldName:
                         if(fieldName in fieldDict):
                             arcpy.AddField_management(outWorkspace+"\\"+segment_fname,fieldName,fieldDict[fieldName])
-
 
                     cursor = arcpy.da.InsertCursor(segment_fpath, KeepFieldName+["SHAPE@"])
 
@@ -283,10 +287,11 @@ def SplitLines(linesFc, outWorkspace, toolCodename, ProcessSegments, KeepFieldNa
                         array.add(segment_list[vertexID])
                         array.add(segment_list[vertexID+1])
                     polyline = arcpy.Polyline(array, arcpy.Describe(segment_fpath).spatialReference)
+                    all_segments.append(polyline)  # add polyline for later return
 
                     cursor.insertRow(KeepField+[polyline])
 
-                    del cursor, segmentFC
+                    del cursor
 
                     if not ProcessSegments:
                         break
@@ -295,11 +300,12 @@ def SplitLines(linesFc, outWorkspace, toolCodename, ProcessSegments, KeepFieldNa
                     print(e)
 
     del rows
+
     # At this point all lines have been separated into different feature classes located at the scratch workspace
     numLines = line
     log("There are " + str(numLines) + " lines to process.")
     logStep("Line Setup")
-    return numLines
+    return numLines, all_segments
 
 
 def SplitFeature (fc, idField, outWorkspace, toolCodename):
