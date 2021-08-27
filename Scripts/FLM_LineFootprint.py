@@ -106,20 +106,30 @@ def workLines(lineNo):
     y2 = segment_list[-1].Y
 
     # Create origin feature class
-    arcpy.CreateFeatureclass_management(outWorkspace, PathFile(fileOrigin), "POINT", Centerline_Feature_Class, "DISABLED",
-                                        "DISABLED", Centerline_Feature_Class)
-    cursor = arcpy.da.InsertCursor(fileOrigin, ["SHAPE@XY"])
-    xy = (float(x1), float(y1))
-    cursor.insertRow([xy])
-    del cursor
+    try:
+        arcpy.CreateFeatureclass_management(outWorkspace, PathFile(fileOrigin), "POINT", Centerline_Feature_Class, "DISABLED",
+                                            "DISABLED", Centerline_Feature_Class)
+        cursor = arcpy.da.InsertCursor(fileOrigin, ["SHAPE@XY"])
+        xy = (float(x1), float(y1))
+        cursor.insertRow([xy])
+        del cursor
+    except Exception as e:
+        print("Create feature class {} failed.".format(fileOrigin))
+        print(e)
+        return
 
     # Create destination feature class
-    arcpy.CreateFeatureclass_management(outWorkspace, PathFile(fileDestination), "POINT", Centerline_Feature_Class,
-                                        "DISABLED", "DISABLED", Centerline_Feature_Class)
-    cursor = arcpy.da.InsertCursor(fileDestination, ["SHAPE@XY"])
-    xy = (float(x2), float(y2))
-    cursor.insertRow([xy])
-    del cursor
+    try:
+        arcpy.CreateFeatureclass_management(outWorkspace, PathFile(fileDestination), "POINT", Centerline_Feature_Class,
+                                            "DISABLED", "DISABLED", Centerline_Feature_Class)
+        cursor = arcpy.da.InsertCursor(fileDestination, ["SHAPE@XY"])
+        xy = (float(x2), float(y2))
+        cursor.insertRow([xy])
+        del cursor
+    except Exception as e:
+        print("Create feature class {} failed.".format(fileDestination))
+        print(e)
+        return
 
     # Buffer around line
     try:
@@ -127,6 +137,7 @@ def workLines(lineNo):
     except Exception as e:
         print("Create buffer for {} failed".format(fileSeg))
         print(e)
+        return
 
     # Clip cost raster using buffer
     DescBuffer = arcpy.Describe(fileBuffer)
@@ -262,7 +273,7 @@ def main(argv=None):
     flmc.logStep("Corridor multiprocessing")
 
     flmc.log("Merging footprint layers...")
-    tempShapefiles = arcpy.ListFeatureClasses()
+    tempShapefiles = arcpy.ListFeatureClasses(wild_card='*Footprint*')
     fileMerge = outWorkspace + "\\FLM_LFP_Merge.shp"
     arcpy.Merge_management(tempShapefiles, fileMerge)
     arcpy.Dissolve_management(fileMerge, Output_Footprint)
