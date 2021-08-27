@@ -28,11 +28,14 @@
 # input polyline shapefile for multiprocessing.
 #
 # ---------------------------------------------------------------------------
-
+# System imports
 import time
 import os
 import sys
 import multiprocessing
+
+# ArcGIS imports
+import arcpy
 
 try:
     import tkinter as tk
@@ -202,20 +205,26 @@ def GetWorkspace(outWorkName):
     return outWorkspace
 
 
-def SplitLines(linesFc, outWorkspace, toolCodename, ProcessSegments, KeepFieldName = []):
-    """This function splits the input polyline shapefile (linesFc) into several shapefiles.
-    If ProcessSegments is False one shapefile will be created for each feature.
-    Otherwise, one shapefile will be created for each pair of vertices in the input lines.
-    Files are placed in outWorkspace, named using toolCodename as a base name.
-    It is possible to transfer one field (KeepFieldName) from the inputs to the outputs."""
-    import arcpy
+def SplitLines(linesFc, outWorkspace, toolCodename, ProcessSegments, KeepFieldName = None):
+    """
+    This function splits the input polyline shapefile (linesFc) into several shapefiles.
+    ProcessSegments:
+      False: shapefile will be created for each feature.
+      True:  one shapefile will be created for each pair of vertices in the input lines.
+
+    outWorkspace: where files are placed in
+    toolCodename: base name to make subfolder for tools in workspace in format FLM_toolCodename_output
+    KeepFieldName: fileds to transfer from the inputs to the outputs.
+    """
+
+    if KeepFieldName = None:
+        KeepFieldName = []
+    elif isinstance(KeepFieldName, str):
+        KeepFieldName = [KeepFieldName]
 
     # Create search cursor on input center lines file
     line = 0
     rows = arcpy.SearchCursor(linesFc)
-
-    if type(KeepFieldName)==str:
-        KeepFieldName = [KeepFieldName]
 
     # Separates the input feature class into multiple feature classes,
     # each containing a single line, hereby referenced as "segment"
