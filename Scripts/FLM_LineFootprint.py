@@ -27,7 +27,11 @@
 #
 # ---------------------------------------------------------------------------
 
+# System imports
+import os
 import multiprocessing
+
+# ArcGIS imports
 import arcpy
 from arcpy.sa import *
 
@@ -39,6 +43,7 @@ outWorkspace = ""
 Corridor_Threshold_Field = ""
 Maximum_distance_from_centerline = 0
 
+USE_MEMORY_WORKSPACE = 1  # switch of using memory workspace or not
 
 def PathFile(path):
     return path[path.rfind("\\") + 1:]
@@ -206,6 +211,193 @@ def workLines(lineNo):
         print("Line Footprint: Deleting temporary file failed. Inspect later.")
 
 
+def workLinesMemory(segment_info):
+    """
+    New version of worklines. It uses list instead of shapefiles.
+    The refactoring is to accelerate the processing speed.
+    """
+    # read params from text file
+    outWorkspace = flmc.GetWorkspace(workspaceName)
+    f = open(outWorkspace + "\\params.txt")
+    outWorkspace = f.readline().strip()
+    Centerline_Feature_Class = f.readline().strip()
+    Canopy_Raster = f.readline().strip()
+    Cost_Raster = f.readline().strip()
+    Corridor_Threshold_Field = f.readline().strip()
+    Maximum_distance_from_centerline = float(f.readline().strip())
+    Expand_And_Shrink_Cell_Range = f.readline().strip()
+    f.close()
+
+    Corridor_Threshold = 3  # this is constant, but need to be investigated.
+
+    outWorkspace = r"memory"
+    lineNo = 1
+    # Centerline_Feature_Class = baseDir = r"C:\Temp\Multi_Intersection_Streams_withSDM_NoFilledDEM" \
+    #                                      r"\CenterlineOutput\FLMcenterline_output.shp"
+
+    # Temporary files
+    lineNo = segment_info[1]
+    fileSeg = os.path.join(outWorkspace, "FLM_LFP_Segment_" + str(lineNo))
+    fileOrigin = os.path.join(outWorkspace, "FLM_LFP_Origin_" + str(lineNo))
+    fileDestination = os.path.join(outWorkspace, "FLM_LFP_Destination_" + str(lineNo))
+    fileBuffer = os.path.join(outWorkspace, "FLM_LFP_Buffer_" + str(lineNo))
+    fileClip = os.path.join(outWorkspace, "FLM_LFP_Clip_" + str(lineNo) + ".tif")
+    fileCostDa = os.path.join(outWorkspace, "FLM_LFP_CostDa_" + str(lineNo) + ".tif")
+    fileCostDb = os.path.join(outWorkspace, "FLM_LFP_CostDb_" + str(lineNo) + ".tif")
+    fileCorridor = os.path.join(outWorkspace, "FLM_LFP_Corridor_" + str(lineNo) + ".tif")
+    fileCorridorMin = os.path.join(outWorkspace, "FLM_LFP_CorridorMin_" + str(lineNo) + ".tif")
+    fileThreshold = os.path.join(outWorkspace, "FLM_LFP_Threshold_" + str(lineNo) + ".tif")
+    fileExpand = os.path.join(outWorkspace, "FLM_LFP_Expand_" + str(lineNo) + ".tif")
+    fileShrink = os.path.join(outWorkspace, "FLM_LFP_Shrink_" + str(lineNo) + ".tif")
+    fileClean = os.path.join(outWorkspace, "FLM_LFP_Clean_" + str(lineNo) + ".tif")
+    fileNull = os.path.join(outWorkspace, "FLM_LFP_Null_" + str(lineNo) + ".tif")
+    fileFootprint = os.path.join(outWorkspace, "FLM_LFP_Footprint_" + str(lineNo))
+
+    # Load segment list
+    if not USE_MEMORY_WORKSPACE:
+        segment = []
+        rows = arcpy.SearchCursor(fileSeg)
+        shapeField = arcpy.Describe(fileSeg).ShapeFieldName
+        for row in rows:
+            feat = row.getValue(shapeField)  # creates a geometry object
+            Corridor_Threshold = float(row.getValue(Corridor_Threshold_Field))
+            segmentnum = 0
+            for segment in feat:  # loops through every segment in a line
+                # loops through every vertex of every segment
+                for pnt in feat.getPart(
+                        segmentnum):  # get.PArt returns an array of points for a particular part in the geometry
+                    if pnt:  # adds all the vertices to segment, which creates an array
+                        segment.append(arcpy.Point(float(pnt.X), float(pnt.Y)))
+
+            segmentnum += 1
+
+        del rows
+
+    # Find origin and destination coordinates
+    segment = segment_info[0]
+    point_list = segment.getPart(0)
+    x1 = point_list[0].X
+    y1 = point_list[0].Y
+    x2 = point_list[-1].X
+    y2 = point_list[-1].Y
+
+    # Create segment feature class
+    try:
+        memSegment = arcpy.CreateFeatureclass_management(outWorkspace, os.path.basename(fileSeg), "POLYLINE",
+                                                         Centerline_Feature_Class, "DISABLED", "DISABLED",
+                                                         Centerline_Feature_Class)
+        cursor = arcpy.da.InsertCursor(fileSeg, ["SHAPE@"])
+        cursor.insertRow([segment])
+        del cursor
+    except Exception as e:
+        print("Create feature class {} failed.".format(fileOrigin))
+        print(e)
+        return
+
+    # Create origin feature class
+    try:
+        memOrigin = arcpy.CreateFeatureclass_management(outWorkspace, os.path.basename(fileOrigin), "POINT",
+                                                        Centerline_Feature_Class, "DISABLED", "DISABLED",
+                                                        Centerline_Feature_Class)
+        cursor = arcpy.da.InsertCursor(memOrigin, ["SHAPE@XY"])
+        xy = (float(x1), float(y1))
+        cursor.insertRow([xy])
+        del cursor
+    except Exception as e:
+        print("Create feature class {} failed.".format(fileOrigin))
+        print(e)
+        return
+
+    # Create destination feature class
+    try:
+        memDestination = arcpy.CreateFeatureclass_management(outWorkspace, os.path.basename(fileDestination), "POINT",
+                                                             Centerline_Feature_Class, "DISABLED", "DISABLED",
+                                                             Centerline_Feature_Class)
+        cursor = arcpy.da.InsertCursor(memDestination, ["SHAPE@XY"])
+        xy = (float(x2), float(y2))
+        cursor.insertRow([xy])
+        del cursor
+    except Exception as e:
+        print("Create feature class {} failed.".format(fileDestination))
+        print(e)
+        return
+
+    # Buffer around line
+    try:
+        arcpy.Buffer_analysis(fileSeg, fileBuffer, Maximum_distance_from_centerline, "FULL", "ROUND", "NONE", "", "PLANAR")
+    except Exception as e:
+        print("Create buffer for {} failed".format(fileSeg))
+        print(e)
+        return
+
+    # Clip cost raster using buffer
+    DescBuffer = arcpy.Describe(fileBuffer)
+    SearchBox = str(DescBuffer.extent.XMin) + " " + str(DescBuffer.extent.YMin) + " " + str(
+        DescBuffer.extent.XMax) + " " + str(DescBuffer.extent.YMax)
+    arcpy.Clip_management(Cost_Raster, SearchBox, fileClip, fileBuffer, "", "ClippingGeometry", "NO_MAINTAIN_EXTENT")
+
+    # Process: Cost Distance
+    arcpy.gp.CostDistance_sa(fileOrigin, fileClip, fileCostDa, "", "", "", "", "", "", "TO_SOURCE")
+    arcpy.gp.CostDistance_sa(fileDestination, fileClip, fileCostDb, "", "", "", "", "", "", "TO_SOURCE")
+
+    # Process: Corridor
+    arcpy.gp.Corridor_sa(fileCostDa, fileCostDb, fileCorridor)
+
+    # Calculate minimum value of corridor raster
+    RasterCorridor = arcpy.Raster(fileCorridor)
+    CorrMin = float(RasterCorridor.minimum)
+
+    # Set minimum as zero and save minimum file
+    RasterCorridor = ((RasterCorridor - CorrMin) > Corridor_Threshold)
+    RasterCorridor.save(fileCorridorMin)
+
+    # Process: Stamp CC and Max Line Width
+    RasterClass = SetNull(IsNull(Raster(fileCorridorMin)), (Raster(fileCorridorMin) + (Raster(Canopy_Raster) >= 1)) > 0)
+    RasterClass.save(fileThreshold)
+    del RasterCorridor, RasterClass
+
+    if (int(Expand_And_Shrink_Cell_Range) > 0):
+        # Process: Expand
+        arcpy.gp.Expand_sa(fileThreshold, fileExpand, Expand_And_Shrink_Cell_Range, "1")
+
+        # Process: Shrink
+        arcpy.gp.Shrink_sa(fileExpand, fileShrink, Expand_And_Shrink_Cell_Range, "1")
+    else:
+        fileShrink = fileThreshold
+
+    # Process: Boundary Clean
+    arcpy.gp.BoundaryClean_sa(fileShrink, fileClean, "ASCEND", "ONE_WAY")
+    # arcpy.gp.BoundaryClean_sa(fileShrink, fileClean, "NO_SORT", "ONE_WAY")  # This is original code
+
+    # Process: Set Null
+    arcpy.gp.SetNull_sa(fileClean, "1", fileNull, "VALUE > 0")
+
+    # Process: Raster to Polygon
+    footprint = arcpy.RasterToPolygon_conversion(fileNull, arcpy.Geometry(), "SIMPLIFY", "VALUE", "SINGLE_OUTER_PART", "")
+
+    flmc.log("Processing line {} done".format(fileSeg))
+
+    # Clean temporary files
+    try:
+        arcpy.Delete_management(fileSeg)
+        arcpy.Delete_management(fileOrigin)
+        arcpy.Delete_management(fileDestination)
+        arcpy.Delete_management(fileBuffer)
+        arcpy.Delete_management(fileClip)
+        arcpy.Delete_management(fileCostDa)
+        arcpy.Delete_management(fileCostDb)
+        arcpy.Delete_management(fileThreshold)
+        arcpy.Delete_management(fileCorridor)
+        arcpy.Delete_management(fileCorridorMin)
+        arcpy.Delete_management(fileExpand)
+        arcpy.Delete_management(fileShrink)
+        arcpy.Delete_management(fileClean)
+        arcpy.Delete_management(fileNull)
+    except Exception as e:
+        print("Line Footprint: Deleting temporary file failed. Inspect later.")
+
+    return footprint
+
 def HasField(fc, fi):
     fieldnames = [field.name for field in arcpy.ListFields(fc)]
     if fi in fieldnames:
@@ -263,11 +455,13 @@ def main(argv=None):
         return False
 
     # Prepare input lines for multiprocessing
-    numLines = flmc.SplitLines(Centerline_Feature_Class, outWorkspace, "LFP", ProcessSegments, Corridor_Threshold_Field)
+    numLines, segment_all = flmc.SplitLines(Centerline_Feature_Class, outWorkspace,
+                                            "LFP", ProcessSegments, Corridor_Threshold_Field)
 
     pool = multiprocessing.Pool(processes=flmc.GetCores())
     flmc.log("Multiprocessing line corridors...")
-    pool.map(workLines, range(1, numLines + 1))
+    #pool.map(workLines, range(1, numLines + 1))
+    pool.map(workLinesMemory, segment_all)  # new version of memory based processing
     pool.close()
     pool.join()
     flmc.logStep("Corridor multiprocessing")
