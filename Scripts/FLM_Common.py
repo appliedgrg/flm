@@ -47,6 +47,7 @@ timeLast = timeStart
 scriptPath = os.path.dirname(os.path.realpath(__file__))
 coresFile = "mpc.txt"
 
+USE_MEMORY_WORKSPACE = 1  # switch of using memory workspace or not
 
 def logStart(tool):
     log("----------")
@@ -212,9 +213,9 @@ def SplitLines(linesFc, outWorkspace, toolCodename, ProcessSegments, KeepFieldNa
       False: shapefile will be created for each feature.
       True:  one shapefile will be created for each pair of vertices in the input lines.
 
-    outWorkspace: where files are placed in
-    toolCodename: base name to make subfolder for tools in workspace in format FLM_toolCodename_output
-    KeepFieldName: fileds to transfer from the inputs to the outputs.
+      outWorkspace: where files are placed in
+      toolCodename: base name to make subfolder for tools in workspace in format FLM_toolCodename_output
+      KeepFieldName: fileds to transfer from the inputs to the outputs.
 
     Return:
       numLines: total number of segments cached
@@ -271,14 +272,15 @@ def SplitLines(linesFc, outWorkspace, toolCodename, ProcessSegments, KeepFieldNa
                     arcpy.Delete_management(segment_fpath)
 
                 try:
-                    arcpy.CreateFeatureclass_management(outWorkspace, segment_fname, "POLYLINE",
-                                                                    "", "DISABLED", "DISABLED", linesFc)
+                    if not USE_MEMORY_WORKSPACE:  # Use memory workspace
+                        arcpy.CreateFeatureclass_management(outWorkspace, segment_fname, "POLYLINE",
+                                                            "", "DISABLED", "DISABLED", linesFc)
 
-                    for fieldName in KeepFieldName:
-                        if(fieldName in fieldDict):
-                            arcpy.AddField_management(outWorkspace+"\\"+segment_fname,fieldName,fieldDict[fieldName])
+                        for fieldName in KeepFieldName:
+                            if(fieldName in fieldDict):
+                                arcpy.AddField_management(outWorkspace+"\\"+segment_fname,fieldName,fieldDict[fieldName])
 
-                    cursor = arcpy.da.InsertCursor(segment_fpath, KeepFieldName+["SHAPE@"])
+                        cursor = arcpy.da.InsertCursor(segment_fpath, KeepFieldName+["SHAPE@"])
 
                     if not ProcessSegments:
                         array = arcpy.Array(segment_list)
@@ -286,12 +288,13 @@ def SplitLines(linesFc, outWorkspace, toolCodename, ProcessSegments, KeepFieldNa
                         array = arcpy.Array()
                         array.add(segment_list[vertexID])
                         array.add(segment_list[vertexID+1])
-                    polyline = arcpy.Polyline(array, arcpy.Describe(segment_fpath).spatialReference)
-                    all_segments.append(polyline)  # add polyline for later return
+                    polyline = arcpy.Polyline(array, arcpy.Describe(linesFc).spatialReference)
+                    all_segments.append([polyline, line])  # add segments for later return
 
-                    cursor.insertRow(KeepField+[polyline])
+                    if not USE_MEMORY_WORKSPACE:
+                        cursor.insertRow(KeepField+[polyline])
 
-                    del cursor
+                        del cursor
 
                     if not ProcessSegments:
                         break
