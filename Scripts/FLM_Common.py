@@ -266,8 +266,8 @@ def SplitLines(linesFc, outWorkspace, toolCodename, ProcessSegments, KeepFieldNa
             # so the second last vertex is the start of a segment and the code is within range...
             for vertexID in range(0, len(segment_list)-1):
                 line += 1
-                segment_fname = "FLM_"+toolCodename +"_Segment_"+ str(line) + ".shp"
-                segment_fpath = outWorkspace +"\\"+ segment_fname
+                segment_fname = "FLM_"+toolCodename + "_Segment_" + str(line) + ".shp"
+                segment_fpath = outWorkspace + "\\" + segment_fname
                 if arcpy.Exists(segment_fpath):
                     arcpy.Delete_management(segment_fpath)
 
@@ -278,7 +278,8 @@ def SplitLines(linesFc, outWorkspace, toolCodename, ProcessSegments, KeepFieldNa
 
                         for fieldName in KeepFieldName:
                             if(fieldName in fieldDict):
-                                arcpy.AddField_management(outWorkspace+"\\"+segment_fname,fieldName,fieldDict[fieldName])
+                                arcpy.AddField_management(outWorkspace+"\\"+segment_fname,
+                                                          fieldName, fieldDict[fieldName])
 
                         cursor = arcpy.da.InsertCursor(segment_fpath, KeepFieldName+["SHAPE@"])
 
@@ -308,7 +309,7 @@ def SplitLines(linesFc, outWorkspace, toolCodename, ProcessSegments, KeepFieldNa
     numLines = line
     log("There are " + str(numLines) + " lines to process.")
     logStep("Line Setup")
-    return numLines, all_segments
+    return all_segments
 
 
 def SplitFeature (fc, idField, outWorkspace, toolCodename):

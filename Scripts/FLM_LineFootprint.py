@@ -439,7 +439,7 @@ def main(argv=None):
         return False
 
     # Prepare input lines for multiprocessing
-    numLines, segment_all = flmc.SplitLines(Centerline_Feature_Class, outWorkspace,
+    segment_all = flmc.SplitLines(Centerline_Feature_Class, outWorkspace,
                                             "LFP", ProcessSegments, Corridor_Threshold_Field)
 
     # TODO: inspect how GetCores works. Make sure it uses all the CPU cores
@@ -447,7 +447,6 @@ def main(argv=None):
     flmc.log("Multiprocessing line corridors...")
     flmc.log("Using {} CPU cores".format(flmc.GetCores()))
 
-    #pool.map(workLines, range(1, numLines + 1))
     footprints = pool.map(workLinesMemory, segment_all)  # new version of memory based processing
     pool.close()
     pool.join()
