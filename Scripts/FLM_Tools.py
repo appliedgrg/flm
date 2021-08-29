@@ -45,7 +45,7 @@ def centerline(in_line, in_cost_raster, out_center_line,
     argv = [None] * 5
     argv[0] = in_line  # input line
     argv[1] = in_cost_raster  # Cost raster
-    argv[2] = line_radius  # line process radius
+    argv[2] = str(line_radius)  # line process radius
     argv[3] = process_segments  # Process segments
     argv[4] = out_center_line  # Output center line
 
