@@ -229,7 +229,8 @@ def workLinesMemory(segment_info):
     Expand_And_Shrink_Cell_Range = f.readline().strip()
     f.close()
 
-    Corridor_Threshold = 3  # this is constant, but need to be investigated.
+    # TODO: this is constant, but need to be investigated.
+    Corridor_Threshold = 3
 
     outWorkspace = r"memory"
     lineNo = 1
