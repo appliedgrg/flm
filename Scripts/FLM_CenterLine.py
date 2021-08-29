@@ -55,7 +55,6 @@ def workLines(lineNo):
     Line_Processing_Radius = f.readline().strip()
     f.close()
 
-
     fileSeg = outWorkspace + "\\FLM_CL_Segment_" + str(lineNo) + ".shp"
     fileOrigin = outWorkspace + "\\FLM_CL_Origin_" + str(lineNo) + ".shp"
     fileDestination = outWorkspace + "\\FLM_CL_Destination_" + str(lineNo) + ".shp"
@@ -64,23 +63,6 @@ def workLines(lineNo):
     fileCostDist = outWorkspace + "\\FLM_CL_CostDist_" + str(lineNo) + ".tif"
     fileCostBack = outWorkspace + "\\FLM_CL_CostBack_" + str(lineNo) + ".tif"
     fileCenterLine = outWorkspace + "\\FLM_CL_CenterLine_" + str(lineNo) + ".shp"
-
-    # Load segment list
-    segment_list = []
-    rows = arcpy.SearchCursor(fileSeg)
-    shapeField = arcpy.Describe(fileSeg).ShapeFieldName
-    for row in rows:
-        feat = row.getValue(shapeField)  # creates a geometry object
-        segmentnum = 0
-        for segment in feat:  # loops through every segment in a line
-            # loops through every vertex of every segment
-            for pnt in feat.getPart(
-                    segmentnum):  # get.PArt returns an array of points for a particular part in the geometry
-                if pnt:  # adds all the vertices to segment_list, which creates an array
-                    segment_list.append(arcpy.Point(float(pnt.X), float(pnt.Y)))
-
-            segmentnum += 1
-    del rows
 
     # Find origin and destination coordinates
     x1 = segment_list[0].X
@@ -159,22 +141,37 @@ def workLinesMem(segment_info):
     f = open(outWorkspace + "\\params.txt")
     Forest_Line_Feature_Class = f.readline().strip()
     Cost_Raster = f.readline().strip()
-    Line_Processing_Radius = f.readline().strip()
+    Line_Processing_Radius = float(f.readline().strip())
     f.close()
 
     lineNo = segment_info[1]  # second element is the line No.
-    outWorkspace = r"memory"
+    # outWorkspace = r"memory"
 
-    fileSeg = os.path.join(outWorkspace, "\\FLM_CL_Segment_" + str(lineNo))
-    fileOrigin = os.path.join(outWorkspace, "\\FLM_CL_Origin_" + str(lineNo))
-    fileDestination = os.path.join(outWorkspace, "\\FLM_CL_Destination_" + str(lineNo))
-    fileBuffer = os.path.join(outWorkspace, "\\FLM_CL_Buffer_" + str(lineNo))
-    fileClip = os.path.join(outWorkspace, "\\FLM_CL_Clip_" + str(lineNo) + ".tif")
-    fileCostDist = os.path.join(outWorkspace, "\\FLM_CL_CostDist_" + str(lineNo) + ".tif")
-    fileCostBack = os.path.join(outWorkspace, "\\FLM_CL_CostBack_" + str(lineNo) + ".tif")
+    fileSeg = os.path.join(outWorkspace, "FLM_CL_Segment_" + str(lineNo) + ".shp")
+    fileOrigin = os.path.join(outWorkspace, "FLM_CL_Origin_" + str(lineNo) + ".shp")
+    fileDestination = os.path.join(outWorkspace, "FLM_CL_Destination_" + str(lineNo) + ".shp")
+    fileBuffer = os.path.join(outWorkspace, "FLM_CL_Buffer_" + str(lineNo) + ".shp")
+    fileClip = os.path.join(outWorkspace, "FLM_CL_Clip_" + str(lineNo) + ".tif")
+    fileCostDist = os.path.join(outWorkspace, "FLM_CL_CostDist_" + str(lineNo) + ".tif")
+    fileCostBack = os.path.join(outWorkspace, "FLM_CL_CostBack_" + str(lineNo) + ".tif")
+    fileCenterline = os.path.join(outWorkspace, "FLM_CL_Centerline_" + str(lineNo) + ".shp")
+
+    # Load segment list
+    segment_list = []
+
+    for row in segment_info[0]:
+        segmentnum = 0
+        for segment in feat:  # loops through every segment in a line
+            # loops through every vertex of every segment
+            for pnt in feat.getPart(
+                    segmentnum):  # get.PArt returns an array of points for a particular part in the geometry
+                if pnt:  # adds all the vertices to segment_list, which creates an array
+                    segment_list.append(arcpy.Point(float(pnt.X), float(pnt.Y)))
+
+            segmentnum += 1
+    del rows
 
     # Find origin and destination coordinates
-    segment = segment_info[0]
     x1 = segment_list[0].X
     y1 = segment_list[0].Y
     x2 = segment_list[-1].X
@@ -183,8 +180,8 @@ def workLinesMem(segment_info):
     # Create segment feature class
     try:
         arcpy.CreateFeatureclass_management(outWorkspace, os.path.basename(fileSeg), "POLYLINE",
-                                            Centerline_Feature_Class, "DISABLED", "DISABLED",
-                                            Centerline_Feature_Class)
+                                            Forest_Line_Feature_Class, "DISABLED",
+                                            "DISABLED", Forest_Line_Feature_Class)
         cursor = arcpy.da.InsertCursor(fileSeg, ["SHAPE@"])
         cursor.insertRow([segment])
         del cursor
@@ -233,9 +230,14 @@ def workLinesMem(segment_info):
                               "NO_MAINTAIN_EXTENT")
 
         # Least cost path
-        arcpy.gp.CostDistance_sa(fileOrigin, fileClip, fileCostDist, "", fileCostBack, "", "", "", "", "TO_SOURCE")
+        arcpy.CostDistance_sa(fileOrigin, fileClip, fileCostDist, "", fileCostBack, "", "", "", "", "TO_SOURCE")
         centerline = arcpy.gp.CostPathAsPolyline_sa(fileDestination, fileCostDist,
                                                     fileCostBack, arcpy.Geometry(), "BEST_SINGLE", "")
+        centerline = CostPathAsPolyline_ra(fileDestination, fileCostDist,
+                                                    fileCostBack, arcpy.Geometry(), "BEST_SINGLE", "")
+
+        arcpy.gp.CostPathAsPolyline_sa(fileDestination, fileCostDist,
+                                       fileCostBack, fileCenterline, "BEST_SINGLE", "")
 
     except Exception as e:
         print("Problem with line starting at X " + str(x1) + ", Y " + str(y1) + "; and ending at X " + str(
@@ -280,7 +282,7 @@ def main(argv=None):
     Cost_Raster = args[1].rstrip()
     global Line_Processing_Radius
     Line_Processing_Radius = args[2].rstrip()
-    ProcessSegments = args[3].rstrip() == "True"
+    ProcessSegments = args[3]
     Output_Centerline = args[4].rstrip()
 
     # write params to text file
