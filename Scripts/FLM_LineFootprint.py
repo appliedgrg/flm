@@ -236,7 +236,6 @@ def workLinesMemory(segment_info):
     # TODO: this is constant, but need to be investigated.
     Corridor_Threshold = 3
     lineNo = segment_info[1]  # second element is the line No.
-
     outWorkspace = r"memory"
 
     # Temporary files
@@ -254,7 +253,6 @@ def workLinesMemory(segment_info):
     fileShrink = os.path.join(outWorkspace, "FLM_LFP_Shrink_" + str(lineNo) + ".tif")
     fileClean = os.path.join(outWorkspace, "FLM_LFP_Clean_" + str(lineNo) + ".tif")
     fileNull = os.path.join(outWorkspace, "FLM_LFP_Null_" + str(lineNo) + ".tif")
-    fileFootprint = os.path.join(outWorkspace, "FLM_LFP_Footprint_" + str(lineNo))
 
     # Find origin and destination coordinates
     segment = segment_info[0]
@@ -267,8 +265,8 @@ def workLinesMemory(segment_info):
     # Create segment feature class
     try:
         arcpy.CreateFeatureclass_management(outWorkspace, os.path.basename(fileSeg), "POLYLINE",
-                                            Centerline_Feature_Class, "DISABLED", "DISABLED",
-                                            Centerline_Feature_Class)
+                                            Centerline_Feature_Class, "DISABLED",
+                                            "DISABLED", Centerline_Feature_Class)
         cursor = arcpy.da.InsertCursor(fileSeg, ["SHAPE@"])
         cursor.insertRow([segment])
         del cursor
@@ -280,8 +278,8 @@ def workLinesMemory(segment_info):
     # Create origin feature class
     try:
         arcpy.CreateFeatureclass_management(outWorkspace, os.path.basename(fileOrigin), "POINT",
-                                            Centerline_Feature_Class, "DISABLED", "DISABLED",
-                                            Centerline_Feature_Class)
+                                            Centerline_Feature_Class, "DISABLED",
+                                            "DISABLED", Centerline_Feature_Class)
         cursor = arcpy.da.InsertCursor(fileOrigin, ["SHAPE@XY"])
         xy = (float(x1), float(y1))
         cursor.insertRow([xy])
@@ -294,8 +292,8 @@ def workLinesMemory(segment_info):
     # Create destination feature class
     try:
         arcpy.CreateFeatureclass_management(outWorkspace, os.path.basename(fileDestination), "POINT",
-                                            Centerline_Feature_Class, "DISABLED", "DISABLED",
-                                            Centerline_Feature_Class)
+                                            Centerline_Feature_Class, "DISABLED",
+                                            "DISABLED", Centerline_Feature_Class)
         cursor = arcpy.da.InsertCursor(fileDestination, ["SHAPE@XY"])
         xy = (float(x2), float(y2))
         cursor.insertRow([xy])
@@ -307,7 +305,8 @@ def workLinesMemory(segment_info):
 
     # Buffer around line
     try:
-        arcpy.Buffer_analysis(fileSeg, fileBuffer, Maximum_distance_from_centerline, "FULL", "ROUND", "NONE", "", "PLANAR")
+        arcpy.Buffer_analysis(fileSeg, fileBuffer, Maximum_distance_from_centerline,
+                              "FULL", "ROUND", "NONE", "", "PLANAR")
     except Exception as e:
         print("Create buffer for {} failed".format(fileSeg))
         print(e)
@@ -317,7 +316,8 @@ def workLinesMemory(segment_info):
     DescBuffer = arcpy.Describe(fileBuffer)
     SearchBox = str(DescBuffer.extent.XMin) + " " + str(DescBuffer.extent.YMin) + " " + str(
         DescBuffer.extent.XMax) + " " + str(DescBuffer.extent.YMax)
-    arcpy.Clip_management(Cost_Raster, SearchBox, fileClip, fileBuffer, "", "ClippingGeometry", "NO_MAINTAIN_EXTENT")
+    arcpy.Clip_management(Cost_Raster, SearchBox, fileClip, fileBuffer, "",
+                          "ClippingGeometry", "NO_MAINTAIN_EXTENT")
 
     # Process: Cost Distance
     arcpy.gp.CostDistance_sa(fileOrigin, fileClip, fileCostDa, "", "", "", "", "", "", "TO_SOURCE")
@@ -356,7 +356,8 @@ def workLinesMemory(segment_info):
     arcpy.gp.SetNull_sa(fileClean, "1", fileNull, "VALUE > 0")
 
     # Process: Raster to Polygon
-    footprint = arcpy.RasterToPolygon_conversion(fileNull, arcpy.Geometry(), "SIMPLIFY", "VALUE", "SINGLE_OUTER_PART", "")
+    footprint = arcpy.RasterToPolygon_conversion(fileNull, arcpy.Geometry(),
+                                                 "SIMPLIFY", "VALUE", "SINGLE_OUTER_PART", "")
 
     flmc.log("Processing line {} done".format(fileSeg))
 
@@ -440,7 +441,7 @@ def main(argv=None):
 
     # Prepare input lines for multiprocessing
     segment_all = flmc.SplitLines(Centerline_Feature_Class, outWorkspace,
-                                            "LFP", ProcessSegments, Corridor_Threshold_Field)
+                                  "LFP", ProcessSegments, Corridor_Threshold_Field)
 
     # TODO: inspect how GetCores works. Make sure it uses all the CPU cores
     pool = multiprocessing.Pool(processes=flmc.GetCores())
