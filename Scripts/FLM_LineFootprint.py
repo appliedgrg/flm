@@ -443,6 +443,8 @@ def main(argv=None):
 
     pool = multiprocessing.Pool(processes=flmc.GetCores())
     flmc.log("Multiprocessing line corridors...")
+    flmc.log("Using {} CPU cores".format(flmc.GetCores()))
+    
     #pool.map(workLines, range(1, numLines + 1))
     footprints = pool.map(workLinesMemory, segment_all)  # new version of memory based processing
     pool.close()
