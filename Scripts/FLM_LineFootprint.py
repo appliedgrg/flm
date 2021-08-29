@@ -233,9 +233,6 @@ def workLinesMemory(segment_info):
     Corridor_Threshold = 3
 
     outWorkspace = r"memory"
-    lineNo = 1
-    # Centerline_Feature_Class = baseDir = r"C:\Temp\Multi_Intersection_Streams_withSDM_NoFilledDEM" \
-    #                                      r"\CenterlineOutput\FLMcenterline_output.shp"
 
     # Temporary files
     lineNo = segment_info[1]
