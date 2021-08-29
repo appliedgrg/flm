@@ -255,26 +255,6 @@ def workLinesMemory(segment_info):
     fileNull = os.path.join(outWorkspace, "FLM_LFP_Null_" + str(lineNo) + ".tif")
     fileFootprint = os.path.join(outWorkspace, "FLM_LFP_Footprint_" + str(lineNo))
 
-    # Load segment list
-    if not USE_MEMORY_WORKSPACE:
-        segment = []
-        rows = arcpy.SearchCursor(fileSeg)
-        shapeField = arcpy.Describe(fileSeg).ShapeFieldName
-        for row in rows:
-            feat = row.getValue(shapeField)  # creates a geometry object
-            Corridor_Threshold = float(row.getValue(Corridor_Threshold_Field))
-            segmentnum = 0
-            for segment in feat:  # loops through every segment in a line
-                # loops through every vertex of every segment
-                for pnt in feat.getPart(
-                        segmentnum):  # get.PArt returns an array of points for a particular part in the geometry
-                    if pnt:  # adds all the vertices to segment, which creates an array
-                        segment.append(arcpy.Point(float(pnt.X), float(pnt.Y)))
-
-            segmentnum += 1
-
-        del rows
-
     # Find origin and destination coordinates
     segment = segment_info[0]
     point_list = segment.getPart(0)
