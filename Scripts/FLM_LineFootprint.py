@@ -283,23 +283,23 @@ def workLinesMemory(segment_info):
 
     # Create segment feature class
     try:
-        memSegment = arcpy.CreateFeatureclass_management(outWorkspace, os.path.basename(fileSeg), "POLYLINE",
-                                                         Centerline_Feature_Class, "DISABLED", "DISABLED",
-                                                         Centerline_Feature_Class)
+        arcpy.CreateFeatureclass_management(outWorkspace, os.path.basename(fileSeg), "POLYLINE",
+                                            Centerline_Feature_Class, "DISABLED", "DISABLED",
+                                            Centerline_Feature_Class)
         cursor = arcpy.da.InsertCursor(fileSeg, ["SHAPE@"])
         cursor.insertRow([segment])
         del cursor
     except Exception as e:
-        print("Create feature class {} failed.".format(fileOrigin))
+        print("Create feature class {} failed.".format(fileSeg))
         print(e)
         return
 
     # Create origin feature class
     try:
-        memOrigin = arcpy.CreateFeatureclass_management(outWorkspace, os.path.basename(fileOrigin), "POINT",
-                                                        Centerline_Feature_Class, "DISABLED", "DISABLED",
-                                                        Centerline_Feature_Class)
-        cursor = arcpy.da.InsertCursor(memOrigin, ["SHAPE@XY"])
+        arcpy.CreateFeatureclass_management(outWorkspace, os.path.basename(fileOrigin), "POINT",
+                                            Centerline_Feature_Class, "DISABLED", "DISABLED",
+                                            Centerline_Feature_Class)
+        cursor = arcpy.da.InsertCursor(fileOrigin, ["SHAPE@XY"])
         xy = (float(x1), float(y1))
         cursor.insertRow([xy])
         del cursor
@@ -310,10 +310,10 @@ def workLinesMemory(segment_info):
 
     # Create destination feature class
     try:
-        memDestination = arcpy.CreateFeatureclass_management(outWorkspace, os.path.basename(fileDestination), "POINT",
-                                                             Centerline_Feature_Class, "DISABLED", "DISABLED",
-                                                             Centerline_Feature_Class)
-        cursor = arcpy.da.InsertCursor(memDestination, ["SHAPE@XY"])
+        arcpy.CreateFeatureclass_management(outWorkspace, os.path.basename(fileDestination), "POINT",
+                                            Centerline_Feature_Class, "DISABLED", "DISABLED",
+                                            Centerline_Feature_Class)
+        cursor = arcpy.da.InsertCursor(fileDestination, ["SHAPE@XY"])
         xy = (float(x2), float(y2))
         cursor.insertRow([xy])
         del cursor
@@ -396,7 +396,7 @@ def workLinesMemory(segment_info):
     except Exception as e:
         print("Line Footprint: Deleting temporary file failed. Inspect later.")
 
-    return footprint
+    return footprint  # list of polygons
 
 def HasField(fc, fi):
     fieldnames = [field.name for field in arcpy.ListFields(fc)]
@@ -461,19 +461,22 @@ def main(argv=None):
     pool = multiprocessing.Pool(processes=flmc.GetCores())
     flmc.log("Multiprocessing line corridors...")
     #pool.map(workLines, range(1, numLines + 1))
-    pool.map(workLinesMemory, segment_all)  # new version of memory based processing
+    footprints = pool.map(workLinesMemory, segment_all)  # new version of memory based processing
     pool.close()
     pool.join()
     flmc.logStep("Corridor multiprocessing")
 
     flmc.log("Merging footprint layers...")
-    tempShapefiles = arcpy.ListFeatureClasses(wild_card='*Footprint*')
-    fileMerge = outWorkspace + "\\FLM_LFP_Merge.shp"
-    arcpy.Merge_management(tempShapefiles, fileMerge)
-    arcpy.Dissolve_management(fileMerge, Output_Footprint)
-    for shp in tempShapefiles:
-        arcpy.Delete_management(shp)
-    arcpy.Delete_management(fileMerge)
+    try:
+        fileMerge = outWorkspace + "\\FLM_LFP_Merge.shp"
+        # Flatten footprints which is a list of list
+        ft_list = [item for sublist in footprints for item in sublist]
+        arcpy.Merge_management(ft_list, fileMerge)
+        arcpy.Dissolve_management(fileMerge, Output_Footprint)
+        arcpy.Delete_management(fileMerge)
+    except Exception as e:
+        print("e")
+
     flmc.logStep("Merging")
 
 
