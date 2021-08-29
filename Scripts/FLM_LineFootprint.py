@@ -45,7 +45,6 @@ outWorkspace = ""
 Corridor_Threshold_Field = ""
 Maximum_distance_from_centerline = 0
 
-USE_MEMORY_WORKSPACE = 1  # switch of using memory workspace or not
 
 def PathFile(path):
     return path[path.rfind("\\") + 1:]
