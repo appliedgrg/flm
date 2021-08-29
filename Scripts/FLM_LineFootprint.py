@@ -433,6 +433,7 @@ def main(argv=None):
     f.write(Expand_And_Shrink_Cell_Range + "\n")
     f.close()
 
+    # TODO: this code block is not necessary
     if not HasField(Centerline_Feature_Class, Corridor_Threshold_Field):
         flmc.log("ERROR: There is no field named " + Corridor_Threshold_Field + " in the input lines")
         return False
