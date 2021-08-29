@@ -217,6 +217,10 @@ def workLinesMemory(segment_info):
     New version of worklines. It uses memory workspace instead of shapefiles.
     The refactoring is to accelerate the processing speed.
     """
+    # input verification
+    if segment_info is None or len(segment_info) <= 1:
+        print("Input segment is corrupted, ignore")
+
     # read params from text file
     outWorkspace = flmc.GetWorkspace(workspaceName)
     f = open(outWorkspace + "\\params.txt")
@@ -231,11 +235,11 @@ def workLinesMemory(segment_info):
 
     # TODO: this is constant, but need to be investigated.
     Corridor_Threshold = 3
+    lineNo = segment_info[1]  # second element is the line No.
 
     outWorkspace = r"memory"
 
     # Temporary files
-    lineNo = segment_info[1]
     fileSeg = os.path.join(outWorkspace, "FLM_LFP_Segment_" + str(lineNo))
     fileOrigin = os.path.join(outWorkspace, "FLM_LFP_Origin_" + str(lineNo))
     fileDestination = os.path.join(outWorkspace, "FLM_LFP_Destination_" + str(lineNo))
@@ -445,18 +449,19 @@ def main(argv=None):
     pool.join()
     flmc.logStep("Corridor multiprocessing")
 
-    flmc.log("Merging footprint layers...")
+    flmc.log("Merging footprints...")
     try:
-        fileMerge = outWorkspace + "\\FLM_LFP_Merge.shp"
         # Flatten footprints which is a list of list
         ft_list = [item for sublist in footprints for item in sublist]
+
+        fileMerge = outWorkspace + "\\FLM_LFP_Merge.shp"
         arcpy.Merge_management(ft_list, fileMerge)
         arcpy.Dissolve_management(fileMerge, Output_Footprint)
         arcpy.Delete_management(fileMerge)
     except Exception as e:
         print("e")
 
-    flmc.logStep("Merging")
+    flmc.logStep("Footprints merged.")
 
 
 if __name__ == '__main__':
