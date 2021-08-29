@@ -254,13 +254,26 @@ def workLinesMemory(segment_info):
     fileClean = os.path.join(outWorkspace, "FLM_LFP_Clean_" + str(lineNo) + ".tif")
     fileNull = os.path.join(outWorkspace, "FLM_LFP_Null_" + str(lineNo) + ".tif")
 
+    # Load segment list
+    segment_list = []
+
+    for row in segment_info[0]:
+        segmentnum = 0
+        for segment in feat:  # loops through every segment in a line
+            # loops through every vertex of every segment
+            for pnt in feat.getPart(
+                    segmentnum):  # get.PArt returns an array of points for a particular part in the geometry
+                if pnt:  # adds all the vertices to segment_list, which creates an array
+                    segment_list.append(arcpy.Point(float(pnt.X), float(pnt.Y)))
+
+            segmentnum += 1
+    del rows
+
     # Find origin and destination coordinates
-    segment = segment_info[0]
-    point_list = segment.getPart(0)
-    x1 = point_list[0].X
-    y1 = point_list[0].Y
-    x2 = point_list[-1].X
-    y2 = point_list[-1].Y
+    x1 = segment_list[0].X
+    y1 = segment_list[0].Y
+    x2 = segment_list[-1].X
+    y2 = segment_list[-1].Y
 
     # Create segment feature class
     try:
