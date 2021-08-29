@@ -49,7 +49,7 @@ Maximum_distance_from_centerline = 0
 def PathFile(path):
     return path[path.rfind("\\") + 1:]
 
-
+# This function is shapefile based, to be removed.
 def workLines(lineNo):
     # read params from text file
     outWorkspace = flmc.GetWorkspace(workspaceName)
@@ -214,7 +214,7 @@ def workLines(lineNo):
 
 def workLinesMemory(segment_info):
     """
-    New version of worklines. It uses list instead of shapefiles.
+    New version of worklines. It uses memory workspace instead of shapefiles.
     The refactoring is to accelerate the processing speed.
     """
     # read params from text file
