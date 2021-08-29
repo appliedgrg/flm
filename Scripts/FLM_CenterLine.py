@@ -25,11 +25,15 @@
 # Purpose: Determines the least cost path between vertices of the input lines
 #
 # ---------------------------------------------------------------------------
+# System imports
 import os
 import multiprocessing
+
+# ArcGIS imports
 import arcpy
 from arcpy.sa import *
 
+# Local imports
 arcpy.CheckOutExtension("Spatial")
 import FLM_Common as flmc
 
@@ -50,6 +54,7 @@ def workLines(lineNo):
     Cost_Raster = f.readline().strip()
     Line_Processing_Radius = f.readline().strip()
     f.close()
+
 
     fileSeg = outWorkspace + "\\FLM_CL_Segment_" + str(lineNo) + ".shp"
     fileOrigin = outWorkspace + "\\FLM_CL_Origin_" + str(lineNo) + ".shp"
@@ -137,6 +142,120 @@ def workLines(lineNo):
     arcpy.Delete_management(fileCostBack)
 
 
+def workLinesMem(segment_info):
+    """
+    New version of worklines. It uses memory workspace instead of shapefiles.
+    The refactoring is to accelerate the processing speed.
+    """
+
+    # input verification
+    if segment_info is None or len(segment_info) <= 1:
+        print("Input segment is corrupted, ignore")
+
+    # Temporary files
+    outWorkspace = flmc.GetWorkspace(workspaceName)
+
+    # read params from text file
+    f = open(outWorkspace + "\\params.txt")
+    Forest_Line_Feature_Class = f.readline().strip()
+    Cost_Raster = f.readline().strip()
+    Line_Processing_Radius = f.readline().strip()
+    f.close()
+
+    lineNo = segment_info[1]  # second element is the line No.
+    outWorkspace = r"memory"
+
+    fileSeg = os.path.join(outWorkspace, "\\FLM_CL_Segment_" + str(lineNo))
+    fileOrigin = os.path.join(outWorkspace, "\\FLM_CL_Origin_" + str(lineNo))
+    fileDestination = os.path.join(outWorkspace, "\\FLM_CL_Destination_" + str(lineNo))
+    fileBuffer = os.path.join(outWorkspace, "\\FLM_CL_Buffer_" + str(lineNo))
+    fileClip = os.path.join(outWorkspace, "\\FLM_CL_Clip_" + str(lineNo) + ".tif")
+    fileCostDist = os.path.join(outWorkspace, "\\FLM_CL_CostDist_" + str(lineNo) + ".tif")
+    fileCostBack = os.path.join(outWorkspace, "\\FLM_CL_CostBack_" + str(lineNo) + ".tif")
+
+    # Find origin and destination coordinates
+    segment = segment_info[0]
+    x1 = segment_list[0].X
+    y1 = segment_list[0].Y
+    x2 = segment_list[-1].X
+    y2 = segment_list[-1].Y
+
+    # Create segment feature class
+    try:
+        arcpy.CreateFeatureclass_management(outWorkspace, os.path.basename(fileSeg), "POLYLINE",
+                                            Centerline_Feature_Class, "DISABLED", "DISABLED",
+                                            Centerline_Feature_Class)
+        cursor = arcpy.da.InsertCursor(fileSeg, ["SHAPE@"])
+        cursor.insertRow([segment])
+        del cursor
+    except Exception as e:
+        print("Create feature class {} failed.".format(fileSeg))
+        print(e)
+        return
+
+    # Create origin feature class
+    try:
+        arcpy.CreateFeatureclass_management(outWorkspace, os.path.basename(fileOrigin), "POINT",
+                                            Forest_Line_Feature_Class, "DISABLED",
+                                            "DISABLED", Forest_Line_Feature_Class)
+        cursor = arcpy.da.InsertCursor(fileOrigin, ["SHAPE@XY"])
+        xy = (float(x1), float(y1))
+        cursor.insertRow([xy])
+        del cursor
+    except Exception as e:
+        print("Creating origin feature class failed: at X, Y" + str(xy) + ".")
+        print(e)
+        return
+
+    # Create destination feature class
+    try:
+        arcpy.CreateFeatureclass_management(outWorkspace, os.path.basename(fileDestination), "POINT",
+                                            Forest_Line_Feature_Class, "DISABLED",
+                                            "DISABLED", Forest_Line_Feature_Class)
+        cursor = arcpy.da.InsertCursor(fileDestination, ["SHAPE@XY"])
+        xy = (float(x2), float(y2))
+        cursor.insertRow([xy])
+        del cursor
+    except Exception as e:
+        print("Creating destination feature class failed: at X, Y" + str(xy) + ".")
+        print(e)
+        return
+
+    try:
+        # Buffer around line
+        arcpy.Buffer_analysis(fileSeg, fileBuffer, Line_Processing_Radius, "FULL", "ROUND", "NONE", "", "PLANAR")
+
+        # Clip cost raster using buffer
+        DescBuffer = arcpy.Describe(fileBuffer)
+        SearchBox = str(DescBuffer.extent.XMin) + " " + str(DescBuffer.extent.YMin) + " " + str(
+            DescBuffer.extent.XMax) + " " + str(DescBuffer.extent.YMax)
+        arcpy.Clip_management(Cost_Raster, SearchBox, fileClip, fileBuffer, "", "ClippingGeometry",
+                              "NO_MAINTAIN_EXTENT")
+
+        # Least cost path
+        arcpy.gp.CostDistance_sa(fileOrigin, fileClip, fileCostDist, "", fileCostBack, "", "", "", "", "TO_SOURCE")
+        centerline = arcpy.gp.CostPathAsPolyline_sa(fileDestination, fileCostDist,
+                                                    fileCostBack, arcpy.Geometry(), "BEST_SINGLE", "")
+
+    except Exception as e:
+        print("Problem with line starting at X " + str(x1) + ", Y " + str(y1) + "; and ending at X " + str(
+            x1) + ", Y " + str(y1) + ".")
+        print(e)
+        return
+
+    # Clean temporary files
+    arcpy.Delete_management(fileSeg)
+    arcpy.Delete_management(fileOrigin)
+    arcpy.Delete_management(fileDestination)
+    arcpy.Delete_management(fileBuffer)
+    arcpy.Delete_management(fileClip)
+    arcpy.Delete_management(fileCostDist)
+    arcpy.Delete_management(fileCostBack)
+
+    # Return centerline
+    return centerline
+
+
 def main(argv=None):
     # Setup script path and workspace folder
     global workspaceName
@@ -172,28 +291,24 @@ def main(argv=None):
     f.close()
 
     # Prepare input lines for multiprocessing
-    numLines = flmc.SplitLines(Forest_Line_Feature_Class, outWorkspace, "CL", ProcessSegments)
+    segment_all = flmc.SplitLines(Forest_Line_Feature_Class, outWorkspace, "CL", ProcessSegments)
 
     pool = multiprocessing.Pool(processes=flmc.GetCores())
     flmc.log("Multiprocessing center lines...")
-    pool.map(workLines, range(1, numLines + 1))
+    flmc.log("Using {} CPU cores".format(flmc.GetCores()))
+    centerlines = pool.map(workLinesMem, segment_all)
     pool.close()
     pool.join()
+    flmc.logStep("Center line multiprocessing done.")
 
-    flmc.logStep("Center line multiprocessing")
+    flmc.log("Merging centerlines...")
 
-    flmc.log("Merging footprint layers...")
-    tempShapefiles = arcpy.ListFeatureClasses()
+    # Flatten centerlines which is a list of list
+    cl_list = [item for sublist in centerlines for item in sublist]
+    arcpy.Merge_management(cl_list, Output_Centerline)
 
-    if tempShapefiles:
-        arcpy.Merge_management(tempShapefiles, Output_Centerline)
-
-    flmc.logStep("Merging")
-
-    for shp in tempShapefiles:
-        arcpy.Delete_management(shp)
-
-    if os.path.exists(Output_Centerline):
+    # TODO: inspect CorridorTh
+    if arcpy.Exists(Output_Centerline):
         arcpy.AddField_management(Output_Centerline, "CorridorTh", "DOUBLE")
         arcpy.CalculateField_management(Output_Centerline, "CorridorTh", "3")
 
