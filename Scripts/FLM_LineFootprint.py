@@ -18,7 +18,9 @@
 # FLM_LineFootprint.py
 # Script Author: Gustavo Lopes Queiroz
 # Date: 2020-Jan-22
-#
+# Refactor to use memory workspace to speedup processing
+# Richard Zeng
+# Date: 2021-August
 # This script is part of the Forest Line Mapper (FLM) toolset
 # Webpage: https://github.com/appliedgrg/flm
 #
