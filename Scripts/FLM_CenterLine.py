@@ -145,16 +145,16 @@ def workLinesMem(segment_info):
     f.close()
 
     lineNo = segment_info[1]  # second element is the line No.
-    outWorkspace = r"memory"
+    outWorkspaceMem = r"memory"
 
-    fileSeg = os.path.join(outWorkspace, "FLM_CL_Segment_" + str(lineNo))
-    fileOrigin = os.path.join(outWorkspace, "FLM_CL_Origin_" + str(lineNo))
-    fileDestination = os.path.join(outWorkspace, "FLM_CL_Destination_" + str(lineNo))
-    fileBuffer = os.path.join(outWorkspace, "FLM_CL_Buffer_" + str(lineNo))
-    fileClip = os.path.join(outWorkspace, "FLM_CL_Clip_" + str(lineNo) + ".tif")
-    # fileCostDist = os.path.join(outWorkspace, "FLM_CL_CostDist_" + str(lineNo) + ".tif")
-    fileCostBack = os.path.join(outWorkspace, "FLM_CL_CostBack_" + str(lineNo) + ".tif")
-    fileCenterline = os.path.join(outWorkspace, "FLM_CL_Centerline_" + str(lineNo))
+    fileSeg = os.path.join(outWorkspaceMem, "FLM_CL_Segment_" + str(lineNo))
+    fileOrigin = os.path.join(outWorkspaceMem, "FLM_CL_Origin_" + str(lineNo))
+    fileDestination = os.path.join(outWorkspaceMem, "FLM_CL_Destination_" + str(lineNo))
+    fileBuffer = os.path.join(outWorkspaceMem, "FLM_CL_Buffer_" + str(lineNo))
+    fileClip = os.path.join(outWorkspaceMem, "FLM_CL_Clip_" + str(lineNo) + ".tif")
+    # fileCostDist = os.path.join(outWorkspaceMem, "FLM_CL_CostDist_" + str(lineNo) + ".tif")
+    fileCostBack = os.path.join(outWorkspaceMem, "FLM_CL_CostBack_" + str(lineNo) + ".tif")
+    fileCenterline = os.path.join(outWorkspaceMem, "FLM_CL_Centerline_" + str(lineNo))
 
     # Load segment list
     segment_list = []
@@ -173,7 +173,7 @@ def workLinesMem(segment_info):
 
     # Create segment feature class
     try:
-        arcpy.CreateFeatureclass_management(outWorkspace, os.path.basename(fileSeg), "POLYLINE",
+        arcpy.CreateFeatureclass_management(outWorkspaceMem, os.path.basename(fileSeg), "POLYLINE",
                                             Forest_Line_Feature_Class, "DISABLED",
                                             "DISABLED", Forest_Line_Feature_Class)
         cursor = arcpy.da.InsertCursor(fileSeg, ["SHAPE@"])
@@ -187,7 +187,7 @@ def workLinesMem(segment_info):
     # Create origin feature class
     # TODO: not in use, delete later
     try:
-        arcpy.CreateFeatureclass_management(outWorkspace, os.path.basename(fileOrigin), "POINT",
+        arcpy.CreateFeatureclass_management(outWorkspaceMem, os.path.basename(fileOrigin), "POINT",
                                             Forest_Line_Feature_Class, "DISABLED",
                                             "DISABLED", Forest_Line_Feature_Class)
         cursor = arcpy.da.InsertCursor(fileOrigin, ["SHAPE@XY"])
@@ -202,7 +202,7 @@ def workLinesMem(segment_info):
     # Create destination feature class
     # TODO: not in use, delete later
     try:
-        arcpy.CreateFeatureclass_management(outWorkspace, os.path.basename(fileDestination), "POINT",
+        arcpy.CreateFeatureclass_management(outWorkspaceMem, os.path.basename(fileDestination), "POINT",
                                             Forest_Line_Feature_Class, "DISABLED",
                                             "DISABLED", Forest_Line_Feature_Class)
         cursor = arcpy.da.InsertCursor(fileDestination, ["SHAPE@XY"])
@@ -328,7 +328,7 @@ def main(argv=None):
     if arcpy.Exists(Out_Centerline):
         arcpy.AddField_management(Out_Centerline, "CorridorTh", "DOUBLE")
         arcpy.CalculateField_management(Out_Centerline, "CorridorTh", "3")
-    flmc.log("Centerlines shapefile done/")
+    flmc.log("Centerlines shapefile done")
 
 if __name__ == '__main__':
     main()

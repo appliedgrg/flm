@@ -236,23 +236,23 @@ def workLinesMemory(segment_info):
     # TODO: this is constant, but need to be investigated.
     Corridor_Threshold = 3
     lineNo = segment_info[1]  # second element is the line No.
-    outWorkspace = r"memory"
+    outWorkspaceMem = r"memory"
 
     # Temporary files
-    fileSeg = os.path.join(outWorkspace, "FLM_LFP_Segment_" + str(lineNo))
-    fileOrigin = os.path.join(outWorkspace, "FLM_LFP_Origin_" + str(lineNo))
-    fileDestination = os.path.join(outWorkspace, "FLM_LFP_Destination_" + str(lineNo))
-    fileBuffer = os.path.join(outWorkspace, "FLM_LFP_Buffer_" + str(lineNo))
-    fileClip = os.path.join(outWorkspace, "FLM_LFP_Clip_" + str(lineNo) + ".tif")
-    fileCostDa = os.path.join(outWorkspace, "FLM_LFP_CostDa_" + str(lineNo) + ".tif")
-    fileCostDb = os.path.join(outWorkspace, "FLM_LFP_CostDb_" + str(lineNo) + ".tif")
-    fileCorridor = os.path.join(outWorkspace, "FLM_LFP_Corridor_" + str(lineNo) + ".tif")
-    fileCorridorMin = os.path.join(outWorkspace, "FLM_LFP_CorridorMin_" + str(lineNo) + ".tif")
-    fileThreshold = os.path.join(outWorkspace, "FLM_LFP_Threshold_" + str(lineNo) + ".tif")
-    fileExpand = os.path.join(outWorkspace, "FLM_LFP_Expand_" + str(lineNo) + ".tif")
-    fileShrink = os.path.join(outWorkspace, "FLM_LFP_Shrink_" + str(lineNo) + ".tif")
-    fileClean = os.path.join(outWorkspace, "FLM_LFP_Clean_" + str(lineNo) + ".tif")
-    fileNull = os.path.join(outWorkspace, "FLM_LFP_Null_" + str(lineNo) + ".tif")
+    fileSeg = os.path.join(outWorkspaceMem, "FLM_LFP_Segment_" + str(lineNo))
+    fileOrigin = os.path.join(outWorkspaceMem, "FLM_LFP_Origin_" + str(lineNo))
+    fileDestination = os.path.join(outWorkspaceMem, "FLM_LFP_Destination_" + str(lineNo))
+    fileBuffer = os.path.join(outWorkspaceMem, "FLM_LFP_Buffer_" + str(lineNo))
+    fileClip = os.path.join(outWorkspaceMem, "FLM_LFP_Clip_" + str(lineNo) + ".tif")
+    fileCostDa = os.path.join(outWorkspaceMem, "FLM_LFP_CostDa_" + str(lineNo) + ".tif")
+    fileCostDb = os.path.join(outWorkspaceMem, "FLM_LFP_CostDb_" + str(lineNo) + ".tif")
+    fileCorridor = os.path.join(outWorkspaceMem, "FLM_LFP_Corridor_" + str(lineNo) + ".tif")
+    fileCorridorMin = os.path.join(outWorkspaceMem, "FLM_LFP_CorridorMin_" + str(lineNo) + ".tif")
+    fileThreshold = os.path.join(outWorkspaceMem, "FLM_LFP_Threshold_" + str(lineNo) + ".tif")
+    fileExpand = os.path.join(outWorkspaceMem, "FLM_LFP_Expand_" + str(lineNo) + ".tif")
+    fileShrink = os.path.join(outWorkspaceMem, "FLM_LFP_Shrink_" + str(lineNo) + ".tif")
+    fileClean = os.path.join(outWorkspaceMem, "FLM_LFP_Clean_" + str(lineNo) + ".tif")
+    fileNull = os.path.join(outWorkspaceMem, "FLM_LFP_Null_" + str(lineNo) + ".tif")
 
     # Load segment list
     segment_list = []
@@ -271,7 +271,7 @@ def workLinesMemory(segment_info):
 
     # Create segment feature class
     try:
-        arcpy.CreateFeatureclass_management(outWorkspace, os.path.basename(fileSeg), "POLYLINE",
+        arcpy.CreateFeatureclass_management(outWorkspaceMem, os.path.basename(fileSeg), "POLYLINE",
                                             Centerline_Feature_Class, "DISABLED",
                                             "DISABLED", Centerline_Feature_Class)
         cursor = arcpy.da.InsertCursor(fileSeg, ["SHAPE@"])
@@ -284,7 +284,7 @@ def workLinesMemory(segment_info):
 
     # Create origin feature class
     try:
-        arcpy.CreateFeatureclass_management(outWorkspace, os.path.basename(fileOrigin), "POINT",
+        arcpy.CreateFeatureclass_management(outWorkspaceMem, os.path.basename(fileOrigin), "POINT",
                                             Centerline_Feature_Class, "DISABLED",
                                             "DISABLED", Centerline_Feature_Class)
         cursor = arcpy.da.InsertCursor(fileOrigin, ["SHAPE@XY"])
@@ -298,7 +298,7 @@ def workLinesMemory(segment_info):
 
     # Create destination feature class
     try:
-        arcpy.CreateFeatureclass_management(outWorkspace, os.path.basename(fileDestination), "POINT",
+        arcpy.CreateFeatureclass_management(outWorkspaceMem, os.path.basename(fileDestination), "POINT",
                                             Centerline_Feature_Class, "DISABLED",
                                             "DISABLED", Centerline_Feature_Class)
         cursor = arcpy.da.InsertCursor(fileDestination, ["SHAPE@XY"])
