@@ -51,6 +51,8 @@ def centerline(in_line, in_cost_raster, out_center_line,
 
     if not os.path.exists(out_center_line):
         FLM_CenterLine.main(argv)
+    else:
+        print("Centeline file {} alreasy exists, ignore.".format(out_center_line))
 
 
 def lineFootprint(in_center_line, in_canopy_raster, in_cost_raster,
@@ -75,6 +77,8 @@ def lineFootprint(in_center_line, in_canopy_raster, in_cost_raster,
 
     if os.path.exists(in_center_line) and not os.path.exists(out_footprint):
         FLM_LineFootprint.main(argv)
+    else:
+        print("Footprint file {} alreasy exists, ignore.".format(out_footprint))
 
 
 def lineAttribute(mode, in_line, in_footprint, in_chm, out_line_attribute,
