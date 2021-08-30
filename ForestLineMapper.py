@@ -139,12 +139,13 @@ def main():
 		
 if __name__ != '__main__':
 	#If script is one of the child processes (multiprocessing) load associated scripts (otherwise parallel processing is avoided)
-	import Scripts.FLM_CenterLine
-	import Scripts.FLM_LineFootprint
-	import Scripts.FLM_Corridor
-	import Scripts.FLM_CorridorFootprint
-	import Scripts.FLM_ZonalThreshold
-	import Scripts.FLM_ForestLineAttributes
+	# import Scripts.FLM_CenterLine
+	# import Scripts.FLM_LineFootprint
+	# import Scripts.FLM_Corridor
+	# import Scripts.FLM_CorridorFootprint
+	# import Scripts.FLM_ZonalThreshold
+	# import Scripts.FLM_ForestLineAttributes
+	pass
 else:
 	#If script is main process, load and show GUI
 	scriptPath = os.path.dirname(os.path.realpath(__file__))
