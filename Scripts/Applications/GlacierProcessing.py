@@ -35,13 +35,13 @@ def main():
     baseDir = r"C:\Temp\Multi_Intersection_Streams_withSDM_NoFilledDEM"
     in_line = os.path.join(baseDir, r"HC_MC_Multi_Intersection_Stream.shp")
     in_line_footprint = os.path.join(baseDir, r"CenterlineOutput\FLMcenterline_output.shp")
-    inCanopyRaster = os.path.join(baseDir, r"Clip_CanopyRaster.tif")
+    in_canopy_raster = os.path.join(baseDir, r"Clip_CanopyRaster.tif")
     in_cost_raster = os.path.join(baseDir, r"Clip_CostRaster.tif")
     out_center_line = os.path.join(baseDir, r"CenterlineOutput\output_centerline.shp")
     outFootprint = os.path.join(baseDir, r"Footprint\out_footprint.shp")
 
-    FLM_Tools.centerline(in_line, in_cost_raster, out_center_line)
-    #FLM_Tools.lineFootprint(inCenterline, inCanopyRaster, inCostRaster, outFootprint)
+    # FLM_Tools.centerline(in_line, in_cost_raster, out_center_line)
+    FLM_Tools.lineFootprint(in_line_footprint, in_canopy_raster, in_cost_raster, outFootprint)
 
 
 if __name__ == "__main__":
