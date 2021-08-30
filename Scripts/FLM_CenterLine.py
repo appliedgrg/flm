@@ -145,16 +145,16 @@ def workLinesMem(segment_info):
     f.close()
 
     lineNo = segment_info[1]  # second element is the line No.
-    # outWorkspace = r"memory"
+    outWorkspace = r"memory"
 
-    fileSeg = os.path.join(outWorkspace, "FLM_CL_Segment_" + str(lineNo) + ".shp")
-    fileOrigin = os.path.join(outWorkspace, "FLM_CL_Origin_" + str(lineNo) + ".shp")
-    fileDestination = os.path.join(outWorkspace, "FLM_CL_Destination_" + str(lineNo) + ".shp")
-    fileBuffer = os.path.join(outWorkspace, "FLM_CL_Buffer_" + str(lineNo) + ".shp")
+    fileSeg = os.path.join(outWorkspace, "FLM_CL_Segment_" + str(lineNo))
+    fileOrigin = os.path.join(outWorkspace, "FLM_CL_Origin_" + str(lineNo))
+    fileDestination = os.path.join(outWorkspace, "FLM_CL_Destination_" + str(lineNo))
+    fileBuffer = os.path.join(outWorkspace, "FLM_CL_Buffer_" + str(lineNo))
     fileClip = os.path.join(outWorkspace, "FLM_CL_Clip_" + str(lineNo) + ".tif")
-    fileCostDist = os.path.join(outWorkspace, "FLM_CL_CostDist_" + str(lineNo) + ".tif")
+    # fileCostDist = os.path.join(outWorkspace, "FLM_CL_CostDist_" + str(lineNo) + ".tif")
     fileCostBack = os.path.join(outWorkspace, "FLM_CL_CostBack_" + str(lineNo) + ".tif")
-    fileCenterline = os.path.join(outWorkspace, "FLM_CL_Centerline_" + str(lineNo) + ".shp")
+    fileCenterline = os.path.join(outWorkspace, "FLM_CL_Centerline_" + str(lineNo))
 
     # Load segment list
     segment_list = []
@@ -177,7 +177,7 @@ def workLinesMem(segment_info):
                                             Forest_Line_Feature_Class, "DISABLED",
                                             "DISABLED", Forest_Line_Feature_Class)
         cursor = arcpy.da.InsertCursor(fileSeg, ["SHAPE@"])
-        cursor.insertRow([segment])
+        cursor.insertRow([segment_info[0]])
         del cursor
     except Exception as e:
         print("Create feature class {} failed.".format(fileSeg))
@@ -185,6 +185,7 @@ def workLinesMem(segment_info):
         return
 
     # Create origin feature class
+    # TODO: not in use, delete later
     try:
         arcpy.CreateFeatureclass_management(outWorkspace, os.path.basename(fileOrigin), "POINT",
                                             Forest_Line_Feature_Class, "DISABLED",
@@ -199,6 +200,7 @@ def workLinesMem(segment_info):
         return
 
     # Create destination feature class
+    # TODO: not in use, delete later
     try:
         arcpy.CreateFeatureclass_management(outWorkspace, os.path.basename(fileDestination), "POINT",
                                             Forest_Line_Feature_Class, "DISABLED",
@@ -224,16 +226,22 @@ def workLinesMem(segment_info):
                               "NO_MAINTAIN_EXTENT")
 
         # Least cost path
-        arcpy.CostDistance_sa(fileOrigin, fileClip, fileCostDist, "", fileCostBack, "", "", "", "", "TO_SOURCE")
-        centerline = arcpy.gp.CostPathAsPolyline_sa(fileDestination, fileCostDist,
-                                                    fileCostBack, arcpy.Geometry(), "BEST_SINGLE", "")
+        # arcpy.CostDistance_sa(fileOrigin, fileClip, fileCostDist, "", fileCostBack, "", "", "", "", "TO_SOURCE")
+        fileCostDist = CostDistance(arcpy.PointGeometry(arcpy.Point(x1, y1)), fileClip, "", fileCostBack)
+        # arcpy.gp.CostPathAsPolyline_sa(fileDestination, fileCostDist,
+        #                                fileCostBack, fileCenterline, "BEST_SINGLE", "")
+        CostPathAsPolyline(arcpy.PointGeometry(arcpy.Point(x2, y2)), fileCostDist,
+                           fileCostBack, fileCenterline, "BEST_SINGLE", "")
 
-        arcpy.gp.CostPathAsPolyline_sa(fileDestination, fileCostDist,
-                                       fileCostBack, fileCenterline, "BEST_SINGLE", "")
+        # get centerline polyline out of memory feature class fileCenterline
+        centerline = []
+        with arcpy.da.SearchCursor(fileCenterline, ["SHAPE@"]) as cursor:
+            for row in cursor:
+                centerline.append(row[0])
 
     except Exception as e:
-        print("Problem with line starting at X " + str(x1) + ", Y " + str(y1) + "; and ending at X " + str(
-            x1) + ", Y " + str(y1) + ".")
+        print("Problem with line starting at X " + str(x1) + ", Y " + str(y1)
+              + "; and ending at X " + str(x2) + ", Y " + str(y2) + ".")
         print(e)
         return
 
@@ -247,6 +255,7 @@ def workLinesMem(segment_info):
     arcpy.Delete_management(fileCostBack)
 
     # Return centerline
+    print("Processing line {} done".format(fileSeg))
     return centerline
 
 
@@ -275,7 +284,7 @@ def main(argv=None):
     global Line_Processing_Radius
     Line_Processing_Radius = args[2].rstrip()
     ProcessSegments = args[3]
-    Output_Centerline = args[4].rstrip()
+    Out_Centerline = args[4].rstrip()
 
     # write params to text file
     f = open(outWorkspace + "\\params.txt", "w")
@@ -295,17 +304,31 @@ def main(argv=None):
     pool.join()
     flmc.logStep("Center line multiprocessing done.")
 
-    flmc.log("Merging centerlines...")
+    # Create output centerline shapefile
+    flmc.log("Create centerline shapefile...")
+    try:
+        arcpy.CreateFeatureclass_management(os.path.dirname(Out_Centerline), os.path.basename(Out_Centerline),
+                                            "POLYLINE", Forest_Line_Feature_Class, "DISABLED",
+                                            "DISABLED", Forest_Line_Feature_Class)
+    except Exception as e:
+        print("Create feature class {} failed.".format(Out_Centerline))
+        print(e)
+        return
 
     # Flatten centerlines which is a list of list
+    flmc.log("Writing centerlines to shapefile...")
+    # TODO: is this necessary? Since we need list of single line next
     cl_list = [item for sublist in centerlines for item in sublist]
-    arcpy.Merge_management(cl_list, Output_Centerline)
+    # arcpy.Merge_management(cl_list, Out_Centerline)
+    with arcpy.da.InsertCursor(Out_Centerline, ["SHAPE@"]) as cursor:
+        for line in cl_list:
+            cursor.insertRow([line])
 
     # TODO: inspect CorridorTh
-    if arcpy.Exists(Output_Centerline):
-        arcpy.AddField_management(Output_Centerline, "CorridorTh", "DOUBLE")
-        arcpy.CalculateField_management(Output_Centerline, "CorridorTh", "3")
-
+    if arcpy.Exists(Out_Centerline):
+        arcpy.AddField_management(Out_Centerline, "CorridorTh", "DOUBLE")
+        arcpy.CalculateField_management(Out_Centerline, "CorridorTh", "3")
+    flmc.log("Centerlines shapefile done/")
 
 if __name__ == '__main__':
     main()
