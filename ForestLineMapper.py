@@ -4,6 +4,10 @@
 # Date: 2020-Jan-22
 #
 # Development history:
+#   Switch massive file cache to memory workspace and geometries.
+#   Eliminate frequent file I/O line setup process and switch geoprocessing
+#   tools to memory-based approach. 2021, Richard Zeng
+#
 #   Worflow overhaul by Gustavo Lopes Queiroz, November, 2019
 #   First version in Arcpy by Silvia Losada, November 2018
 #   Initial concept by Sarah Cole and Jerome Cranston, May 2018
