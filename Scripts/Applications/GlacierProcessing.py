@@ -40,8 +40,8 @@ def main():
     out_center_line = os.path.join(baseDir, r"CenterlineOutput\output_centerline.shp")
     outFootprint = os.path.join(baseDir, r"Footprint\out_footprint.shp")
 
-    # FLM_Tools.centerline(in_line, in_cost_raster, out_center_line)
-    FLM_Tools.lineFootprint(in_line_footprint, in_canopy_raster, in_cost_raster, outFootprint)
+    FLM_Tools.centerline(in_line, in_cost_raster, out_center_line)
+    # FLM_Tools.lineFootprint(in_line_footprint, in_canopy_raster, in_cost_raster, outFootprint)
 
 
 if __name__ == "__main__":
