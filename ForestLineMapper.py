@@ -53,10 +53,12 @@
 # GUI is constructed based on calls contained within this script. 
 #
 # ---------------------------------------------------------------------------
+# System imports
 import os
 import sys
 
 version = ""
+
 
 class FLM_Tool_GUI:
 	def __init__(self, title, description, fields, types, tips, defaults, scriptFile, paramPath):
@@ -70,18 +72,23 @@ class FLM_Tool_GUI:
 		self.paramPath = paramPath
 		self.input = []
 		self.toolScreen = None
+
 	def SetupTool(self, toolScreen):
 		self.toolScreen = toolScreen
-		entries = gui.ToolSetup( toolScreen, self.title, self.description, self.fields, self.types, self.tips, self.scriptFile, self.paramPath )
+		entries = gui.ToolSetup( toolScreen, self.title, self.description, self.fields,
+								 self.types, self.tips, self.scriptFile, self.paramPath )
 		self.input = entries
 		self.LoadParams()
+
 	def OpenTool(self):
 		gui.OpenScreen( self, self.toolScreen )
+
 	def SaveParams(self):
 		pfile = open(self.paramPath,"w")
 		for i in range (0,len(self.input) ):
 			pfile.write(self.input[i].get()+'\n')
 		pfile.close()
+
 	def LoadParams(self):
 		try:
 			args = self.GetParams()
@@ -91,6 +98,7 @@ class FLM_Tool_GUI:
 				self.input[i].insert(0, args[i])
 		except Exception as e:
 			self.SetDefaults()
+
 	def GetParams(self):
 		params = []
 		pfile = open(self.paramPath,"r")
@@ -99,6 +107,7 @@ class FLM_Tool_GUI:
 		for arg in args:
 			params.append(arg.rstrip("\n"))
 		return params
+
 	def SetDefaults(self):
 		for i in range(0, len(self.input)):
 			self.input[i].delete(0, "end")
@@ -128,21 +137,25 @@ def main():
 				types.append(param["type"])
 				tips.append(param["description"])
 				defaults.append(param["default"])
-			FLM_tools.append(FLM_Tool_GUI(tool["name"], tool["info"], fields, types, tips, defaults, tool["scriptFile"], scriptPath+tool["paramFile"]))
+
+			FLM_tools.append(FLM_Tool_GUI(tool["name"], tool["info"], fields, types, tips, defaults,
+										  tool["scriptFile"], scriptPath+tool["paramFile"]))
 	
 	exit = False
 	try:
-		exit = gui.main(version,FLM_tools,2,2,FLM_tbx_len,FLM_tbx_name,FLM_tbx_desc)
+		exit = gui.main(version, FLM_tools, 2, 2, FLM_tbx_len, FLM_tbx_name, FLM_tbx_desc)
 	except Exception as e: 
 		flmc.log(e.message)
-	if(exit == False):
+	if not exit:
 		try:
 			input("\n<Press any key to exit>")
 		except Exception as e:
 			print("")
-		
+
+
 if __name__ != '__main__':
-	#If script is one of the child processes (multiprocessing) load associated scripts (otherwise parallel processing is avoided)
+	# If script is one of the child processes (multiprocessing) load associated scripts
+	# (otherwise parallel processing is avoided)
 	# import Scripts.FLM_CenterLine
 	# import Scripts.FLM_LineFootprint
 	# import Scripts.FLM_Corridor
@@ -151,7 +164,7 @@ if __name__ != '__main__':
 	# import Scripts.FLM_ForestLineAttributes
 	pass
 else:
-	#If script is main process, load and show GUI
+	# If script is main process, load and show GUI
 	scriptPath = os.path.dirname(os.path.realpath(__file__))
 
 	# add scriptPath to sys.path
@@ -169,7 +182,9 @@ else:
 	flmc.newLog(version)
 		
 	print("-\nFLM  Copyright (C) 2020  Applied Geospatial Research Group")
-	print("This program comes with ABSOLUTELY NO WARRANTY;\nThis is free software, and you are welcome to redistribute it under certain conditions;\nSee the license file distributed along with this program for details.")
+	print("This program comes with ABSOLUTELY NO WARRANTY;\n"
+		  "This is free software, and you are welcome to redistribute it under certain conditions;\n"
+		  "See the license file distributed along with this program for details.")
 		
 	main()
 		
