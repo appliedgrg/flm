@@ -159,17 +159,11 @@ def workLinesMem(segment_info):
     # Load segment list
     segment_list = []
 
-    for row in segment_info[0]:
-        segmentnum = 0
-        for segment in feat:  # loops through every segment in a line
+    for line in segment_info[0]:
+        for point in line:  # loops through every point in a line
             # loops through every vertex of every segment
-            for pnt in feat.getPart(
-                    segmentnum):  # get.PArt returns an array of points for a particular part in the geometry
-                if pnt:  # adds all the vertices to segment_list, which creates an array
-                    segment_list.append(arcpy.Point(float(pnt.X), float(pnt.Y)))
-
-            segmentnum += 1
-    del rows
+            if point:  # adds all the vertices to segment_list, which creates an array
+                segment_list.append(point)
 
     # Find origin and destination coordinates
     x1 = segment_list[0].X
@@ -232,8 +226,6 @@ def workLinesMem(segment_info):
         # Least cost path
         arcpy.CostDistance_sa(fileOrigin, fileClip, fileCostDist, "", fileCostBack, "", "", "", "", "TO_SOURCE")
         centerline = arcpy.gp.CostPathAsPolyline_sa(fileDestination, fileCostDist,
-                                                    fileCostBack, arcpy.Geometry(), "BEST_SINGLE", "")
-        centerline = CostPathAsPolyline_ra(fileDestination, fileCostDist,
                                                     fileCostBack, arcpy.Geometry(), "BEST_SINGLE", "")
 
         arcpy.gp.CostPathAsPolyline_sa(fileDestination, fileCostDist,
