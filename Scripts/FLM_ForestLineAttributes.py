@@ -65,17 +65,6 @@ def workLines(lineNo):
     # fileFoot = outWorkspace+"\\FLM_SLA_Foot_" + str(lineNo) +".shp"
     lineStats = outWorkspace + "\\FLM_SLA_Stats_" + str(lineNo) + ".dbf"
 
-    # arcpy.AddField_management(lineSeg,"Direction","TEXT")
-    # arcpy.AddField_management(lineSeg,"Sinuosity","DOUBLE")
-    #
-    # if(areaAnalysis):
-    # 	arcpy.AddField_management(lineSeg,"AvgWidth","DOUBLE")
-    # 	arcpy.AddField_management(lineSeg,"Fragment","DOUBLE")
-    # 	if(heightAnalysis):
-    # 		arcpy.AddField_management(lineSeg,"AvgHeight","DOUBLE")
-    # 		arcpy.AddField_management(lineSeg,"Volume","DOUBLE")
-    # 		arcpy.AddField_management(lineSeg,"Roughness","DOUBLE")
-
     if areaAnalysis:
         arcpy.Buffer_analysis(lineSeg, lineBuffer, LineSearchRadius, line_side="FULL", line_end_type="FLAT",
                               dissolve_option="NONE", dissolve_field="", method="PLANAR")
@@ -178,10 +167,6 @@ def workLines(lineNo):
 
     del row, rows
     # Clean temporary files
-    # if(arcpy.Exists(fileBuffer)):
-    # 	arcpy.Delete_management(fileBuffer)
-    # if(arcpy.Exists(lineClip)):
-    # 	arcpy.Delete_management(lineClip)
     if arcpy.Exists(lineClip):
         arcpy.Delete_management(lineClip)
     if arcpy.Exists(lineStats):
@@ -192,7 +177,7 @@ def main(argv=None):
     # Setup script path and workspace folder
     global outWorkspace
     outWorkspace = flmc.SetupWorkspace(workspaceName)
-    # outWorkspace = flmc.GetWorkspace(workspaceName)
+
     arcpy.env.workspace = outWorkspace
     arcpy.env.overwriteOutput = True
 
