@@ -198,6 +198,8 @@ def workLinesMem(segment_info):
     heightAnalysis = True if f.readline().strip() == "True" else False
     f.close()
 
+    line = [segment_info[1]]
+    attributes = ["SHAPE@"]
     lineNo = segment_info[1]  # second element is the line No.
     outWorkspaceMem = r"memory"
     arcpy.env.workspace = r"memory"
@@ -209,7 +211,7 @@ def workLinesMem(segment_info):
     lineStats = os.path.join(outWorkspaceMem, "FLM_SLA_Stats_" + str(lineNo))
 
     if areaAnalysis:
-        arcpy.Buffer_analysis(lineSeg, lineBuffer, LineSearchRadius, line_side="FULL", line_end_type="FLAT",
+        arcpy.Buffer_analysis(line, lineBuffer, LineSearchRadius, line_side="FULL", line_end_type="FLAT",
                               dissolve_option="NONE", dissolve_field="", method="PLANAR")
         arcpy.Clip_analysis(Input_Footprint, lineBuffer, lineClip)
         arcpy.Delete_management(lineBuffer)
@@ -389,13 +391,11 @@ def main(argv=None):
             if float(row.getValue(footprintField)) < 0:
                 fCursor.deleteRow(row)
         del fCursor
-        # arcpy.CalculateField_management(fileFootprints, footprintField, expression="!"+footprintField+"! -1",
-        # expression_type="PYTHON_9.3", code_block="")
+
         arcpy.AddGeometryAttributes_management(fileFootprints, Geometry_Properties="AREA;PERIMETER_LENGTH",
                                                Length_Unit="METERS", Area_Unit="SQUARE_METERS", Coordinate_System="")
         arcpy.JoinField_management(SLA_Segmented_Lines, arcpy.Describe(SLA_Segmented_Lines).OIDFieldName,
                                    fileFootprints, "ORIG_FID", fields="POLY_AREA;PERIMETER")
-        # flmc.SplitFeature(fileFootprints,footprintField,outWorkspace, "SLA")
 
         arcpy.Delete_management(fileBuffer)
         arcpy.Delete_management(fileIdentity)
@@ -422,17 +422,18 @@ def main(argv=None):
 
     # Prepare input lines for multiprocessing
     # ["Direction","Sinuosity","Area","AvgWidth","Perimeter","Fragment","SLA_Unity","AvgHeight","Volume","Roughness"])
-    numLines = flmc.SplitLines(SLA_Segmented_Lines, outWorkspace, "SLA", False, keepFields)
+    segment_all = flmc.SplitLines(SLA_Segmented_Lines, outWorkspace, "SLA", False, keepFields)
 
     arcpy.Delete_management(SLA_Segmented_Lines)
 
     pool = multiprocessing.Pool(processes=flmc.GetCores())
     flmc.log("Multiprocessing lines...")
-    pool.map(workLines, range(1, numLines + 1))
+    # pool.map(workLinesMem, range(1, numLines + 1))
+    pool.map(workLinesMem, segment_all)
     pool.close()
     pool.join()
 
-    flmc.logStep("Line multiprocessing")
+    flmc.logStep("Line attributes multiprocessing")
 
     flmc.log("Merging lines...")
     tempShapefiles = arcpy.ListFeatureClasses()
