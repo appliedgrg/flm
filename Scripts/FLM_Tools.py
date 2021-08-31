@@ -91,10 +91,10 @@ def lineAttribute(mode, in_line, in_footprint, in_chm, out_line_attribute,
 
     print("Processing forest line attributes {0} under mode {1}".format(out_line_attribute, mode))
     argv = [None] * 8
-    argv[0] = in_line # input line (output)
+    argv[0] = in_line  # input line (output)
     argv[1] = in_footprint  # line footprint
     argv[2] = in_chm  # input CHM
-    argv[3] = mode    # sampling type
+    argv[3] = sampling_type    # sampling type
     argv[4] = str(segment_lenght)  # Segment length
     argv[5] = str(line_split_tolerance)  # line split tolerance
     argv[6] = str(max_line_width)  # maximum line width
