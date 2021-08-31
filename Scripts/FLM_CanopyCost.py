@@ -95,6 +95,8 @@ def main(argv=None):
 	Raster_StDev = arcpy.Raster(FLM_CC_StDev)
 	Raster_Smooth = arcpy.Raster(FLM_CC_SmoothRaster)
 	avoidance = max(min(float(CanopyAvoidance), 1), 0)
+	
+	# TODO: shorten following sentence
 	outRas = Power(Exp(Con((Raster_CC == 1), 1, Con((Raster_Mean+Raster_StDev <= 0), 0, (1+(Raster_Mean-Raster_StDev)/(Raster_Mean+Raster_StDev))/2)*(1-avoidance) + Raster_Smooth*avoidance)), float(Cost_Raster_Exponent))
 	outRas.save(FLM_CC_CostRaster)
 	flmc.logStep("Cost Raster")
