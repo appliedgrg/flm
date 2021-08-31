@@ -172,7 +172,16 @@ def workLines(lineNo):
         arcpy.Delete_management(lineStats)
 
 
-def workLinesMem(lineNo):
+def workLinesMem(segment_info):
+    """
+    New version of worklines. It uses memory workspace instead of shapefiles.
+    The refactoring is to accelerate the processing speed.
+    """
+
+    # input verification
+    if segment_info is None or len(segment_info) <= 1:
+        print("Input segment is corrupted, ignore")
+
     outWorkspace = flmc.GetWorkspace(workspaceName)
     f = open(outWorkspace + "\\params.txt")
 
@@ -189,11 +198,15 @@ def workLinesMem(lineNo):
     heightAnalysis = True if f.readline().strip() == "True" else False
     f.close()
 
+    lineNo = segment_info[1]  # second element is the line No.
+    outWorkspaceMem = r"memory"
+    arcpy.env.workspace = r"memory"
+
     # Temporary files
-    lineSeg = outWorkspace + "\\FLM_SLA_Segment_" + str(lineNo) + ".shp"
-    lineBuffer = outWorkspace + "\\FLM_SLA_Buffer_" + str(lineNo) + ".shp"
-    lineClip = outWorkspace + "\\FLM_SLA_Clip_" + str(lineNo) + ".shp"
-    lineStats = outWorkspace + "\\FLM_SLA_Stats_" + str(lineNo) + ".dbf"
+    lineSeg = os.path.join(outWorkspaceMem, "FLM_SLA_Segment_" + str(lineNo))
+    lineBuffer = os.path.join(outWorkspaceMem, "FLM_SLA_Buffer_" + str(lineNo))
+    lineClip = os.path.join(outWorkspaceMem, "FLM_SLA_Clip_" + str(lineNo))
+    lineStats = os.path.join(outWorkspaceMem, "FLM_SLA_Stats_" + str(lineNo))
 
     if areaAnalysis:
         arcpy.Buffer_analysis(lineSeg, lineBuffer, LineSearchRadius, line_side="FULL", line_end_type="FLAT",
