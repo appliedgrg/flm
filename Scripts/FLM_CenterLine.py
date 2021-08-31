@@ -265,7 +265,7 @@ def workLinesMem(segment_info):
 def main(argv=None):
     # Setup script path and workspace folder
     global workspaceName
-    workspaceName = "FLM_CL_output"
+    # workspaceName = "FLM_CL_output"
 
     global outWorkspace
     outWorkspace = flmc.SetupWorkspace(workspaceName)
