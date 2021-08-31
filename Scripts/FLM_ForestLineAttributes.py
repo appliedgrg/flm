@@ -429,18 +429,29 @@ def main(argv=None):
     pool = multiprocessing.Pool(processes=flmc.GetCores())
     flmc.log("Multiprocessing lines...")
     # pool.map(workLinesMem, range(1, numLines + 1))
-    pool.map(workLinesMem, segment_all)
+    line_attributes = pool.map(workLinesMem, segment_all)
     pool.close()
     pool.join()
 
     flmc.logStep("Line attributes multiprocessing")
 
-    flmc.log("Merging lines...")
-    tempShapefiles = arcpy.ListFeatureClasses()
+    # Create output line attribute shapefile
+    flmc.log("Create line attribute shapefile...")
+    try:
+        arcpy.CreateFeatureclass_management(os.path.dirname(Attributed_Segments), os.path.basename(Attributed_Segments),
+                                            "POLYLINE", Input_Lines, "DISABLED", "DISABLED", Input_Lines)
+    except Exception as e:
+        print("Create feature class {} failed.".format(Attributed_Segments))
+        print(e)
+        return
 
-    arcpy.Merge_management(tempShapefiles, Attributed_Segments)
+    # Flatten line attribute which is a list of list
+    flmc.log("Writing line attributes to shapefile...")
+    # TODO: is this necessary? Since we need list of single line next
+    cl_list = [item for sublist in centerlines for item in sublist]
+    with arcpy.da.InsertCursor(Attributed_Segments, keepFields) as cursor:
+        for line in cl_list:
+            cursor.insertRow([line])
 
-    flmc.logStep("Merging")
+    flmc.logStep("Line attribute file: {} done".format())
 
-    for shp in tempShapefiles:
-        arcpy.Delete_management(shp)
