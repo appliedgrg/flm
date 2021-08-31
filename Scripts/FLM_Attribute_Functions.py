@@ -29,7 +29,6 @@
 # ---------------------------------------------------------------------------
 
 import arcpy
-arcpy.env.overwriteOutput = True
 import FLM_Common as flmc
 
 def PathFile(path):
@@ -41,6 +40,8 @@ def FlmLineSplit(workspace, Input_Lines, SamplingType, Segment_Length, Tolerance
 		return Input_Lines
 		
 	arcpy.env.workspace = workspace
+	arcpy.env.overwriteOutput = True
+	
 	FLA_Line_Unsplit = workspace+"\\FLA_Line_Unsplit.shp"
 	FLA_Line_Unsplit_Single = workspace+"\\FLA_Line_Unsplit_Single.shp"
 	FLA_Line_Split_Vertices = workspace+"\\FLA_Line_Split_Vertices.shp"
