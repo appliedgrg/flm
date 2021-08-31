@@ -63,12 +63,12 @@ def FlmLineSplit(workspace, Input_Lines, SamplingType, Segment_Length, Tolerance
         arcpy.Intersect_analysis(PathFile(FLA_Line_Unsplit_Single), PathFile(FLA_Line_Split_Vertices),
                                  join_attributes="ALL", cluster_tolerance=Tolerance_Radius, output_type="POINT")
 
-    if SamplingType != "WHOLE-LINE":
+    if SamplingType != "WHOLE-LINE":  # "ARBITRARY" or "LINE-CROSSINGS"
         arcpy.SplitLineAtPoint_management(FLA_Line_Unsplit_Single, FLA_Line_Split_Vertices, FLA_Segmented_Lines,
                                           Tolerance_Radius)
         arcpy.Delete_management(FLA_Line_Unsplit_Single)
         arcpy.Delete_management(FLA_Line_Split_Vertices)
-    else:
+    else:  # "WHOLE-LINE"
         FLA_Segmented_Lines = FLA_Line_Unsplit_Single
 
     return FLA_Segmented_Lines
