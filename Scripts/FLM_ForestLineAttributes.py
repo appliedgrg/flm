@@ -40,7 +40,6 @@ import FLM_Attribute_Functions as flma
 
 workspaceName = "FLM_SLA_output"
 
-
 def workLines(lineNo):
     outWorkspace = flmc.GetWorkspace(workspaceName)
     f = open(outWorkspace + "\\params.txt")
