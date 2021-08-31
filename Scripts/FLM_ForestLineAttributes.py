@@ -44,6 +44,138 @@ workspaceName = "FLM_SLA_output"
 def workLines(lineNo):
     outWorkspace = flmc.GetWorkspace(workspaceName)
     f = open(outWorkspace + "\\params.txt")
+
+    outWorkspace = f.readline().strip()
+    Input_Lines = f.readline().strip()
+    Input_Footprint = f.readline().strip()
+    Input_CHM = f.readline().strip()
+    SamplingType = f.readline().strip()
+    Segment_Length = float(f.readline().strip())
+    Tolerance_Radius = float(f.readline().strip())
+    LineSearchRadius = float(f.readline().strip())
+    Attributed_Segments = f.readline().strip()
+    areaAnalysis = True if f.readline().strip() == "True" else False
+    heightAnalysis = True if f.readline().strip() == "True" else False
+    f.close()
+
+    # Temporary files
+    lineSeg = outWorkspace + "\\FLM_SLA_Segment_" + str(lineNo) + ".shp"
+    lineBuffer = outWorkspace + "\\FLM_SLA_Buffer_" + str(lineNo) + ".shp"
+    lineClip = outWorkspace + "\\FLM_SLA_Clip_" + str(lineNo) + ".shp"
+    lineStats = outWorkspace + "\\FLM_SLA_Stats_" + str(lineNo) + ".dbf"
+
+    if areaAnalysis:
+        arcpy.Buffer_analysis(lineSeg, lineBuffer, LineSearchRadius, line_side="FULL", line_end_type="FLAT",
+                              dissolve_option="NONE", dissolve_field="", method="PLANAR")
+        arcpy.Clip_analysis(Input_Footprint, lineBuffer, lineClip)
+        arcpy.Delete_management(lineBuffer)
+        if heightAnalysis and arcpy.Exists(lineClip):
+            try:
+                arcpy.gp.ZonalStatisticsAsTable_sa(lineClip, arcpy.Describe(lineClip).OIDFieldName,
+                                                   Input_CHM, lineStats, "DATA", "ALL")
+            except Exception as e:
+                lineStats = ""
+                print(e)
+
+    rows = arcpy.UpdateCursor(lineSeg)
+    shapeField = arcpy.Describe(lineSeg).ShapeFieldName
+    row = rows.next()
+
+    feat = row.getValue(shapeField)  # creates a geometry object
+    length = float(row.getValue("LENGTH"))  # creates a geometry object
+
+    try:
+        bearing = float(row.getValue("BEARING"))  # creates a geometry object
+    except Exception as e:
+        bearing = 0
+        print(e)
+
+    segmentnum = 0
+    segment_list = []
+    for segment in feat:  # loops through every segment in a line
+        # loops through every vertex of every segment
+        # get.PArt returns an array of points for a particular part in the geometry
+        for pnt in feat.getPart(segmentnum):
+            if pnt:  # adds all the vertices to segment_list, which creates an array
+                segment_list.append(arcpy.Point(float(pnt.X), float(pnt.Y)))
+
+    # Sinuosity calculation
+    eucDistance = arcpy.PointGeometry(feat.firstPoint).distanceTo(arcpy.PointGeometry(feat.lastPoint))
+    try:
+        row.setValue("Sinuosity", length / eucDistance)
+    except Exception as e:
+        row.setValue("Sinuosity", float("inf"))
+        print(e)
+
+    # Direction based on bearing
+    ori = "N-S"
+    if 22.5 <= bearing < 67.5 or 202.5 <= bearing < 247.5:
+        ori = "NE-SW"
+    elif 67.5 <= bearing < 112.5 or 247.5 <= bearing < 292.5:
+        ori = "E-W"
+    elif 112.5 <= bearing < 157.5 or 292.5 <= bearing < 337.5:
+        ori = "NW-SE"
+    row.setValue("Direction", ori)
+
+    # If footprint polygons are available, get area-based variables
+    if areaAnalysis:
+        totalArea = float(row.getValue("POLY_AREA"))
+        totalPerim = float(row.getValue("PERIMETER"))
+
+        row.setValue("AvgWidth", totalArea / length)
+
+        try:
+            row.setValue("Fragment", totalPerim / totalArea)
+        except Exception as e:
+            row.setValue("Fragment", float("inf"))
+
+        if arcpy.Exists(lineStats):
+            # Retrieve useful stats from table which are used to derive CHM attributes
+            ChmFootprintCursor = arcpy.SearchCursor(lineStats)
+            ChmFoot = ChmFootprintCursor.next()
+            chm_count = float(ChmFoot.getValue("COUNT"))
+            chm_area = float(ChmFoot.getValue("AREA"))
+            chm_mean = float(ChmFoot.getValue("MEAN"))
+            chm_std = float(ChmFoot.getValue("STD"))
+            chm_sum = float(ChmFoot.getValue("SUM"))
+            del ChmFootprintCursor
+
+            # Average vegetation height directly obtained from CHM mean
+            row.setValue("AvgHeight", chm_mean)
+
+            # Cell area obtained via dividing the total area by the number of cells
+            # (this assumes that the projection is UTM to obtain a measure in square meters)
+            cellArea = chm_area / chm_count
+
+            # CHM volume (3D) is obtained via multiplying the sum of height (1D) of all cells
+            # of all cells within the footprint by the area of each cell (2D)
+            row.setValue("Volume", chm_sum * cellArea)
+
+            # The following math is performed to use available stats (fast) and avoid further
+            # raster sampling procedures (slow).
+            # RMSH is equal to the square root of the sum of the squared mean and
+            # the squared standard deviation (population)
+            # STD of population (n) is derived from the STD of sample (n-1).
+            # This number is not useful by itself, only to derive RMSH.
+            sqStdPop = math.pow(chm_std, 2) * (chm_count - 1) / chm_count
+
+            # Obtain RMSH from mean and STD
+            row.setValue("Roughness", math.sqrt(math.pow(chm_mean, 2) + sqStdPop))
+
+    rows.updateRow(row)
+
+    del row, rows
+    # Clean temporary files
+    if arcpy.Exists(lineClip):
+        arcpy.Delete_management(lineClip)
+    if arcpy.Exists(lineStats):
+        arcpy.Delete_management(lineStats)
+
+
+def workLinesMem(lineNo):
+    outWorkspace = flmc.GetWorkspace(workspaceName)
+    f = open(outWorkspace + "\\params.txt")
+
     outWorkspace = f.readline().strip()
     Input_Lines = f.readline().strip()
     Input_Footprint = f.readline().strip()
