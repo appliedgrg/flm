@@ -40,6 +40,7 @@ import FLM_Attribute_Functions as flma
 
 workspaceName = "FLM_SLA_output"
 
+
 def workLines(lineNo):
     outWorkspace = flmc.GetWorkspace(workspaceName)
     f = open(outWorkspace + "\\params.txt")
@@ -58,10 +59,8 @@ def workLines(lineNo):
 
     # Temporary files
     lineSeg = outWorkspace + "\\FLM_SLA_Segment_" + str(lineNo) + ".shp"
-    # fileFoot = outWorkspace +"\\FLM_SLA_Split_" + str(lineNo) +".shp"
     lineBuffer = outWorkspace + "\\FLM_SLA_Buffer_" + str(lineNo) + ".shp"
     lineClip = outWorkspace + "\\FLM_SLA_Clip_" + str(lineNo) + ".shp"
-    # fileFoot = outWorkspace+"\\FLM_SLA_Foot_" + str(lineNo) +".shp"
     lineStats = outWorkspace + "\\FLM_SLA_Stats_" + str(lineNo) + ".dbf"
 
     if areaAnalysis:
@@ -148,7 +147,7 @@ def workLines(lineNo):
             cellArea = chm_area / chm_count
 
             # CHM volume (3D) is obtained via multiplying the sum of height (1D) of all cells
-            # of all cellswithin the footprint by the area of each cell (2D)
+            # of all cells within the footprint by the area of each cell (2D)
             row.setValue("Volume", chm_sum * cellArea)
 
             # The following math is performed to use available stats (fast) and avoid further
