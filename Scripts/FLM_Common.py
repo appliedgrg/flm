@@ -110,7 +110,7 @@ def PathFileName (path):
 
 
 def FileToField(filen):
-    return ("FID_"+os.path.basename(os.path.splitext(filen)[0]).replace(" ","_"))[:10]
+    return ("FID_"+os.path.basename(os.path.splitext(filen)[0]).replace(" ", "_"))[:10]
 
 
 def GetArgs(paramFile):
