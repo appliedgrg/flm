@@ -146,6 +146,7 @@ def workLinesMem(segment_info):
 
     lineNo = segment_info[1]  # second element is the line No.
     outWorkspaceMem = r"memory"
+    arcpy.env.workspace = r"memory"
 
     fileSeg = os.path.join(outWorkspaceMem, "FLM_CL_Segment_" + str(lineNo))
     fileOrigin = os.path.join(outWorkspaceMem, "FLM_CL_Origin_" + str(lineNo))
@@ -228,6 +229,8 @@ def workLinesMem(segment_info):
         # Least cost path
         # arcpy.CostDistance_sa(fileOrigin, fileClip, fileCostDist, "", fileCostBack, "", "", "", "", "TO_SOURCE")
         fileCostDist = CostDistance(arcpy.PointGeometry(arcpy.Point(x1, y1)), fileClip, "", fileCostBack)
+        # print("Cost distance file path: {}".format(fileCostDist))
+
         # arcpy.gp.CostPathAsPolyline_sa(fileDestination, fileCostDist,
         #                                fileCostBack, fileCenterline, "BEST_SINGLE", "")
         CostPathAsPolyline(arcpy.PointGeometry(arcpy.Point(x2, y2)), fileCostDist,
