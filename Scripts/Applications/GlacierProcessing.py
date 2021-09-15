@@ -28,9 +28,6 @@ def main():
     # Check out the ArcGIS Spatial Analyst extension license
     arcpy.CheckOutExtension("Spatial")
 
-    # traverse all the rows to prepare for extracting
-    spatialReference = arcpy.SpatialReference(3714)
-
     # process footprint
     baseDir = r"C:\Temp\Multi_Intersection_Streams_withSDM_NoFilledDEM"
     in_chm = os.path.join(baseDir, r"SDM_FocalStat_Raster.tif")
@@ -44,7 +41,7 @@ def main():
 
     # FLM_Tools.centerline(in_line, in_cost_raster, out_center_line)
     # FLM_Tools.lineFootprint(in_line_footprint, in_canopy_raster, in_cost_raster, out_footprint)
-    FLM_Tools.lineAttribute("WHOLE_LINE", out_center_line, out_footprint, in_chm, out_attribute_whole)
+    # FLM_Tools.lineAttribute("WHOLE_LINE", out_center_line, out_footprint, in_chm, out_attribute_whole)
 
 
 if __name__ == "__main__":
