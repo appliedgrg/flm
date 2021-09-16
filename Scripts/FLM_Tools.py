@@ -2,6 +2,12 @@ import inspect
 import os
 import sys
 
+# local imports
+import FLM_CanopyCost
+import FLM_CenterLine
+import FLM_LineFootprint
+import FLM_ForestLineAttributes
+
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
@@ -14,8 +20,6 @@ def canopyCost(in_raster,
     """
     Generate cost raster
     """
-    import FLM_CanopyCost
-
     print("Processing canopy cost: ", out_canopy_raster)
     argv = [None] * 8
     argv[0] = in_raster  # CHM raster
@@ -38,8 +42,6 @@ def centerline(in_line, in_cost_raster, out_center_line,
     Generate centerline
     """
 
-    import FLM_CenterLine
-
     print("Processing center line: ", out_center_line)
     argv = [None] * 5
     argv[0] = in_line  # input line
@@ -61,7 +63,6 @@ def lineFootprint(in_center_line, in_canopy_raster, in_cost_raster,
     """
     Generate line footprint
     """
-    import FLM_LineFootprint
 
     print("Processing canopy line footprint: ", out_footprint)
     argv = [None] * 8
@@ -86,7 +87,6 @@ def lineAttribute(mode, in_line, in_footprint, in_chm, out_line_attribute,
     Generate line attribute
     mode: IN_FEATURES, WHOLE_LINE, LINE_CROSSINGS, ARBITRARY
     """
-    import FLM_ForestLineAttributes
 
     print("Processing forest line attributes {0} under mode {1}".format(out_line_attribute, mode))
     argv = [None] * 8
