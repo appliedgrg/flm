@@ -32,9 +32,9 @@ import multiprocessing
 # ArcGIS imports
 import arcpy
 from arcpy.sa import *
-arcpy.CheckOutExtension("Spatial")
 
 # Local imports
+arcpy.CheckOutExtension("Spatial")
 import FLM_Common as flmc
 
 workspaceName = "FLM_CL_output"
@@ -153,8 +153,8 @@ def workLinesMem(segment_info):
     fileDestination = os.path.join(outWorkspaceMem, "FLM_CL_Destination_" + str(lineNo))
     fileBuffer = os.path.join(outWorkspaceMem, "FLM_CL_Buffer_" + str(lineNo))
     fileClip = os.path.join(outWorkspaceMem, "FLM_CL_Clip_" + str(lineNo) + ".tif")
-    # fileCostDist = os.path.join(outWorkspaceMem, "FLM_CL_CostDist_" + str(lineNo) + ".tif")
-    fileCostBack = os.path.join(outWorkspaceMem, "FLM_CL_CostBack_" + str(lineNo) + ".tif")
+    fileCostDist = os.path.join(outWorkspaceMem, "FLM_CL_CostDist_" + str(lineNo) + ".tif")
+    fileCostBack = os.path.join(outWorkspace, "FLM_CL_CostBack_" + str(lineNo) + ".tif")
     fileCenterline = os.path.join(outWorkspaceMem, "FLM_CL_Centerline_" + str(lineNo))
 
     # Load segment list
@@ -227,14 +227,14 @@ def workLinesMem(segment_info):
                               "NO_MAINTAIN_EXTENT")
 
         # Least cost path
-        arcpy.gp.CostDistance_sa(fileOrigin, fileClip, fileCostDist, "", fileCostBack, "", "", "", "", "TO_SOURCE")
-        # fileCostDist = CostDistance(arcpy.PointGeometry(arcpy.Point(x1, y1)), fileClip, "", fileCostBack)
+        #arcpy.gp.CostDistance_sa(fileOrigin, fileClip, fileCostDist, "", fileCostBack, "", "", "", "", "TO_SOURCE")
+        fileCostDist = CostDistance(arcpy.PointGeometry(arcpy.Point(x1, y1)), fileClip, "", fileCostBack)
         # print("Cost distance file path: {}".format(fileCostDist))
 
-        arcpy.gp.CostPathAsPolyline_sa(fileDestination, fileCostDist,
-                                       fileCostBack, fileCenterline, "BEST_SINGLE", "")
-        #CostPathAsPolyline(arcpy.PointGeometry(arcpy.Point(x2, y2)), fileCostDist,
-        #                   fileCostBack, fileCenterline, "BEST_SINGLE", "")
+        #arcpy.gp.CostPathAsPolyline_sa(fileDestination, fileCostDist,
+        #                               fileCostBack, fileCenterline, "BEST_SINGLE", "")
+        CostPathAsPolyline(arcpy.PointGeometry(arcpy.Point(x2, y2)), fileCostDist,
+                           fileCostBack, fileCenterline, "BEST_SINGLE", "")
 
         # get centerline polyline out of memory feature class fileCenterline
         centerline = []
