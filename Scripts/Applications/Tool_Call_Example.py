@@ -41,14 +41,14 @@ def main():
     arcpy.CheckOutExtension("Spatial")
 
     # process footprint
-    baseDir = r"C:\FLM\Region_3\Block_2\Cell_42"
-    in_chm = os.path.join(baseDir, r"Original\3_2_42_raster.tif")
-    in_line = os.path.join(baseDir, r"Edited\3_2_42_input_line_confirmed.shp")
-    in_canopy_raster = os.path.join(baseDir, r"Original\3_2_42_output_canopy.tif")
-    in_cost_raster = os.path.join(baseDir, r"Original\3_2_42_output_canopy.tif")
-    out_center_line = os.path.join(baseDir, r"Edited\3_2_42_output_center_line_confirmed-new.shp")
+    baseDir = r"C:\FLM\Line_Editing_Staging\Region_3\Block_2\Cell_41"
+    in_chm = os.path.join(baseDir, r"Original\3_2_41_raster.tif")
+    in_line = os.path.join(baseDir, r"Edited\3_2_41_input_line_confirmed.shp")
+    in_canopy_raster = os.path.join(baseDir, r"Original\3_2_41_output_canopy.tif")
+    in_cost_raster = os.path.join(baseDir, r"Original\3_2_41_output_canopy.tif")
+    out_center_line = os.path.join(baseDir, r"Edited\3_2_41_output_center_line_confirmed-new.shp")
     in_line_ft = out_center_line
-    out_footprint = os.path.join(baseDir, r"Edited\3_2_42_footprint.shp")
+    out_footprint = os.path.join(baseDir, r"Edited\3_2_41_footprint.shp")
     out_attribute_whole = os.path.join(baseDir, r"Line_Attributes\temp_whole.shp")
 
     FLM_Tools.centerline(in_line, in_cost_raster, out_center_line)
