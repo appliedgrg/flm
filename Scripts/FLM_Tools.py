@@ -23,11 +23,11 @@ def canopyCost(in_raster,
     print("Processing canopy cost: ", out_canopy_raster)
     argv = [None] * 8
     argv[0] = in_raster  # CHM raster
-    argv[1] = height_thresh  # Canopy Height Threshold
-    argv[2] = search_radius  # Tree Search Radius
-    argv[3] = max_line_dist  # Maximum Line Distance
-    argv[4] = canopy_avoidance  # Canopy Avoidance
-    argv[5] = cost_exponent  # Cost Raster Exponent
+    argv[1] = str(height_thresh)  # Canopy Height Threshold
+    argv[2] = str(search_radius)  # Tree Search Radius
+    argv[3] = str(max_line_dist)  # Maximum Line Distance
+    argv[4] = str(canopy_avoidance)  # Canopy Avoidance
+    argv[5] = str(cost_exponent)  # Cost Raster Exponent
     argv[6] = out_canopy_raster  # Output Canopy Raster
     argv[7] = out_cost_raster  # Output Cost Raster
     print(argv[6])
@@ -47,7 +47,7 @@ def centerline(in_line, in_cost_raster, out_center_line,
     argv[0] = in_line  # input line
     argv[1] = in_cost_raster  # Cost raster
     argv[2] = str(line_radius)  # line process radius
-    argv[3] = process_segments  # Process segments
+    argv[3] = str(process_segments)  # Process segments TODO bool or sting?
     argv[4] = out_center_line  # Output center line
 
     if not os.path.exists(out_center_line):
