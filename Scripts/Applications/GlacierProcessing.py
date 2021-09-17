@@ -5,18 +5,14 @@ import sys
 # ArcGIS imports
 import arcpy
 
+# Local imports
 # Add Scripts folder to sys.path
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-
-# Local imports
 import FLM_Tools
 
 def main():
 
     """ Prepare input seismic lines and raster for each cell"""
-
-    # Add Scripts folder to sys.path
-    sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
     # Set arcpy environment variables
     arcpy.env.overwriteOutput = True
