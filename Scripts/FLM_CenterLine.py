@@ -146,7 +146,7 @@ def workLinesMem(segment_info):
 
     lineNo = segment_info[1]  # second element is the line No.
     outWorkspaceMem = r"memory"
-    arcpy.env.workspace = r"memory"
+    # arcpy.env.workspace = r"memory"
 
     fileSeg = os.path.join(outWorkspaceMem, "FLM_CL_Segment_" + str(lineNo))
     fileOrigin = os.path.join(outWorkspaceMem, "FLM_CL_Origin_" + str(lineNo))
@@ -154,7 +154,7 @@ def workLinesMem(segment_info):
     fileBuffer = os.path.join(outWorkspaceMem, "FLM_CL_Buffer_" + str(lineNo))
     fileClip = os.path.join(outWorkspaceMem, "FLM_CL_Clip_" + str(lineNo) + ".tif")
     fileCostDist = os.path.join(outWorkspaceMem, "FLM_CL_CostDist_" + str(lineNo) + ".tif")
-    fileCostBack = os.path.join(outWorkspace, "FLM_CL_CostBack_" + str(lineNo) + ".tif")
+    fileCostBack = os.path.join(outWorkspaceMem, "FLM_CL_CostBack_" + str(lineNo) + ".tif")
     fileCenterline = os.path.join(outWorkspaceMem, "FLM_CL_Centerline_" + str(lineNo))
 
     # Load segment list
@@ -227,7 +227,7 @@ def workLinesMem(segment_info):
                               "NO_MAINTAIN_EXTENT")
 
         # Least cost path
-        #arcpy.gp.CostDistance_sa(fileOrigin, fileClip, fileCostDist, "", fileCostBack, "", "", "", "", "TO_SOURCE")
+        # arcpy.gp.CostDistance_sa(fileOrigin, fileClip, fileCostDist, "", fileCostBack, "", "", "", "", "TO_SOURCE")
         fileCostDist = CostDistance(arcpy.PointGeometry(arcpy.Point(x1, y1)), fileClip, "", fileCostBack)
         # print("Cost distance file path: {}".format(fileCostDist))
 
@@ -286,7 +286,7 @@ def main(argv=None):
     Cost_Raster = args[1].rstrip()
     global Line_Processing_Radius
     Line_Processing_Radius = args[2].rstrip()
-    ProcessSegments = args[3]
+    ProcessSegments = args[3].rstrip() == "True"
     Out_Centerline = args[4].rstrip()
 
     # write params to text file
