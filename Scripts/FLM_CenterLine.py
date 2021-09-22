@@ -146,7 +146,7 @@ def workLinesMem(segment_info):
 
     lineNo = segment_info[1]  # second element is the line No.
     outWorkspaceMem = r"memory"
-    # arcpy.env.workspace = r"memory"
+    arcpy.env.workspace = r"memory"
 
     fileSeg = os.path.join(outWorkspaceMem, "FLM_CL_Segment_" + str(lineNo))
     fileOrigin = os.path.join(outWorkspaceMem, "FLM_CL_Origin_" + str(lineNo))
@@ -246,7 +246,8 @@ def workLinesMem(segment_info):
         print("Problem with line starting at X " + str(x1) + ", Y " + str(y1)
               + "; and ending at X " + str(x2) + ", Y " + str(y2) + ".")
         print(e)
-        return
+        centerline = []
+        return centerline
 
     # Clean temporary files
     arcpy.Delete_management(fileSeg)
@@ -307,6 +308,11 @@ def main(argv=None):
     pool.join()
     flmc.logStep("Center line multiprocessing done.")
 
+    # No line generated, exit
+    if len(centerlines) <= 0:
+        print("No lines generated, exit")
+        return
+
     # Create output centerline shapefile
     flmc.log("Create centerline shapefile...")
     try:
@@ -321,7 +327,13 @@ def main(argv=None):
     # Flatten centerlines which is a list of list
     flmc.log("Writing centerlines to shapefile...")
     # TODO: is this necessary? Since we need list of single line next
-    cl_list = [item for sublist in centerlines for item in sublist]
+    #cl_list = [item for sublist in centerlines for item in sublist]
+    cl_list = []
+    for sublist in centerlines:
+        if len(sublist) > 0:
+            for item in sublist:
+                cl_list.append(item)
+
     # arcpy.Merge_management(cl_list, Out_Centerline)
     with arcpy.da.InsertCursor(Out_Centerline, ["SHAPE@"]) as cursor:
         for line in cl_list:
