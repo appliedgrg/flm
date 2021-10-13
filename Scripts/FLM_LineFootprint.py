@@ -326,45 +326,58 @@ def workLinesMemory(segment_info):
     arcpy.Clip_management(Cost_Raster, SearchBox, fileClip, fileBuffer, "",
                           "ClippingGeometry", "NO_MAINTAIN_EXTENT")
 
-    # Process: Cost Distance
-    arcpy.gp.CostDistance_sa(fileOrigin, fileClip, fileCostDa, "", "", "", "", "", "", "TO_SOURCE")
-    arcpy.gp.CostDistance_sa(fileDestination, fileClip, fileCostDb, "", "", "", "", "", "", "TO_SOURCE")
+    try:
+        # Process: Cost Distance
+        arcpy.gp.CostDistance_sa(fileOrigin, fileClip, fileCostDa, "", "", "", "", "", "", "TO_SOURCE")
+        arcpy.gp.CostDistance_sa(fileDestination, fileClip, fileCostDb, "", "", "", "", "", "", "TO_SOURCE")
 
-    # Process: Corridor
-    arcpy.gp.Corridor_sa(fileCostDa, fileCostDb, fileCorridor)
+        # Process: Corridor
+        arcpy.gp.Corridor_sa(fileCostDa, fileCostDb, fileCorridor)
+    except Exception as e:
+        print(e)
+
+    footprint = []
 
     # Calculate minimum value of corridor raster
-    RasterCorridor = arcpy.Raster(fileCorridor)
-    CorrMin = float(RasterCorridor.minimum)
+    try:
+        RasterCorridor = arcpy.Raster(fileCorridor)
 
-    # Set minimum as zero and save minimum file
-    RasterCorridor = ((RasterCorridor - CorrMin) > Corridor_Threshold)
-    RasterCorridor.save(fileCorridorMin)
+        if not RasterCorridor.minimum is None:
+            CorrMin = float(RasterCorridor.minimum)
+        else:
+            print("Line segment {} error: RasterCorridor.minimum is None", lineNo)
+            CorrMin = 0
 
-    # Process: Stamp CC and Max Line Width
-    RasterClass = SetNull(IsNull(Raster(fileCorridorMin)), (Raster(fileCorridorMin) + (Raster(Canopy_Raster) >= 1)) > 0)
-    RasterClass.save(fileThreshold)
-    del RasterCorridor, RasterClass
+        # Set minimum as zero and save minimum file
+        RasterCorridor = ((RasterCorridor - CorrMin) > Corridor_Threshold)
+        RasterCorridor.save(fileCorridorMin)
 
-    if (int(Expand_And_Shrink_Cell_Range) > 0):
-        # Process: Expand
-        arcpy.gp.Expand_sa(fileThreshold, fileExpand, Expand_And_Shrink_Cell_Range, "1")
+        # Process: Stamp CC and Max Line Width
+        RasterClass = SetNull(IsNull(Raster(fileCorridorMin)), (Raster(fileCorridorMin) + (Raster(Canopy_Raster) >= 1)) > 0)
+        RasterClass.save(fileThreshold)
+        del RasterCorridor, RasterClass
 
-        # Process: Shrink
-        arcpy.gp.Shrink_sa(fileExpand, fileShrink, Expand_And_Shrink_Cell_Range, "1")
-    else:
-        fileShrink = fileThreshold
+        if (int(Expand_And_Shrink_Cell_Range) > 0):
+            # Process: Expand
+            arcpy.gp.Expand_sa(fileThreshold, fileExpand, Expand_And_Shrink_Cell_Range, "1")
 
-    # Process: Boundary Clean
-    arcpy.gp.BoundaryClean_sa(fileShrink, fileClean, "ASCEND", "ONE_WAY")
-    # arcpy.gp.BoundaryClean_sa(fileShrink, fileClean, "NO_SORT", "ONE_WAY")  # This is original code
+            # Process: Shrink
+            arcpy.gp.Shrink_sa(fileExpand, fileShrink, Expand_And_Shrink_Cell_Range, "1")
+        else:
+            fileShrink = fileThreshold
 
-    # Process: Set Null
-    arcpy.gp.SetNull_sa(fileClean, "1", fileNull, "VALUE > 0")
+        # Process: Boundary Clean
+        arcpy.gp.BoundaryClean_sa(fileShrink, fileClean, "ASCEND", "ONE_WAY")
+        # arcpy.gp.BoundaryClean_sa(fileShrink, fileClean, "NO_SORT", "ONE_WAY")  # This is original code
 
-    # Process: Raster to Polygon
-    footprint = arcpy.RasterToPolygon_conversion(fileNull, arcpy.Geometry(),
-                                                 "SIMPLIFY", "VALUE", "SINGLE_OUTER_PART", "")
+        # Process: Set Null
+        arcpy.gp.SetNull_sa(fileClean, "1", fileNull, "VALUE > 0")
+
+        # Process: Raster to Polygon
+        footprint = arcpy.RasterToPolygon_conversion(fileNull, arcpy.Geometry(),
+                                                     "SIMPLIFY", "VALUE", "SINGLE_OUTER_PART", "")
+    except Exception as e:
+        print(e)
 
     flmc.log("Processing line {} done".format(fileSeg))
 
