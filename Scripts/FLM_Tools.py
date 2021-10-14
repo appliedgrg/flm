@@ -75,10 +75,15 @@ def lineFootprint(in_center_line, in_canopy_raster, in_cost_raster,
     argv[6] = str(process_segments)  # process segments
     argv[7] = out_footprint  # Output line foot print
 
-    if os.path.exists(in_center_line) and not os.path.exists(out_footprint):
-        FLM_LineFootprint.main(argv)
-    else:
-        print("Footprint file {} alreasy exists, ignore.".format(out_footprint))
+    if not os.path.exists(in_center_line):
+        print("Input line file {} not exists, ignore.".format(in_center_line))
+        return
+
+    if os.path.exists(out_footprint):
+        print("Footprint file {} already exists, ignore.".format(out_footprint))
+        return
+
+    FLM_LineFootprint.main(argv)
 
 
 def lineAttribute(mode, in_line, in_footprint, in_chm, out_line_attribute,
