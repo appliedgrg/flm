@@ -40,12 +40,12 @@ def main():
     in_canopy_raster = os.path.join(baseDir, r"Tag_Canopy.tif")
     in_cost_raster = os.path.join(baseDir, r"Tag_Cost.tif")
     out_center_line = os.path.join(baseDir, r"Tag_Line_output.shp")
-    out_footprint = os.path.join(baseDir, r"footprint.shp")
+    out_footprint = os.path.join(baseDir, r"Tag_footprint.shp")
     out_attribute_whole = os.path.join(baseDir, r"temp_whole.shp")
 
     # FLM_Tools.centerline(in_line, in_cost_raster, out_center_line)
-    FLM_Tools.lineFootprint(in_line, in_canopy_raster, in_cost_raster, out_footprint)
-    # FLM_Tools.lineAttribute("WHOLE_LINE", out_center_line, out_footprint, in_chm, out_attribute_whole)
+    # FLM_Tools.lineFootprint(in_line, in_canopy_raster, in_cost_raster, out_footprint)
+    FLM_Tools.lineAttribute("WHOLE-LINE", out_center_line, out_footprint, in_chm, out_attribute_whole)
 
 
 if __name__ == "__main__":
