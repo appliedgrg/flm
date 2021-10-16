@@ -481,7 +481,7 @@ def main(argv=None):
         fileMerge = outWorkspace + "\\FLM_LFP_Merge.shp"
         arcpy.Merge_management(ft_list, fileMerge)
         arcpy.Dissolve_management(fileMerge, Output_Footprint)
-        arcpy.Delete_management(fileMerge)
+        # arcpy.Delete_management(fileMerge)
     except Exception as e:
         print("e")
 
