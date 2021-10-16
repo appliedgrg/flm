@@ -27,6 +27,7 @@
 #
 # ---------------------------------------------------------------------------
 # System imports
+import os
 import multiprocessing
 import math
 
@@ -198,9 +199,10 @@ def workLinesMem(segment_info):
     heightAnalysis = True if f.readline().strip() == "True" else False
     f.close()
 
-    line = [segment_info[1]]
-    attributes = ["SHAPE@"]
+    line = [segment_info[0]]
     lineNo = segment_info[1]  # second element is the line No.
+    attributes = segment_info[2]
+
     outWorkspaceMem = r"memory"
     arcpy.env.workspace = r"memory"
 
@@ -209,6 +211,18 @@ def workLinesMem(segment_info):
     lineBuffer = os.path.join(outWorkspaceMem, "FLM_SLA_Buffer_" + str(lineNo))
     lineClip = os.path.join(outWorkspaceMem, "FLM_SLA_Clip_" + str(lineNo))
     lineStats = os.path.join(outWorkspaceMem, "FLM_SLA_Stats_" + str(lineNo))
+
+    # Create segment feature class
+    try:
+        arcpy.CreateFeatureclass_management(outWorkspaceMem, os.path.basename(lineSeg), "POLYLINE",
+                                            Input_Lines, "DISABLED", "DISABLED", Input_Lines)
+        cursor = arcpy.da.InsertCursor(lineSeg, ["SHAPE@"])
+        cursor.insertRow([segment_info[0]])
+        del cursor
+    except Exception as e:
+        print("Create feature class {} failed.".format(fileSeg))
+        print(e)
+        return
 
     if areaAnalysis:
         arcpy.Buffer_analysis(line, lineBuffer, LineSearchRadius, line_side="FULL", line_end_type="FLAT",
@@ -228,14 +242,15 @@ def workLinesMem(segment_info):
     row = rows.next()
 
     feat = row.getValue(shapeField)  # creates a geometry object
-    length = float(row.getValue("LENGTH"))  # creates a geometry object
+    length = float(attributes["LENGTH"])  # creates a geometry object
 
     try:
-        bearing = float(row.getValue("BEARING"))  # creates a geometry object
+        bearing = float(attributes["BEARING"])  # creates a geometry object
     except Exception as e:
         bearing = 0
         print(e)
 
+    # TODO: retrieve vertices from line directly and remove lineSeg
     segmentnum = 0
     segment_list = []
     for segment in feat:  # loops through every segment in a line
@@ -248,9 +263,9 @@ def workLinesMem(segment_info):
     # Sinuosity calculation
     eucDistance = arcpy.PointGeometry(feat.firstPoint).distanceTo(arcpy.PointGeometry(feat.lastPoint))
     try:
-        row.setValue("Sinuosity", length / eucDistance)
+        attributes["Sinuosity"] = length / eucDistance
     except Exception as e:
-        row.setValue("Sinuosity", float("inf"))
+        attributes["Sinuosity"] = float("inf")
         print(e)
 
     # Direction based on bearing
@@ -261,19 +276,19 @@ def workLinesMem(segment_info):
         ori = "E-W"
     elif 112.5 <= bearing < 157.5 or 292.5 <= bearing < 337.5:
         ori = "NW-SE"
-    row.setValue("Direction", ori)
+    attributes["Direction"] = ori
 
     # If footprint polygons are available, get area-based variables
     if areaAnalysis:
-        totalArea = float(row.getValue("POLY_AREA"))
-        totalPerim = float(row.getValue("PERIMETER"))
+        totalArea = float(attributes["POLY_AREA"])
+        totalPerim = float(attributes["PERIMETER"])
 
-        row.setValue("AvgWidth", totalArea / length)
+        attributes["AvgWidth"] = totalArea / length
 
         try:
-            row.setValue("Fragment", totalPerim / totalArea)
+            attributes["Fragment"] = totalPerim / totalArea
         except Exception as e:
-            row.setValue("Fragment", float("inf"))
+            attributes["Fragment"] = float("inf")
 
         if arcpy.Exists(lineStats):
             # Retrieve useful stats from table which are used to derive CHM attributes
@@ -287,7 +302,7 @@ def workLinesMem(segment_info):
             del ChmFootprintCursor
 
             # Average vegetation height directly obtained from CHM mean
-            row.setValue("AvgHeight", chm_mean)
+            attributes["AvgHeight"] = chm_mean
 
             # Cell area obtained via dividing the total area by the number of cells
             # (this assumes that the projection is UTM to obtain a measure in square meters)
@@ -295,7 +310,7 @@ def workLinesMem(segment_info):
 
             # CHM volume (3D) is obtained via multiplying the sum of height (1D) of all cells
             # of all cells within the footprint by the area of each cell (2D)
-            row.setValue("Volume", chm_sum * cellArea)
+            attributes["Volume"] = chm_sum * cellArea
 
             # The following math is performed to use available stats (fast) and avoid further
             # raster sampling procedures (slow).
@@ -306,16 +321,16 @@ def workLinesMem(segment_info):
             sqStdPop = math.pow(chm_std, 2) * (chm_count - 1) / chm_count
 
             # Obtain RMSH from mean and STD
-            row.setValue("Roughness", math.sqrt(math.pow(chm_mean, 2) + sqStdPop))
+            attributes["Roughness"] = math.sqrt(math.pow(chm_mean, 2) + sqStdPop)
 
-    rows.updateRow(row)
-
-    del row, rows
-    # Clean temporary files
+     # Clean temporary files
     if arcpy.Exists(lineClip):
         arcpy.Delete_management(lineClip)
     if arcpy.Exists(lineStats):
         arcpy.Delete_management(lineStats)
+
+    print("Line {} attributes calculation done.".format(lineNo))
+    return [line, attributes]
 
 
 def main(argv=None):
@@ -424,12 +439,10 @@ def main(argv=None):
     # ["Direction","Sinuosity","Area","AvgWidth","Perimeter","Fragment","SLA_Unity","AvgHeight","Volume","Roughness"])
     segment_all = flmc.SplitLines(SLA_Segmented_Lines, outWorkspace, "SLA", False, keepFields)
 
-    arcpy.Delete_management(SLA_Segmented_Lines)
-
     pool = multiprocessing.Pool(processes=flmc.GetCores())
     flmc.log("Multiprocessing lines...")
     # pool.map(workLinesMem, range(1, numLines + 1))
-    line_attributes = pool.map(workLinesMem, segment_all)
+    line_with_attributes = pool.map(workLinesMem, segment_all)
     pool.close()
     pool.join()
 
@@ -439,7 +452,7 @@ def main(argv=None):
     flmc.log("Create line attribute shapefile...")
     try:
         arcpy.CreateFeatureclass_management(os.path.dirname(Attributed_Segments), os.path.basename(Attributed_Segments),
-                                            "POLYLINE", Input_Lines, "DISABLED", "DISABLED", Input_Lines)
+                                            "POLYLINE", SLA_Segmented_Lines, "DISABLED", "DISABLED", SLA_Segmented_Lines)
     except Exception as e:
         print("Create feature class {} failed.".format(Attributed_Segments))
         print(e)
@@ -448,10 +461,12 @@ def main(argv=None):
     # Flatten line attribute which is a list of list
     flmc.log("Writing line attributes to shapefile...")
     # TODO: is this necessary? Since we need list of single line next
-    cl_list = [item for sublist in centerlines for item in sublist]
-    with arcpy.da.InsertCursor(Attributed_Segments, keepFields) as cursor:
-        for line in cl_list:
-            cursor.insertRow([line])
+    # la_list = [item for sublist in line_with_attributes for item in sublist]
+    with arcpy.da.InsertCursor(Attributed_Segments, ["SHAPE@"]+keepFields) as cursor:
+        for line in line_with_attributes:
+            cursor.insertRow(line[0] + list(line[1].values()))
 
-    flmc.logStep("Line attribute file: {} done".format())
+    flmc.logStep("Line attribute file: {} done".format(line_with_attributes))
+
+    arcpy.Delete_management(SLA_Segmented_Lines)
 
