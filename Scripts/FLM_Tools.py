@@ -50,10 +50,15 @@ def centerline(in_line, in_cost_raster, out_center_line,
     argv[3] = str(process_segments)  # Process segments TODO bool or sting?
     argv[4] = out_center_line  # Output center line
 
-    if not os.path.exists(out_center_line):
-        FLM_CenterLine.main(argv)
-    else:
-        print("Centeline file {} alreasy exists, ignore.".format(out_center_line))
+    if not os.path.exists(in_line):
+        print("Input line file {} not exists, ignore.".format(in_line))
+        return
+
+    if os.path.exists(out_center_line):
+        print("Centeline file {} already exists, ignore.".format(out_line_attribute))
+        return
+
+    FLM_CenterLine.main(argv)
 
 
 def lineFootprint(in_center_line, in_canopy_raster, in_cost_raster,
@@ -86,14 +91,14 @@ def lineFootprint(in_center_line, in_canopy_raster, in_cost_raster,
     FLM_LineFootprint.main(argv)
 
 
-def lineAttribute(mode, in_line, in_footprint, in_chm, out_line_attribute,
+def lineAttribute(sampling_type, in_line, in_footprint, in_chm, out_line_attribute,
                   segment_lenght=30, line_split_tolerance=3, max_line_width=25):
     """
     Generate line attribute
-    mode: IN_FEATURES, WHOLE_LINE, LINE_CROSSINGS, ARBITRARY
+    sampling_type: IN_FEATURES, WHOLE_LINE, LINE_CROSSINGS, ARBITRARY
     """
 
-    print("Processing forest line attributes {0} under mode {1}".format(out_line_attribute, mode))
+    print("Processing forest line attributes {0} under mode {1}".format(out_line_attribute, sampling_type))
     argv = [None] * 8
     argv[0] = in_line  # input line (output)
     argv[1] = in_footprint  # line footprint
@@ -104,8 +109,15 @@ def lineAttribute(mode, in_line, in_footprint, in_chm, out_line_attribute,
     argv[6] = str(max_line_width)  # maximum line width
     argv[7] = out_line_attribute   # Output line attributes
 
-    if os.path.exists(in_line) and not os.path.exists(out_line_attribute):
-        FLM_ForestLineAttributes.main(argv)
+    if not os.path.exists(in_line):
+        print("Input line file {} not exists, ignore.".format(in_line))
+        return
+
+    if os.path.exists(out_line_attribute):
+        print("Attribute file {} already exists, ignore.".format(out_line_attribute))
+        return
+
+    FLM_ForestLineAttributes.main(argv)
 
 def rasterAttribute(self):
     return
