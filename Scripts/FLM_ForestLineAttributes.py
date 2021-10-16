@@ -466,7 +466,7 @@ def main(argv=None):
         for line in line_with_attributes:
             cursor.insertRow(line[0] + list(line[1].values()))
 
-    flmc.logStep("Line attribute file: {} done".format(line_with_attributes))
+    flmc.logStep("Line attribute file: {} done".format(Attributed_Segments))
 
-    arcpy.Delete_management(SLA_Segmented_Lines)
+    # arcpy.Delete_management(SLA_Segmented_Lines)
 
