@@ -290,7 +290,7 @@ def SplitLines(linesFc, outWorkspace, toolCodename, ProcessSegments, KeepFieldNa
                         array.add(segment_list[vertexID])
                         array.add(segment_list[vertexID+1])
                     polyline = arcpy.Polyline(array, arcpy.Describe(linesFc).spatialReference)
-                    all_segments.append([polyline, line])  # add segments for later return
+                    all_segments.append([polyline, line, dict(zip(KeepFieldName, KeepField))])  # add segments and attributes for later return
 
                     if not USE_MEMORY_WORKSPACE:
                         cursor.insertRow(KeepField+[polyline])
