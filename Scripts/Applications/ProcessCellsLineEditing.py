@@ -164,8 +164,8 @@ def ProcessCells(cells, paramsList, basePath, discriminateLineType=False):
 
         if discriminateLineType:
             outputLineFiles = []
-            for i in range(0, 3):
-                fileTemp = ProcessCell(cellPath, fileName, paramsList, paramsList[i])
+            for lineType in ("conventional", "low_impact", "trail"):
+                fileTemp = ProcessCell(cellPath, fileName, paramsList[lineType], lineType)
                 outputLineFiles.append(fileTemp)
                 # Merge three types of output line
                 outputCenterLine = os.path.join(cellPath, fileName + "_output_centerline.shp")
