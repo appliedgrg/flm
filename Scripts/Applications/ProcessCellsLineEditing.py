@@ -14,31 +14,6 @@ from arcpy.sa import *
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import FLM_Tools
 
-# backup all output_center_line
-def BackupOutputCenterLine():
-
-    dirs = next(os.walk(photoplotPath))[1]
-    for id in dirs:
-        photoplot = photoplotPath + "\\" + id
-
-        if not os.path.exists(photoplot + "\\backups"):
-            os.mkdir(photoplot + "\\backups")
-        for item in os.listdir(photoplot):
-            substr = "output_center_line_" + id
-            if substr in item:
-                src = photoplot + "\\" + item
-                dst = photoplot + "\\backups\\" + item
-                copyfile(src, dst)
-                print("Backing up file: from {src} to {dst}".format(src=src, dst=dst))
-
-
-# recover deleted shapefiles
-def RecoverOutputCenterLineShapefile(id):
-    for item in os.listdir(photoplotPath + "\\" + id + "\\backups"):
-        src = photoplotPath + "\\" + id + "\\backups\\" + item
-        dst = photoplotPath + "\\" + id + "\\" + item
-        copyfile(src, dst)
-
 
 def setLayerStyle(layer, lineColor, lineWidth, fillColor=None):
     """Set layer style for aprx project"""
