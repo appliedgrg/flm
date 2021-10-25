@@ -33,6 +33,8 @@
 import os
 import multiprocessing
 
+from statistics import *
+
 # ArcGIS imports
 import arcpy
 from arcpy.sa import *
@@ -48,6 +50,63 @@ Maximum_distance_from_centerline = 0
 
 def PathFile(path):
     return path[path.rfind("\\") + 1:]
+
+def getStats(point_values):
+    pt_mean = mean(point_values)
+    pt_median = median(point_values)
+    pt_variance = variance(point_values)
+    pt_stdev = stdev(point_values)
+
+    return pt_mean, pt_median, pt_variance, pt_stdev
+
+def tagLine(footprint, in_chm, in_line):
+    if not footprint or len(footprint)==0:
+        return False
+
+    outWorkspaceMem = r"memory"
+    lineNo = in_line[1]
+    distance_from_centerline = 5  # buffer 5 meters
+
+    # Temporary files
+    fileBuffer = os.path.join(outWorkspaceMem, "FLM_PT_Buffer_" + str(lineNo))
+    fileExtraction = os.path.join(outWorkspaceMem, "FLM_PT_Extract_" + str(lineNo))
+    fileBufferExtraction = os.path.join(outWorkspaceMem, "FLM_PT_Extract_Buffer_" + str(lineNo))
+
+    arcpy.Buffer_analysis(footprint, fileBuffer, distance_from_centerline,
+                          "FULL", "ROUND", "NONE", "", "PLANAR")
+
+    # Extract raster values
+    extraction_raster = ExtractByMask(in_chm, footprint)
+    extraction_raster_buffer = ExtractByMask(in_chm, fileBuffer)
+
+    arcpy.RasterToPoint_conversion(extraction_raster, fileExtraction)
+    arcpy.RasterToPoint_conversion(extraction_raster_buffer, fileBufferExtraction)
+
+    extract_values = []
+    with arcpy.da.SearchCursor(fileExtraction, ["grid_code"]) as cursor:
+        for row in cursor:
+            extract_values.append(row[0])
+
+    pt_stats = getStats(extract_values)
+
+    extract_buffer_values = []
+    with arcpy.da.SearchCursor(fileBufferExtraction, ["grid_code"]) as cursor:
+        for row in cursor:
+            extract_buffer_values.append(row[0])
+
+    pt_stats_buffer = getStats(extract_values_buffer)
+
+    # Remove temporary rasters
+    arcpy.Delete_management(extraction_raster)
+    arcpy.Delete_management(extraction_raster_buffer)
+
+    # determine if line exist
+    if pt_stats[0] < 0.5:
+        lineExistence = True
+    else:
+        lineExistence = False
+
+    return lineExistence
 
 
 def workLinesMem(segment_info):
@@ -68,8 +127,13 @@ def workLinesMem(segment_info):
     Cost_Raster = f.readline().strip()
     Corridor_Threshold_Field = f.readline().strip()
     Maximum_distance_from_centerline = float(f.readline().strip())
-    Expand_And_Shrink_Cell_Range = f.readline().strip()
+    In_CHM = f.readline().strip()
+    Process_Segments = f.readline().strip()
+    Out_Tagged_Line = f.readline().strip()
     f.close()
+
+    # TODO: remove this parameter
+    Expand_And_Shrink_Cell_Range = 0
 
     # TODO: this is constant, but need to be investigated.
     Corridor_Threshold = 3
@@ -217,7 +281,9 @@ def workLinesMem(segment_info):
     except Exception as e:
         print(e)
 
-    flmc.log("Processing line {} done".format(fileSeg))
+    line_exist = tagLine(footprint, In_CHM, segment_info)  # list of polygons
+
+    flmc.log("Processing line {} done. Line exist: {}".format(fileSeg, line_exist))
 
     # Clean temporary files
     try:
@@ -238,7 +304,7 @@ def workLinesMem(segment_info):
     except Exception as e:
         print("Line Footprint: Deleting temporary file failed. Inspect later.")
 
-    return footprint  # list of polygons
+    return line_exist
 
 def HasField(fc, fi):
     fieldnames = [field.name for field in arcpy.ListFields(fc)]
@@ -273,12 +339,12 @@ def main(argv=None):
     Corridor_Threshold_Field = args[3].rstrip()
     global Maximum_distance_from_centerline
     Maximum_distance_from_centerline = float(args[4].rstrip()) / 2.0
-    global Expand_And_Shrink_Cell_Range
-    Expand_And_Shrink_Cell_Range = args[5].rstrip()
+    global In_CHM
+    In_CHM = args[5].rstrip()
     global ProcessSegments
     ProcessSegments = args[6].rstrip() == "True"
-    global Output_Footprint
-    Output_Footprint = args[7].rstrip()
+    global Tagged_Line
+    Tagged_Line = args[7].rstrip()
     outWorkspace = flmc.SetupWorkspace(workspaceName)
 
     # write params to text file
@@ -289,10 +355,13 @@ def main(argv=None):
     f.write(Cost_Raster + "\n")
     f.write(Corridor_Threshold_Field + "\n")
     f.write(str(Maximum_distance_from_centerline) + "\n")
-    f.write(Expand_And_Shrink_Cell_Range + "\n")
+    f.write(In_CHM + "\n")
+    f.write(str(ProcessSegments) + "\n")
+    f.write(Tagged_Line + "\n")
     f.close()
 
-    # TODO: this code block is not necessary
+    # TODO: this code block should turn into building keeping fields
+    # now only Corridor_Threshold_Field is kept
     if not HasField(Centerline_Feature_Class, Corridor_Threshold_Field):
         flmc.log("ERROR: There is no field named " + Corridor_Threshold_Field + " in the input lines")
         return False
