@@ -34,11 +34,12 @@ def main():
     # out_footprint = os.path.join(baseDir, r"Edited\3_2_42_footprint.shp")
     # out_attribute_whole = os.path.join(baseDir, r"Line_Attributes\temp_whole.shp")
 
-    baseDir = r"D:\Temp\PreTagging"
+    baseDir = r"D:\Temp"
     in_chm = os.path.join(baseDir, r"Tag_CHM.tif")
     in_line = os.path.join(baseDir, r"Tag_Line_edited.shp")
     in_canopy_raster = os.path.join(baseDir, r"Tag_Canopy.tif")
     in_cost_raster = os.path.join(baseDir, r"Tag_Cost.tif")
+    out_tagged_line = os.path.join(baseDir, r"Tag_Line_tagged_line.shp")
     out_center_line = os.path.join(baseDir, r"Tag_Line_output.shp")
     out_footprint = os.path.join(baseDir, r"Tag_footprint.shp")
     out_attribute_whole = os.path.join(baseDir, r"temp_whole.shp")  # WHOLE-LINE
@@ -46,9 +47,10 @@ def main():
     out_attribute_in_features = os.path.join(baseDir, r"temp_in_features.shp")  # IN-FEATURES
     out_attribute_line_crossings = os.path.join(baseDir, r"temp_line_crossings.shp")  # LINE-CROSSINGS
 
+    FLM_Tools.preTagging(in_line, in_chm, in_canopy_raster, in_cost_raster, out_tagged_line)
     # FLM_Tools.centerline(in_line, in_cost_raster, out_center_line)
     # FLM_Tools.lineFootprint(in_line, in_canopy_raster, in_cost_raster, out_footprint)
-    FLM_Tools.lineAttribute("LINE-CROSSINGS", out_center_line, out_footprint, in_chm, out_attribute_line_crossings)
+    # FLM_Tools.lineAttribute("LINE-CROSSINGS", out_center_line, out_footprint, in_chm, out_attribute_line_crossings)
 
 
 if __name__ == "__main__":
