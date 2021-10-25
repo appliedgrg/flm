@@ -4,6 +4,7 @@ import sys
 
 # local imports
 import FLM_CanopyCost
+import FLM_Pretagging
 import FLM_CenterLine
 import FLM_LineFootprint
 import FLM_ForestLineAttributes
@@ -34,6 +35,35 @@ def canopyCost(in_raster,
 
     if not os.path.exists(out_canopy_raster) and not os.path.exists(out_cost_raster):
         FLM_CanopyCost.main(argv)
+
+
+def preTagging(in_center_line, in_chm, in_canopy_raster, in_cost_raster,
+               out_tagged_line, corridor_thresh="CorridorTh", max_line_width=10,
+               process_segments=False):
+    """
+    Generate line footprint
+    """
+
+    print("Tagging lines: ", out_tagged_line)
+    argv = [None] * 8
+    argv[0] = in_center_line  # center line
+    argv[1] = in_canopy_raster  # canopy raster
+    argv[2] = in_cost_raster  # Cost raster
+    argv[3] = corridor_thresh  # corridor threshold field
+    argv[4] = str(max_line_width)  # maximam line width
+    argv[5] = in_chm
+    argv[6] = str(process_segments)  # process segments
+    argv[7] = out_tagged_line  # Output line foot print
+
+    if not os.path.exists(in_center_line):
+        print("Input line file {} not exists, ignore.".format(in_center_line))
+        return
+
+    if os.path.exists(out_tagged_line):
+        print("Footprint file {} already exists, ignore.".format(out_tagged_line))
+        return
+
+    FLM_Pretagging.main(argv)
 
 
 def centerline(in_line, in_cost_raster, out_center_line,
