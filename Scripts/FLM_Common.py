@@ -59,7 +59,7 @@ def logStart(tool):
     log("----------")
     log("TOOL PARAMETERS")
     params = tool.GetParams()
-    for i in range (0, len(tool.input)):
+    for i in range(0, len(tool.input)):
         log(tool.fields[i]+": "+params[i])
     log("----------")
 
@@ -82,21 +82,21 @@ def logEnd(tool):
 def log(text, onlyFile = False):
     if(onlyFile == False):
         print(text)
-    text_file = open(r"log.txt","a")
+    text_file = open(r"log.txt", "a")
     text_file.write(text+"\n")
     text_file.close()
     del text_file
 
 
 def refreshLog():
-    text_file = open(r"log.txt","w")
+    text_file = open(r"log.txt", "w")
     text_file.write("")
     text_file.close()
     del text_file
 
 
 def newLog(version):
-    text_file = open(r"log.txt","a")
+    text_file = open(r"log.txt", "a")
     text_file.write("\n\n###\n\n\n")
     text_file.close()
     log("Forest Line Mapper v. "+str(version))
@@ -117,7 +117,7 @@ def GetArgs(paramFile):
     # Load arguments from file
     try:
         paramFile = scriptPath+"\\"+paramFile
-        pfile = open(paramFile,"r")
+        pfile = open(paramFile, "r")
         args = pfile.readlines()
         pfile.close()
         return args
@@ -127,7 +127,7 @@ def GetArgs(paramFile):
 
 def SetArgs(paramFile, args):
         paramFile = scriptPath+"\\"+paramFile
-        pfile = open(paramFile,"w")
+        pfile = open(paramFile, "w")
         for arg in args:
             pfile.write(str(arg)+"\n")
         pfile.close()
@@ -137,19 +137,19 @@ def GetCores():
     maxCores = multiprocessing.cpu_count()
     coresPath = scriptPath+"\\"+coresFile
     try:
-        cfile = open(coresPath,"r")
+        cfile = open(coresPath, "r")
         args = cfile.readlines()
         cfile.close()
         cores = int(args[0])
         if cores>0 and cores<=maxCores:
             return cores
         else:
-            cfile = open(coresPath,"w")
+            cfile = open(coresPath, "w")
             cfile.write(str(maxCores))
             cfile.close()
             return maxCores
     except Exception as e:
-        cfile = open(coresPath,"w")
+        cfile = open(coresPath, "w")
         cfile.write(str(maxCores))
         cfile.close()
         return maxCores
@@ -157,7 +157,7 @@ def GetCores():
 
 def SetCores(cores):
     coresPath = scriptPath+"\\"+coresFile
-    cfile = open(coresPath,"w")
+    cfile = open(coresPath, "w")
     cfile.write(str(cores))
     cfile.close()
 
@@ -175,15 +175,15 @@ def SetupWorkspace (outWorkName):
     try:
         # arcpy.CreateFileGDB_management(scriptPath, outWorkName +".gdb")
         os.mkdir(outWorkspace)
-        log("Scratch workspace " + str(outWorkspace) +  " created.")
+        log("Scratch workspace " + str(outWorkspace) + " created.")
     except Exception as e:
-        log("Scratch workspace " + str(outWorkspace) +  " already exists.")
+        log("Scratch workspace " + str(outWorkspace) + " already exists.")
 
     arcpy.env.workspace = outWorkspace
 
     # Delete old files
     oldShapefiles = arcpy.ListFeatureClasses()
-    if(len(oldShapefiles)>0):
+    if len(oldShapefiles) > 0:
         log("There are "+str(len(oldShapefiles))+" old shapefiles in workspace folder. These will be deleted.")
         for fc in oldShapefiles:
             arcpy.Delete_management(fc)
@@ -290,7 +290,8 @@ def SplitLines(linesFc, outWorkspace, toolCodename, ProcessSegments, KeepFieldNa
                         array.add(segment_list[vertexID])
                         array.add(segment_list[vertexID+1])
                     polyline = arcpy.Polyline(array, arcpy.Describe(linesFc).spatialReference)
-                    all_segments.append([polyline, line, dict(zip(KeepFieldName, KeepField))])  # add segments and attributes for later return
+                    # add segments and attributes for later return
+                    all_segments.append([polyline, line, dict(zip(KeepFieldName, KeepField))])
 
                     if not USE_MEMORY_WORKSPACE:
                         cursor.insertRow(KeepField+[polyline])
@@ -334,7 +335,7 @@ def SplitFeature (fc, idField, outWorkspace, toolCodename):
         if arcpy.Exists(segment_fpath):
             arcpy.Delete_management(segment_fpath)
 
-        arcpy.CreateFeatureclass_management(outWorkspace,segment_fname,shapeType,"","DISABLED","DISABLED",fc)
+        arcpy.CreateFeatureclass_management(outWorkspace, segment_fname, shapeType, "", "DISABLED", "DISABLED", fc)
         cursor = arcpy.da.InsertCursor(segment_fpath, ["SHAPE@"])
         cursor.insertRow([feat])
 
