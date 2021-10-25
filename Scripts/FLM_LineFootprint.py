@@ -49,6 +49,7 @@ Maximum_distance_from_centerline = 0
 def PathFile(path):
     return path[path.rfind("\\") + 1:]
 
+
 # This function is shapefile based, to be removed.
 def workLines(lineNo):
     # read params from text file
@@ -375,7 +376,7 @@ def workLinesMemory(segment_info):
 
         # Process: Raster to Polygon
         footprint = arcpy.RasterToPolygon_conversion(fileNull, arcpy.Geometry(),
-                                                     "SIMPLIFY", "VALUE", "SINGLE_OUTER_PART", "")
+                                                     "SIMPLIFY", "VALUE", "MULTIPLE_OUTER_PART", "")
     except Exception as e:
         print(e)
 
