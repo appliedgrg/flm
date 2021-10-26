@@ -85,7 +85,7 @@ def centerline(in_line, in_cost_raster, out_center_line,
         return
 
     if os.path.exists(out_center_line):
-        print("Centeline file {} already exists, ignore.".format(out_line_attribute))
+        print("Centeline file {} already exists, ignore.".format(out_center_line))
         return
 
     FLM_CenterLine.main(argv)
