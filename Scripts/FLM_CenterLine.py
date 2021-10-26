@@ -222,8 +222,8 @@ def workLinesMem(segment_info):
 
         # Clip cost raster using buffer
         DescBuffer = arcpy.Describe(fileBuffer)
-        SearchBox = str(DescBuffer.extent.XMin) + " " + str(DescBuffer.extent.YMin) + " "
-                    + str(DescBuffer.extent.XMax) + " " + str(DescBuffer.extent.YMax)
+        SearchBox = str(DescBuffer.extent.XMin) + " " + str(DescBuffer.extent.YMin) + " " + \
+                    str(DescBuffer.extent.XMax) + " " + str(DescBuffer.extent.YMax)
         arcpy.Clip_management(Cost_Raster, SearchBox, fileClip, fileBuffer, "",
                               "ClippingGeometry", "NO_MAINTAIN_EXTENT")
 
