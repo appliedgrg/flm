@@ -15,17 +15,14 @@
 #
 # ---------------------------------------------------------------------------
 #
-# FLM_LineFootprint.py
-# Script Author: Gustavo Lopes Queiroz
-# Date: 2020-Jan-22
-# Refactor to use memory workspace to speedup processing
-# Richard Zeng
-# Date: 2021-August
+# FLM_Pretagging.py
+# Script Author: Richard Zeng
+# Date: 2021-Oct-25
 # This script is part of the Forest Line Mapper (FLM) toolset
 # Webpage: https://github.com/appliedgrg/flm
 #
-# Purpose: Creates footprint polygons for each input line based on a least 
-# cost corridor method and individual line thresholds.
+# Purpose: Tag lines using the line and LiDAR age or
+# by checking the raster values in line footprint.
 #
 # ---------------------------------------------------------------------------
 
