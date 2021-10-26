@@ -5,6 +5,7 @@ import sys
 # local imports
 import FLM_CanopyCost
 import FLM_Pretagging
+import FLM_VertexOptimization
 import FLM_CenterLine
 import FLM_LineFootprint
 import FLM_ForestLineAttributes
@@ -64,6 +65,29 @@ def preTagging(in_center_line, in_chm, in_canopy_raster, in_cost_raster,
         return
 
     FLM_Pretagging.main(argv)
+
+
+def vertexOptimization(in_line, in_cost_raster, out_center_line, line_radius=35):
+    """
+    Optimize vertices
+    """
+
+    print("Processing center line: ", out_center_line)
+    argv = [None] * 5
+    argv[0] = in_line  # input line
+    argv[1] = in_cost_raster  # Cost raster
+    argv[2] = str(line_radius)  # line process radius
+    argv[3] = out_center_line  # Output center line
+
+    if not os.path.exists(in_line):
+        print("Input line file {} not exists, ignore.".format(in_line))
+        return
+
+    if os.path.exists(out_center_line):
+        print("Centeline file {} already exists, ignore.".format(out_center_line))
+        return
+
+    FLM_VertexOptimization.main(argv)
 
 
 def centerline(in_line, in_cost_raster, out_center_line,
