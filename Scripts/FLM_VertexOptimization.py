@@ -15,14 +15,14 @@
 #
 # ---------------------------------------------------------------------------
 #
-# FLM_CenterLine.py
-# Script Author: Gustavo Lopes Queiroz
-# Date: 2020-Jan-22
+# FLM_VertexOptimization.py
+# Script Author: Richard Zeng
+# Date: 2021-Oct-26
 #
 # This script is part of the Forest Line Mapper (FLM) toolset
 # Webpage: https://github.com/appliedgrg/flm
 #
-# Purpose: Determines the least cost path between vertices of the input lines
+# Purpose: Move line vertices to right seismic line courses
 #
 # ---------------------------------------------------------------------------
 # System imports
