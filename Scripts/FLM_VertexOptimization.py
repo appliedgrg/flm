@@ -44,6 +44,31 @@ def PathFile(path):
     return path[path.rfind("\\") + 1:]
 
 
+def groupIntersections():
+    """
+    Identify intersections of 2,3 or 4 lines and group them.
+    Each group has all the end vertices, start(0) or end (-1) vertex and the line geometry
+    """
+    pass
+
+
+def generateAnchorPtPairs():
+    """
+    Generate buffer of the intersection and extend lines to make them intersect with the buffer polygon.
+    lines will be grouped along directions.
+    """
+    pass
+
+
+def leastCostPath(pt_start, pt_end):
+    """
+    Calculate least cost path between two points
+        pt_start: start point
+        pt_end: end point
+    """
+    pass
+
+
 def workLinesMem(segment_info):
     """
     New version of worklines. It uses memory workspace instead of shapefiles.
