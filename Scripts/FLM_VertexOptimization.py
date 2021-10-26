@@ -43,13 +43,37 @@ workspaceName = "FLM_VO_output"
 def PathFile(path):
     return path[path.rfind("\\") + 1:]
 
+def appendToGroup(vertex, vertex_grp):
+    """
+    Append new vertex to vertex group, by calculating distance to existing vertices
+    """
+    pass
 
-def groupIntersections():
+def groupIntersections(lines):
     """
     Identify intersections of 2,3 or 4 lines and group them.
     Each group has all the end vertices, start(0) or end (-1) vertex and the line geometry
+    Intersection list format: [[intersection_pt, [[line_geom, pt_index], ...]], ...]
+    pt_index: 0 is start vertex, -1 is end vertex
     """
-    pass
+    vertex_grp = []
+
+    for line in lines:
+        line_seg = line[0]
+
+        for line in line_seg:
+            for point in line:  # loops through every point in a line
+                # loops through every vertex of every segment
+                if point:  # adds all the vertices to segment_list, which creates an array
+                    segment_list.append(point)
+
+        # Find origin and destination coordinates
+        pt_start = [arcpy.Point(segment_list[0].X, segment_list[0].Y), [line_seg, 0]]
+        pt_end = [arcpy.Point(segment_list[-1].X, segment_list[-1].Y), [line_seg, -1]]
+        appendToGroup(pt_start)
+        appendToGroup(pt_end)
+
+    return vertex_grp
 
 
 def generateAnchorPtPairs():
@@ -157,7 +181,6 @@ def workLinesMem(segment_info):
 def main(argv=None):
     # Setup script path and workspace folder
     global workspaceName
-    # workspaceName = "FLM_VO_output"
 
     global outWorkspace
     outWorkspace = flmc.SetupWorkspace(workspaceName)
@@ -189,11 +212,12 @@ def main(argv=None):
 
     # Prepare input lines for multiprocessing
     segment_all = flmc.SplitLines(Forest_Line_Feature_Class, outWorkspace, "CL", False)
+    vertex_grp = groupIntersections(segment_all)
 
     pool = multiprocessing.Pool(processes=flmc.GetCores())
     flmc.log("Multiprocessing center lines...")
     flmc.log("Using {} CPU cores".format(flmc.GetCores()))
-    centerlines = pool.map(workLinesMem, segment_all)
+    centerlines = pool.map(workLinesMem, vertex_grp)
     pool.close()
     pool.join()
     flmc.logStep("Center line multiprocessing done.")
