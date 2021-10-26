@@ -60,13 +60,71 @@ def generateAnchorPtPairs():
     pass
 
 
-def leastCostPath(pt_start, pt_end):
+def leastCostPath(Cost_Raster, segment_info, Line_Processing_Radius):
     """
     Calculate least cost path between two points
         pt_start: start point
         pt_end: end point
     """
-    pass
+    lineNo = segment_info[1]  # second element is the line No.
+    outWorkspaceMem = r"memory"
+    arcpy.env.workspace = r"memory"
+
+    fileClip = os.path.join(outWorkspaceMem, "FLM_VO_Clip_" + str(lineNo) + ".tif")
+    fileCostDist = os.path.join(outWorkspaceMem, "FLM_VO_CostDist_" + str(lineNo) + ".tif")
+    fileCostBack = os.path.join(outWorkspaceMem, "FLM_VO_CostBack_" + str(lineNo) + ".tif")
+    fileCenterline = os.path.join(outWorkspaceMem, "FLM_VO_Centerline_" + str(lineNo))
+
+    # Load segment list
+    segment_list = []
+
+    for line in segment_info[0]:
+        for point in line:  # loops through every point in a line
+            # loops through every vertex of every segment
+            if point:  # adds all the vertices to segment_list, which creates an array
+                segment_list.append(point)
+
+    # Find origin and destination coordinates
+    x1 = segment_list[0].X
+    y1 = segment_list[0].Y
+    x2 = segment_list[-1].X
+    y2 = segment_list[-1].Y
+
+    try:
+        # Buffer around line
+        lineBuffer = arcpy.Buffer_analysis([segment_info[0]], arcpy.Geometry(), Line_Processing_Radius, "FULL", "ROUND",
+                                           "NONE", "", "PLANAR")
+
+        # Clip cost raster using buffer
+        SearchBox = str(lineBuffer[0].extent.XMin) + " " + str(lineBuffer[0].extent.YMin) + " " + \
+                    str(lineBuffer[0].extent.XMax) + " " + str(lineBuffer[0].extent.YMax)
+        arcpy.Clip_management(Cost_Raster, SearchBox, fileClip, lineBuffer, "", "ClippingGeometry",
+                              "NO_MAINTAIN_EXTENT")
+
+        # Least cost path
+        fileCostDist = CostDistance(arcpy.PointGeometry(arcpy.Point(x1, y1)), fileClip, "", fileCostBack)
+        CostPathAsPolyline(arcpy.PointGeometry(arcpy.Point(x2, y2)), fileCostDist,
+                           fileCostBack, fileCenterline, "BEST_SINGLE", "")
+
+        # get centerline polyline out of memory feature class fileCenterline
+        centerline = []
+        with arcpy.da.SearchCursor(fileCenterline, ["SHAPE@"]) as cursor:
+            for row in cursor:
+                centerline.append(row[0])
+
+    except Exception as e:
+        print("Problem with line starting at X " + str(x1) + ", Y " + str(y1)
+              + "; and ending at X " + str(x2) + ", Y " + str(y2) + ".")
+        print(e)
+        centerline = []
+        return centerline
+
+    # Clean temporary files
+    arcpy.Delete_management(fileClip)
+    arcpy.Delete_management(fileCostDist)
+    arcpy.Delete_management(fileCostBack)
+
+    return centerline
 
 
 def workLinesMem(segment_info):
@@ -89,122 +147,10 @@ def workLinesMem(segment_info):
     Line_Processing_Radius = float(f.readline().strip())
     f.close()
 
-    lineNo = segment_info[1]  # second element is the line No.
-    outWorkspaceMem = r"memory"
-    arcpy.env.workspace = r"memory"
-
-    fileSeg = os.path.join(outWorkspaceMem, "FLM_VO_Segment_" + str(lineNo))
-    fileOrigin = os.path.join(outWorkspaceMem, "FLM_VO_Origin_" + str(lineNo))
-    fileDestination = os.path.join(outWorkspaceMem, "FLM_VO_Destination_" + str(lineNo))
-    fileBuffer = os.path.join(outWorkspaceMem, "FLM_VO_Buffer_" + str(lineNo))
-    fileClip = os.path.join(outWorkspaceMem, "FLM_VO_Clip_" + str(lineNo) + ".tif")
-    fileCostDist = os.path.join(outWorkspaceMem, "FLM_VO_CostDist_" + str(lineNo) + ".tif")
-    fileCostBack = os.path.join(outWorkspaceMem, "FLM_VO_CostBack_" + str(lineNo) + ".tif")
-    fileCenterline = os.path.join(outWorkspaceMem, "FLM_VO_Centerline_" + str(lineNo))
-
-    # Load segment list
-    segment_list = []
-
-    for line in segment_info[0]:
-        for point in line:  # loops through every point in a line
-            # loops through every vertex of every segment
-            if point:  # adds all the vertices to segment_list, which creates an array
-                segment_list.append(point)
-
-    # Find origin and destination coordinates
-    x1 = segment_list[0].X
-    y1 = segment_list[0].Y
-    x2 = segment_list[-1].X
-    y2 = segment_list[-1].Y
-
-    # Create segment feature class
-    try:
-        arcpy.CreateFeatureclass_management(outWorkspaceMem, os.path.basename(fileSeg), "POLYLINE",
-                                            Forest_Line_Feature_Class, "DISABLED",
-                                            "DISABLED", Forest_Line_Feature_Class)
-        cursor = arcpy.da.InsertCursor(fileSeg, ["SHAPE@"])
-        cursor.insertRow([segment_info[0]])
-        del cursor
-    except Exception as e:
-        print("Create feature class {} failed.".format(fileSeg))
-        print(e)
-        return
-
-    # Create origin feature class
-    # TODO: not in use, delete later
-    try:
-        arcpy.CreateFeatureclass_management(outWorkspaceMem, os.path.basename(fileOrigin), "POINT",
-                                            Forest_Line_Feature_Class, "DISABLED",
-                                            "DISABLED", Forest_Line_Feature_Class)
-        cursor = arcpy.da.InsertCursor(fileOrigin, ["SHAPE@XY"])
-        xy = (float(x1), float(y1))
-        cursor.insertRow([xy])
-        del cursor
-    except Exception as e:
-        print("Creating origin feature class failed: at X, Y" + str(xy) + ".")
-        print(e)
-        return
-
-    # Create destination feature class
-    # TODO: not in use, delete later
-    try:
-        arcpy.CreateFeatureclass_management(outWorkspaceMem, os.path.basename(fileDestination), "POINT",
-                                            Forest_Line_Feature_Class, "DISABLED",
-                                            "DISABLED", Forest_Line_Feature_Class)
-        cursor = arcpy.da.InsertCursor(fileDestination, ["SHAPE@XY"])
-        xy = (float(x2), float(y2))
-        cursor.insertRow([xy])
-        del cursor
-    except Exception as e:
-        print("Creating destination feature class failed: at X, Y" + str(xy) + ".")
-        print(e)
-        return
-
-    try:
-        # Buffer around line
-        arcpy.Buffer_analysis(fileSeg, fileBuffer, Line_Processing_Radius, "FULL", "ROUND", "NONE", "", "PLANAR")
-
-        # Clip cost raster using buffer
-        DescBuffer = arcpy.Describe(fileBuffer)
-        SearchBox = str(DescBuffer.extent.XMin) + " " + str(DescBuffer.extent.YMin) + " " + str(
-            DescBuffer.extent.XMax) + " " + str(DescBuffer.extent.YMax)
-        arcpy.Clip_management(Cost_Raster, SearchBox, fileClip, fileBuffer, "", "ClippingGeometry",
-                              "NO_MAINTAIN_EXTENT")
-
-        # Least cost path
-        # arcpy.gp.CostDistance_sa(fileOrigin, fileClip, fileCostDist, "", fileCostBack, "", "", "", "", "TO_SOURCE")
-        fileCostDist = CostDistance(arcpy.PointGeometry(arcpy.Point(x1, y1)), fileClip, "", fileCostBack)
-        # print("Cost distance file path: {}".format(fileCostDist))
-
-        #arcpy.gp.CostPathAsPolyline_sa(fileDestination, fileCostDist,
-        #                               fileCostBack, fileCenterline, "BEST_SINGLE", "")
-        CostPathAsPolyline(arcpy.PointGeometry(arcpy.Point(x2, y2)), fileCostDist,
-                           fileCostBack, fileCenterline, "BEST_SINGLE", "")
-
-        # get centerline polyline out of memory feature class fileCenterline
-        centerline = []
-        with arcpy.da.SearchCursor(fileCenterline, ["SHAPE@"]) as cursor:
-            for row in cursor:
-                centerline.append(row[0])
-
-    except Exception as e:
-        print("Problem with line starting at X " + str(x1) + ", Y " + str(y1)
-              + "; and ending at X " + str(x2) + ", Y " + str(y2) + ".")
-        print(e)
-        centerline = []
-        return centerline
-
-    # Clean temporary files
-    arcpy.Delete_management(fileSeg)
-    arcpy.Delete_management(fileOrigin)
-    arcpy.Delete_management(fileDestination)
-    arcpy.Delete_management(fileBuffer)
-    arcpy.Delete_management(fileClip)
-    arcpy.Delete_management(fileCostDist)
-    arcpy.Delete_management(fileCostBack)
+    centerline = leastCostPath(Cost_Raster, segment_info, Line_Processing_Radius)
 
     # Return centerline
-    print("Processing line {} done".format(fileSeg))
+    print("Processing line {} done".format(segment_info[1]))
     return centerline
 
 
@@ -232,8 +178,7 @@ def main(argv=None):
     Cost_Raster = args[1].rstrip()
     global Line_Processing_Radius
     Line_Processing_Radius = args[2].rstrip()
-    ProcessSegments = args[3].rstrip() == "True"
-    Out_Centerline = args[4].rstrip()
+    Out_Centerline = args[3].rstrip()
 
     # write params to text file
     f = open(outWorkspace + "\\params.txt", "w")
@@ -243,7 +188,7 @@ def main(argv=None):
     f.close()
 
     # Prepare input lines for multiprocessing
-    segment_all = flmc.SplitLines(Forest_Line_Feature_Class, outWorkspace, "CL", ProcessSegments)
+    segment_all = flmc.SplitLines(Forest_Line_Feature_Class, outWorkspace, "CL", False)
 
     pool = multiprocessing.Pool(processes=flmc.GetCores())
     flmc.log("Multiprocessing center lines...")
