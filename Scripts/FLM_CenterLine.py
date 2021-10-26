@@ -163,7 +163,8 @@ def workLinesMem(segment_info):
     for line in segment_info[0]:
         for point in line:  # loops through every point in a line
             # loops through every vertex of every segment
-            if point:  # adds all the vertices to segment_list, which creates an array
+            if point:
+                # adds all the vertices to segment_list, which creates an array
                 segment_list.append(point)
 
     # Find origin and destination coordinates
@@ -221,22 +222,22 @@ def workLinesMem(segment_info):
 
         # Clip cost raster using buffer
         DescBuffer = arcpy.Describe(fileBuffer)
-        SearchBox = str(DescBuffer.extent.XMin) + " " + str(DescBuffer.extent.YMin) + " " + str(
-            DescBuffer.extent.XMax) + " " + str(DescBuffer.extent.YMax)
-        arcpy.Clip_management(Cost_Raster, SearchBox, fileClip, fileBuffer, "", "ClippingGeometry",
-                              "NO_MAINTAIN_EXTENT")
+        SearchBox = str(DescBuffer.extent.XMin) + " " + str(DescBuffer.extent.YMin) + " "
+                    + str(DescBuffer.extent.XMax) + " " + str(DescBuffer.extent.YMax)
+        arcpy.Clip_management(Cost_Raster, SearchBox, fileClip, fileBuffer, "",
+                              "ClippingGeometry", "NO_MAINTAIN_EXTENT")
 
         # Least cost path
         # arcpy.gp.CostDistance_sa(fileOrigin, fileClip, fileCostDist, "", fileCostBack, "", "", "", "", "TO_SOURCE")
         fileCostDist = CostDistance(arcpy.PointGeometry(arcpy.Point(x1, y1)), fileClip, "", fileCostBack)
         # print("Cost distance file path: {}".format(fileCostDist))
 
-        #arcpy.gp.CostPathAsPolyline_sa(fileDestination, fileCostDist,
+        # arcpy.gp.CostPathAsPolyline_sa(fileDestination, fileCostDist,
         #                               fileCostBack, fileCenterline, "BEST_SINGLE", "")
         CostPathAsPolyline(arcpy.PointGeometry(arcpy.Point(x2, y2)), fileCostDist,
                            fileCostBack, fileCenterline, "BEST_SINGLE", "")
 
-        # get centerline polyline out of memory feature class fileCenterline
+        # get centerline polyline out of feature class file
         centerline = []
         with arcpy.da.SearchCursor(fileCenterline, ["SHAPE@"]) as cursor:
             for row in cursor:
@@ -327,7 +328,7 @@ def main(argv=None):
     # Flatten centerlines which is a list of list
     flmc.log("Writing centerlines to shapefile...")
     # TODO: is this necessary? Since we need list of single line next
-    #cl_list = [item for sublist in centerlines for item in sublist]
+    # cl_list = [item for sublist in centerlines for item in sublist]
     cl_list = []
     for sublist in centerlines:
         if len(sublist) > 0:
