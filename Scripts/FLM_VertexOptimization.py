@@ -38,6 +38,7 @@ arcpy.CheckOutExtension("Spatial")
 import FLM_Common as flmc
 
 workspaceName = "FLM_VO_output"
+global DISTANCE_THRESHOLD = 1  # 1 meter for intersection neighbourhood
 
 
 def PathFile(path):
@@ -47,7 +48,17 @@ def appendToGroup(vertex, vertex_grp):
     """
     Append new vertex to vertex group, by calculating distance to existing vertices
     """
-    pass
+    pt_added = False
+
+    for pt in vertex_grp:
+        if abs() < DISTANCE_THRESHOLD and  abs() < DISTANCE_THRESHOLD:
+            pt["lines"].append(vertex["lines"][0])
+            pt_added = True
+
+    # Add the first vertex or new vertex not found neighbour
+    if not pt_added:
+        vertex_grp.append(vertex)
+
 
 def groupIntersections(lines):
     """
@@ -68,10 +79,10 @@ def groupIntersections(lines):
                     segment_list.append(point)
 
         # Find origin and destination coordinates
-        pt_start = [arcpy.Point(segment_list[0].X, segment_list[0].Y), [line_seg, 0]]
-        pt_end = [arcpy.Point(segment_list[-1].X, segment_list[-1].Y), [line_seg, -1]]
-        appendToGroup(pt_start)
-        appendToGroup(pt_end)
+        pt_start = {"point":arcpy.Point(segment_list[0].X, segment_list[0].Y), "lines":[[line_seg, 0]]}
+        pt_end = {"point":arcpy.Point(segment_list[-1].X, segment_list[-1].Y), "lines":[[line_seg, -1]]}
+        appendToGroup(pt_start, vertex_grp)
+        appendToGroup(pt_end, vertex_grp)
 
     return vertex_grp
 
