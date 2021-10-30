@@ -172,6 +172,11 @@ def generateAnchorPairs(vertex):
             pt_end_2 = arcpy.Point(X, Y)
 
     # this scenario only use two anchors and find closest point on least cost path
+    pt_start_1 = None
+    pt_end_1 = None
+    pt_start_2 = None
+    pt_end_2 = None
+
     if len(slopes) == 2:
         pt_start_1 = lines[0][2]
         pt_end_1 = lines[1][2]
@@ -183,9 +188,9 @@ def generateAnchorPairs(vertex):
         pt_end_1 = arcpy.Point(X, Y)
 
     if len(slopes) == 4 or len(slopes) == 3:
-        return [pt_start_1, pt_end_1, pt_start_2, pt_end_2]
+        return pt_start_1, pt_end_1, pt_start_2, pt_end_2
     elif len(slopes) == 2 or len(slopes) == 1:
-        return [pt_start_1, pt_end_1]
+        return pt_start_1, pt_end_1
 
 def leastCostPath(Cost_Raster, anchors, Line_Processing_Radius):
     """
@@ -194,6 +199,9 @@ def leastCostPath(Cost_Raster, anchors, Line_Processing_Radius):
         anchors: list of two points: start and end points
         Line_Processing_Radius
     """
+    if not anchors[0] or not anchors[1]:
+        print("Anchor points not valid")
+
     lineNo = uuid.uuid4().hex  # random line No.
     outWorkspaceMem = r"memory"
     arcpy.env.workspace = r"memory"
@@ -205,7 +213,11 @@ def leastCostPath(Cost_Raster, anchors, Line_Processing_Radius):
 
     # line from points
     # TODO change the way to set spatial reference
-    line = arcpy.Polyline([arcpy.Point(*pt) for pt in anchors], arcpy.SpatialReference(3400))
+    x1 = anchors[0][0]
+    x1 = anchors[0][1]
+    x1 = anchors[1][0]
+    x1 = anchors[1][1]
+    line = arcpy.Polyline(arcpy.Array([arcpy.Point(x1, y1), arcpy.Point(x2, y2)] arcpy.SpatialReference(3400))
     try:
         # Buffer around line
         lineBuffer = arcpy.Buffer_analysis([line], arcpy.Geometry(), Line_Processing_Radius, "FULL", "ROUND",
