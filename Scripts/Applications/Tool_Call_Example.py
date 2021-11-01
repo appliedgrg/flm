@@ -41,6 +41,7 @@ def main():
     in_cost_raster = os.path.join(baseDir, r"Tag_Cost.tif")
     out_tagged_line = os.path.join(baseDir, r"Tag_Line_tagged_line.shp")
     out_center_line = os.path.join(baseDir, r"Tag_Line_output.shp")
+    out_center_line_optimize = os.path.join(baseDir, r"Tag_Line_output_optimize.shp")
     out_footprint = os.path.join(baseDir, r"Tag_footprint.shp")
     out_attribute_whole = os.path.join(baseDir, r"temp_whole.shp")  # WHOLE-LINE
     out_attribute_arbitrary = os.path.join(baseDir, r"temp_arbitrary.shp")  # ARBITRARY
@@ -51,7 +52,7 @@ def main():
     # FLM_Tools.centerline(in_line, in_cost_raster, out_center_line)
     # FLM_Tools.lineFootprint(in_line, in_canopy_raster, in_cost_raster, out_footprint)
     # FLM_Tools.lineAttribute("LINE-CROSSINGS", out_center_line, out_footprint, in_chm, out_attribute_line_crossings)
-    FLM_Tools.vertexOptimization(in_line, in_cost_raster, out_center_line)
+    FLM_Tools.vertexOptimization(in_line, in_cost_raster, out_center_line_optimize)
 
 
 if __name__ == "__main__":
