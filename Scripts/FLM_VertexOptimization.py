@@ -129,7 +129,11 @@ def getSlope(line, end_index):
         pt_1 = pt[-1]
         pt_2 = pt[-2]
 
-    return (pt_1.Y - pt_2.Y) / (pt_1.X - pt_2.X)
+    if math.isclose(pt_1.X, pt_2.X, abs_tol=1e-9):
+        return math.inf
+    else:
+        return (pt_1.Y - pt_2.Y) / (pt_1.X - pt_2.X)
+
 
 def generateAnchorPairs(vertex):
     """
@@ -147,7 +151,12 @@ def generateAnchorPairs(vertex):
         pt_index = line[1]
         slopes.append(getSlope(line_seg, pt_index))
 
-    index = 0 # the index of line which paired with first line.
+    index = 0  # the index of line which paired with first line.
+    pt_start_1 = None
+    pt_end_1 = None
+    pt_start_2 = None
+    pt_end_2 = None
+
     if len(slopes) == 4 or len(slopes) == 3:
         diff = [abs(slopes[0] - i) for i in slopes[1:-1]]  # calculate difference of first slopes with the rest
         index = np.argmin(diff)
@@ -167,25 +176,20 @@ def generateAnchorPairs(vertex):
         elif len(remains) == 1:
             pt_start_2 = lines[index][2]
             # symmetry point of pt_start_2 regarding vertex["point"]
-            X = vertex["point"].X - (pt_start_2.X - vertex["point"].X)
-            Y = vertex["point"].Y - (pt_start_2.Y - vertex["point"].Y)
-            pt_end_2 = arcpy.Point(X, Y)
+            X = vertex["point"][0] - (pt_start_2[0] - vertex["point"][0])
+            Y = vertex["point"][1] - (pt_start_2[1] - vertex["point"][1])
+            pt_end_2 = [X, Y]
 
     # this scenario only use two anchors and find closest point on least cost path
-    pt_start_1 = None
-    pt_end_1 = None
-    pt_start_2 = None
-    pt_end_2 = None
-
     if len(slopes) == 2:
         pt_start_1 = lines[0][2]
         pt_end_1 = lines[1][2]
     elif len(slopes) == 1:
         pt_start_1 = lines[0][2]
         # symmetry point of pt_start_1 regarding vertex["point"]
-        X = vertex["point"].X - (pt_start_1.X - vertex["point"].X)
-        Y = vertex["point"].Y - (pt_start_1.Y - vertex["point"].Y)
-        pt_end_1 = arcpy.Point(X, Y)
+        X = vertex["point"][0] - (pt_start_1[0] - vertex["point"][0])
+        Y = vertex["point"][1] - (pt_start_1[1] - vertex["point"][1])
+        pt_end_1 = [X, Y]
 
     if len(slopes) == 4 or len(slopes) == 3:
         return pt_start_1, pt_end_1, pt_start_2, pt_end_2
@@ -201,6 +205,8 @@ def leastCostPath(Cost_Raster, anchors, Line_Processing_Radius):
     """
     if not anchors[0] or not anchors[1]:
         print("Anchor points not valid")
+        centerline = [None]
+        return centerline
 
     lineNo = uuid.uuid4().hex  # random line No.
     outWorkspaceMem = r"memory"
@@ -214,14 +220,14 @@ def leastCostPath(Cost_Raster, anchors, Line_Processing_Radius):
     # line from points
     # TODO change the way to set spatial reference
     x1 = anchors[0][0]
-    x1 = anchors[0][1]
-    x1 = anchors[1][0]
-    x1 = anchors[1][1]
-    line = arcpy.Polyline(arcpy.Array([arcpy.Point(x1, y1), arcpy.Point(x2, y2)] arcpy.SpatialReference(3400))
+    y1 = anchors[0][1]
+    x2 = anchors[1][0]
+    y2 = anchors[1][1]
+    line = arcpy.Polyline(arcpy.Array([arcpy.Point(x1, y1), arcpy.Point(x2, y2)]), arcpy.SpatialReference(3400))
     try:
         # Buffer around line
-        lineBuffer = arcpy.Buffer_analysis([line], arcpy.Geometry(), Line_Processing_Radius, "FULL", "ROUND",
-                                           "NONE", "", "PLANAR")
+        lineBuffer = arcpy.Buffer_analysis([line], arcpy.Geometry(), Line_Processing_Radius,
+                                           "FULL", "ROUND", "NONE", "", "PLANAR")
 
         # Clip cost raster using buffer
         SearchBox = str(lineBuffer[0].extent.XMin) + " " + str(lineBuffer[0].extent.YMin) + " " + \
@@ -244,7 +250,7 @@ def leastCostPath(Cost_Raster, anchors, Line_Processing_Radius):
         print("Problem with line starting at X " + str(x1) + ", Y " + str(y1)
               + "; and ending at X " + str(x2) + ", Y " + str(y2) + ".")
         print(e)
-        centerline = []
+        centerline = [None]
         return centerline
 
     # Clean temporary files
@@ -259,6 +265,8 @@ def workLinesMem(vertex):
     """
     New version of worklines. It uses memory workspace instead of shapefiles.
     The refactoring is to accelerate the processing speed.
+        vertex: intersection with all lines crossed at the intersection
+        return: one or two centerlines
     """
 
     # Temporary files
@@ -272,6 +280,8 @@ def workLinesMem(vertex):
     f.close()
 
     anchors = generateAnchorPairs(vertex)
+    centerline_1 = [None]
+    centerline_2 = [None]
     if len(anchors) == 4:
         centerline_1 = leastCostPath(Cost_Raster, anchors[0:2], Line_Processing_Radius)
         centerline_2 = leastCostPath(Cost_Raster, anchors[2:4], Line_Processing_Radius)
@@ -280,7 +290,12 @@ def workLinesMem(vertex):
 
     # Return centerline
     print("Processing vertex {} done".format(vertex["point"]))
-    return centerline
+
+    if len(anchors) == 4:
+        return centerline_1+centerline_2
+
+    elif len(anchors) == 2:
+        return centerline_1
 
 
 def main(argv=None):
@@ -289,7 +304,6 @@ def main(argv=None):
 
     global outWorkspace
     outWorkspace = flmc.SetupWorkspace(workspaceName)
-    # outWorkspace = flmc.GetWorkspace(workspaceName)
     arcpy.env.workspace = outWorkspace
     arcpy.env.overwriteOutput = True
 
@@ -345,24 +359,25 @@ def main(argv=None):
 
     # Flatten centerlines which is a list of list
     flmc.log("Writing centerlines to shapefile...")
-    # TODO: is this necessary? Since we need list of single line next
-    #cl_list = [item for sublist in centerlines for item in sublist]
-    cl_list = []
-    for sublist in centerlines:
-        if len(sublist) > 0:
-            for item in sublist:
-                cl_list.append(item)
+    cl_list = [item for sublist in centerlines for item in sublist]
+    # cl_list = []
+    # for sublist in centerlines:
+    #     if len(sublist) > 0:
+    #         for item in sublist:
+    #             cl_list.append(item)
 
     # arcpy.Merge_management(cl_list, Out_Centerline)
     with arcpy.da.InsertCursor(Out_Centerline, ["SHAPE@"]) as cursor:
         for line in cl_list:
-            cursor.insertRow([line])
+            if line:
+                cursor.insertRow([line])
 
     # TODO: inspect CorridorTh
     if arcpy.Exists(Out_Centerline):
         arcpy.AddField_management(Out_Centerline, "CorridorTh", "DOUBLE")
         arcpy.CalculateField_management(Out_Centerline, "CorridorTh", "3")
-    flmc.log("Centerlines shapefile done")
+    flmc.log("Centerline shapefile done")
+
 
 if __name__ == '__main__':
     main()
