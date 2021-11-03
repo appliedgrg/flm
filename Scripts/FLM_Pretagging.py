@@ -48,7 +48,11 @@ Maximum_distance_from_centerline = 0
 def PathFile(path):
     return path[path.rfind("\\") + 1:]
 
+
 def getStats(point_values):
+    if len(point_values) <= 1:
+        return -9999.0, -9999.0, -9999.0, -9999.0
+
     pt_mean = mean(point_values)
     pt_median = median(point_values)
     pt_variance = variance(point_values)
@@ -56,10 +60,11 @@ def getStats(point_values):
 
     return pt_mean, pt_median, pt_variance, pt_stdev
 
-def tagLine(footprint, in_chm, in_line):
-    if not footprint or len(footprint)==0:
-        return False
+def tagLine(footprint_list, in_chm, in_line):
+    if not footprint_list or len(footprint_list) == 0:
+        return (False, -9999.0, -9999, -9999, -9999, -9999, -9999, -9999, -9999)
 
+    footprint = footprint_list[0]
     outWorkspaceMem = r"memory"
     lineNo = in_line[1]
     distance_from_centerline = 5  # buffer 5 meters
@@ -67,43 +72,61 @@ def tagLine(footprint, in_chm, in_line):
     # Temporary files
     fileBuffer = os.path.join(outWorkspaceMem, "FLM_PT_Buffer_" + str(lineNo))
     fileExtraction = os.path.join(outWorkspaceMem, "FLM_PT_Extract_" + str(lineNo))
-    fileBufferExtraction = os.path.join(outWorkspaceMem, "FLM_PT_Extract_Buffer_" + str(lineNo))
+    fileNeighborExtraction = os.path.join(outWorkspaceMem, "FLM_PT_Extract_Neighbor_" + str(lineNo))
 
-    arcpy.Buffer_analysis(footprint, fileBuffer, distance_from_centerline,
-                          "FULL", "ROUND", "NONE", "", "PLANAR")
+    # arcpy.Buffer_analysis(footprint, fileBuffer, distance_from_centerline,
+    #                       "FULL", "ROUND", "NONE", "", "PLANAR")
+    footprint_buffer = footprint.buffer(distance_from_centerline)
+    footprint_neighbor = footprint_buffer.difference(footprint)
 
-    # Extract raster values
-    extraction_raster = ExtractByMask(in_chm, footprint)
-    extraction_raster_buffer = ExtractByMask(in_chm, fileBuffer)
+    extraction_raster = None
+    extraction_raster_buffer = None
+    try:
+        # Extract raster values
+        extraction_raster = ExtractByMask(in_chm, footprint)
+        extraction_raster_neighbor = ExtractByMask(in_chm, footprint_neighbor)
 
-    arcpy.RasterToPoint_conversion(extraction_raster, fileExtraction)
-    arcpy.RasterToPoint_conversion(extraction_raster_buffer, fileBufferExtraction)
+        arcpy.RasterToPoint_conversion(extraction_raster, fileExtraction)
+        arcpy.RasterToPoint_conversion(extraction_raster_neighbor, fileNeighborExtraction)
+    except Exception as e:
+        print(e)
 
     extract_values = []
-    with arcpy.da.SearchCursor(fileExtraction, ["grid_code"]) as cursor:
-        for row in cursor:
-            extract_values.append(row[0])
+    extract_neighbor_values = []
 
+    try:
+        with arcpy.da.SearchCursor(fileExtraction, ["grid_code"]) as cursor:
+            for row in cursor:
+                extract_values.append(row[0])
+
+        with arcpy.da.SearchCursor(fileNeighborExtraction, ["grid_code"]) as cursor:
+            for row in cursor:
+                extract_neighbor_values.append(row[0])
+    except Exception as e:
+        print(e)
+
+    # Get raster value stats for footprint and neighbor area
     pt_stats = getStats(extract_values)
-
-    extract_buffer_values = []
-    with arcpy.da.SearchCursor(fileBufferExtraction, ["grid_code"]) as cursor:
-        for row in cursor:
-            extract_buffer_values.append(row[0])
-
-    pt_stats_buffer = getStats(extract_values_buffer)
+    pt_stats_buffer = getStats(extract_neighbor_values)
 
     # Remove temporary rasters
-    arcpy.Delete_management(extraction_raster)
-    arcpy.Delete_management(extraction_raster_buffer)
+    try:
+        if extraction_raster:
+            arcpy.Delete_management(extraction_raster)
+        if extraction_raster_buffer:
+            arcpy.Delete_management(extraction_raster_buffer)
+        arcpy.Delete_management(fileExtraction)
+        arcpy.Delete_management(fileNeighborExtraction)
+    except Exception as e:
+        print(e)
 
     # determine if line exist
-    if pt_stats[0] < 0.5:
+    if pt_stats and pt_stats[0] < 0.5:
         lineExistence = True
     else:
         lineExistence = False
 
-    return lineExistence
+    return [str(lineExistence)] + list(pt_stats) + list(pt_stats_buffer)
 
 
 def workLinesMem(segment_info):
@@ -111,9 +134,11 @@ def workLinesMem(segment_info):
     New version of worklines. It uses memory workspace instead of shapefiles.
     The refactoring is to accelerate the processing speed.
     """
+    failed_line = (segment_info[0], ("False", -9999.0, -9999.0, -9999.0, -9999.0, -9999.0, -9999.0, -9999.0, -9999.0))
     # input verification
     if segment_info is None or len(segment_info) <= 1:
         print("Input segment is corrupted, ignore")
+        return failed_line
 
     # read params from text file
     outWorkspace = flmc.GetWorkspace(workspaceName)
@@ -179,7 +204,7 @@ def workLinesMem(segment_info):
     except Exception as e:
         print("Create feature class {} failed.".format(fileSeg))
         print(e)
-        return
+        return failed_line
 
     # Create origin feature class
     try:
@@ -193,7 +218,7 @@ def workLinesMem(segment_info):
     except Exception as e:
         print("Create feature class {} failed.".format(fileOrigin))
         print(e)
-        return
+        return failed_line
 
     # Create destination feature class
     try:
@@ -207,7 +232,7 @@ def workLinesMem(segment_info):
     except Exception as e:
         print("Create feature class {} failed.".format(fileDestination))
         print(e)
-        return
+        return failed_line
 
     # Buffer around line
     try:
@@ -216,7 +241,7 @@ def workLinesMem(segment_info):
     except Exception as e:
         print("Create buffer for {} failed".format(fileSeg))
         print(e)
-        return
+        return failed_line
 
     # Clip cost raster using buffer
     DescBuffer = arcpy.Describe(fileBuffer)
@@ -234,6 +259,7 @@ def workLinesMem(segment_info):
         arcpy.gp.Corridor_sa(fileCostDa, fileCostDb, fileCorridor)
     except Exception as e:
         print(e)
+        return failed_line
 
     footprint = []
 
@@ -277,8 +303,10 @@ def workLinesMem(segment_info):
                                                      "SIMPLIFY", "VALUE", "SINGLE_OUTER_PART", "")
     except Exception as e:
         print(e)
+        return failed_line
 
-    line_exist = tagLine(footprint, In_CHM, segment_info)  # list of polygons
+    line_exist = False
+    line_exist = tagLine(footprint, In_CHM, segment_info)
 
     flmc.log("Processing line {} done. Line exist: {}".format(fileSeg, line_exist))
 
@@ -300,8 +328,9 @@ def workLinesMem(segment_info):
         arcpy.Delete_management(fileNull)
     except Exception as e:
         print("Line Footprint: Deleting temporary file failed. Inspect later.")
+        return failed_line
 
-    return line_exist
+    return segment_info[0], line_exist
 
 def HasField(fc, fi):
     fieldnames = [field.name for field in arcpy.ListFields(fc)]
@@ -340,8 +369,8 @@ def main(argv=None):
     In_CHM = args[5].rstrip()
     global ProcessSegments
     ProcessSegments = args[6].rstrip() == "True"
-    global Tagged_Line
-    Tagged_Line = args[7].rstrip()
+    global Out_Tagged_Line
+    Out_Tagged_Line = args[7].rstrip()
     outWorkspace = flmc.SetupWorkspace(workspaceName)
 
     # write params to text file
@@ -354,7 +383,7 @@ def main(argv=None):
     f.write(str(Maximum_distance_from_centerline) + "\n")
     f.write(In_CHM + "\n")
     f.write(str(ProcessSegments) + "\n")
-    f.write(Tagged_Line + "\n")
+    f.write(Out_Tagged_Line + "\n")
     f.close()
 
     # TODO: this code block should turn into building keeping fields
@@ -372,24 +401,39 @@ def main(argv=None):
     flmc.log("Multiprocessing line corridors...")
     flmc.log("Using {} CPU cores".format(flmc.GetCores()))
 
-    footprints = pool.map(workLinesMem, segment_all)  # new version of memory based processing
+    tagged_lines = pool.map(workLinesMem, segment_all)  # new version of memory based processing
     pool.close()
     pool.join()
-    flmc.logStep("Corridor multiprocessing")
+    flmc.logStep("Tagging lines multiprocessing")
 
-    flmc.log("Merging footprints...")
+    flmc.log("Merging tagged_lines...")
     try:
-        # Flatten footprints which is a list of list
-        ft_list = [item for sublist in footprints for item in sublist]
+        # create tagged line feature class
+        arcpy.CreateFeatureclass_management(os.path.dirname(Out_Tagged_Line), os.path.basename(Out_Tagged_Line),
+                                            "Polyline", "", "DISABLED", "DISABLED", Centerline_Feature_Class)
+        arcpy.AddField_management(Out_Tagged_Line, "Existence", "TEXT")
 
-        fileMerge = outWorkspace + "\\FLM_PT_Merge.shp"
-        arcpy.Merge_management(ft_list, fileMerge)
-        arcpy.Dissolve_management(fileMerge, Output_Footprint)
+        arcpy.AddField_management(Out_Tagged_Line, "Mean", "DOUBLE")
+        arcpy.AddField_management(Out_Tagged_Line, "Median", "DOUBLE")
+        arcpy.AddField_management(Out_Tagged_Line, "Variance", "DOUBLE")
+        arcpy.AddField_management(Out_Tagged_Line, "Stdev", "DOUBLE")
+
+        arcpy.AddField_management(Out_Tagged_Line, "Mean_B", "DOUBLE")
+        arcpy.AddField_management(Out_Tagged_Line, "Median_B", "DOUBLE")
+        arcpy.AddField_management(Out_Tagged_Line, "Variance_B", "DOUBLE")
+        arcpy.AddField_management(Out_Tagged_Line, "Stdev_B", "DOUBLE")
+
+        fields = ["SHAPE@", "Existence", "Mean", "Median", "Variance", "Stdev",
+                  "Mean_B", "Median_B", "Variance_B", "Stdev_B"]
+        with arcpy.da.InsertCursor(Out_Tagged_Line, fields) as cursor:
+            for line in tagged_lines:
+                cursor.insertRow([line[0]] + list(line[1]))
+
         # arcpy.Delete_management(fileMerge)
     except Exception as e:
-        print("e")
+        print(e)
 
-    flmc.logStep("Footprints merged.")
+    flmc.logStep("Tagged lines output done.")
 
 
 if __name__ == '__main__':
