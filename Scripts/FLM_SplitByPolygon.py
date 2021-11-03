@@ -28,7 +28,7 @@
 # ---------------------------------------------------------------------------
 
 import arcpy
-from . import FLM_Common as flmc
+import FLM_Common as flmc
 
 def main():
 	# Setup script path and workspace folder

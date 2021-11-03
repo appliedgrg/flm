@@ -1,4 +1,4 @@
-@echo off
+@echo on
 set scriptName=ForestLineMapper.py
 set pro=%PROGRAMFILES%\ArcGIS\Pro\bin\Python\Scripts\propy
 set desktop=c:\python27\python.exe

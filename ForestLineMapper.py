@@ -4,6 +4,10 @@
 # Date: 2020-Jan-22
 #
 # Development history:
+#   Switch massive file cache to memory workspace and geometries.
+#   Eliminate frequent file I/O line setup process and switch geoprocessing
+#   tools to memory-based approach. 2021, Richard Zeng
+#
 #   Worflow overhaul by Gustavo Lopes Queiroz, November, 2019
 #   First version in Arcpy by Silvia Losada, November 2018
 #   Initial concept by Sarah Cole and Jerome Cranston, May 2018
@@ -49,118 +53,135 @@
 # GUI is constructed based on calls contained within this script. 
 #
 # ---------------------------------------------------------------------------
-	
+# System imports
+import os
+import sys
+import json
+
+# Local imports
+# add scriptPath to sys.path
+scriptPath = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(scriptPath, "Scripts"))
+import FLM_Common as flmc
+import FLM_GUI_Tools as gui
+
 version = ""
 
-class FLM_Tool_GUI:
-	def __init__(self, title, description, fields, types, tips, defaults, scriptFile, paramPath):
-		self.title = title
-		self.description = description
-		self.fields = fields
-		self.types = types
-		self.tips = tips
-		self.defaults = defaults
-		self.scriptFile = scriptFile
-		self.paramPath = paramPath
-		self.input = []
-		self.toolScreen = None
-	def SetupTool(self, toolScreen):
-		self.toolScreen = toolScreen
-		entries = gui.ToolSetup( toolScreen, self.title, self.description, self.fields, self.types, self.tips, self.scriptFile, self.paramPath )
-		self.input = entries
-		self.LoadParams()
-	def OpenTool(self):
-		gui.OpenScreen( self, self.toolScreen )
-	def SaveParams(self):
-		pfile = open(self.paramPath,"w")
-		for i in range (0,len(self.input) ):
-			pfile.write(self.input[i].get()+'\n')
-		pfile.close()
-	def LoadParams(self):
-		try:
-			args = self.GetParams()
-			for i in range (0,len(self.input) ):
-				if(len(args)<=i):
-					break
-				self.input[i].insert(0, args[i])
-		except:
-			self.SetDefaults()
-	def GetParams(self):
-		params = []
-		pfile = open(self.paramPath,"r")
-		args = pfile.readlines()
-		pfile.close()
-		for arg in args:
-			params.append(arg.rstrip("\n"))
-		return params
-	def SetDefaults(self):
-		for i in range(0, len(self.input)):
-			self.input[i].delete(0, "end")
-			self.input[i].insert(0, self.defaults[i])
-				
+
+class FLMToolDialogue:
+    def __init__(self, title, description, fields, types, tips, defaults, scriptFile, paramPath):
+        self.title = title
+        self.description = description
+        self.fields = fields
+        self.types = types
+        self.tips = tips
+        self.defaults = defaults
+        self.scriptFile = scriptFile
+        self.paramPath = paramPath
+        self.input = []
+        self.toolScreen = None
+
+    def SetupTool(self, toolScreen):
+        self.toolScreen = toolScreen
+        entries = gui.ToolSetup(toolScreen, self.title, self.description, self.fields,
+                                self.types, self.tips, self.scriptFile, self.paramPath)
+        self.input = entries
+        self.LoadParams()
+
+    def OpenTool(self):
+        gui.OpenScreen(self, self.toolScreen)
+
+    def SaveParams(self):
+        pfile = open(self.paramPath, "w")
+        for i in range(0, len(self.input)):
+            pfile.write(self.input[i].get() + '\n')
+        pfile.close()
+
+    def LoadParams(self):
+        try:
+            args = self.GetParams()
+            for i in range(0, len(self.input)):
+                if (len(args) <= i):
+                    break
+                self.input[i].insert(0, args[i])
+        except Exception as e:
+            self.SetDefaults()
+
+    def GetParams(self):
+        params = []
+        pfile = open(self.paramPath, "r")
+        args = pfile.readlines()
+        pfile.close()
+        for arg in args:
+            params.append(arg.rstrip("\n"))
+        return params
+
+    def SetDefaults(self):
+        for i in range(0, len(self.input)):
+            self.input[i].delete(0, "end")
+            self.input[i].insert(0, self.defaults[i])
+
+
 def main():
+    with open(scriptPath + "\\Scripts\\flm_tools.json") as json_file:
+        tools_json = json.load(json_file)
 
-	with open(scriptPath+"\\Scripts\\flm_tools.json") as json_file:
-		tools_json = json.load(json_file)
-		
-	FLM_tbx_name = []
-	FLM_tbx_len = []
-	FLM_tbx_desc = []
-	FLM_tools = []
-	
-	for tbx in tools_json["toolbox"]:
-		FLM_tbx_name.append(tbx["category"])
-		FLM_tbx_len.append(len(tbx["tools"]))
-		FLM_tbx_desc.append(tbx["description"])
-		for tool in tbx["tools"]:
-			fields = []
-			types = []
-			tips = []
-			defaults = []
-			for param in tool["parameters"]:
-				fields.append(param["parameter"])
-				types.append(param["type"])
-				tips.append(param["description"])
-				defaults.append(param["default"])
-			FLM_tools.append(FLM_Tool_GUI(tool["name"], tool["info"], fields, types, tips, defaults, tool["scriptFile"], scriptPath+tool["paramFile"]))
-	
-	exit = False
-	try:
-		exit = gui.main(version,FLM_tools,2,2,FLM_tbx_len,FLM_tbx_name,FLM_tbx_desc)
-	except Exception as e: 
-		flmc.log(e.message)
-	if(exit == False):
-		try:
-			input("\n<Press any key to exit>")
-		except:
-			print("")
-		
+    FLM_tbx_name = []
+    FLM_tbx_len = []
+    FLM_tbx_desc = []
+    FLM_tools = []
+
+    for tbx in tools_json["toolbox"]:
+        FLM_tbx_name.append(tbx["category"])
+        FLM_tbx_len.append(len(tbx["tools"]))
+        FLM_tbx_desc.append(tbx["description"])
+        for tool in tbx["tools"]:
+            fields = []
+            types = []
+            tips = []
+            defaults = []
+            for param in tool["parameters"]:
+                fields.append(param["parameter"])
+                types.append(param["type"])
+                tips.append(param["description"])
+                defaults.append(param["default"])
+
+            FLM_tools.append(FLMToolDialogue(tool["name"], tool["info"], fields, types, tips, defaults,
+                                             tool["scriptFile"], scriptPath + tool["paramFile"]))
+
+    exit_code = False
+    try:
+        exit_code = gui.main(version, FLM_tools, 2, 2, FLM_tbx_len, FLM_tbx_name, FLM_tbx_desc)
+    except Exception as e:
+        flmc.log(e.message)
+    if not exit_code:
+        try:
+            input("\n<Press any key to exit>")
+        except Exception as e:
+            print("")
+
+
 if __name__ != '__main__':
-	#If script is one of the child processes (multiprocessing) load associated scripts (otherwise parallel processing is avoided)
-	import Scripts.FLM_CenterLine
-	import Scripts.FLM_LineFootprint
-	import Scripts.FLM_Corridor
-	import Scripts.FLM_CorridorFootprint
-	import Scripts.FLM_ZonalThreshold
-	import Scripts.FLM_ForestLineAttributes
+    # If script is one of the child processes (multiprocessing) load associated scripts
+    # (otherwise parallel processing is avoided)
+    import Scripts.FLM_CenterLine
+    import Scripts.FLM_LineFootprint
+    import Scripts.FLM_Corridor
+    import Scripts.FLM_CorridorFootprint
+    import Scripts.FLM_ZonalThreshold
+    import Scripts.FLM_ForestLineAttributes
 else:
-	#If script is main process, load and show GUI
-	import os
-	scriptPath = os.path.dirname(os.path.realpath(__file__))
-	
-	vfile = open(scriptPath+"\\Scripts\\FLM_VERSION","r")
-	args = vfile.readlines()
-	vfile.close()
-	version = args[0]
+    # If script is main process, load and show GUI
+    vfile = open(scriptPath + "\\Scripts\\FLM_VERSION", "r")
+    args = vfile.readlines()
+    vfile.close()
+    version = args[0]
 
-	import json
-	import Scripts.FLM_Common as flmc
-	import Scripts.FLM_GUI_Tools as gui
-	
-	flmc.newLog(version)
-		
-	print("-\nFLM  Copyright (C) 2020  Applied Geospatial Research Group")
-	print("This program comes with ABSOLUTELY NO WARRANTY;\nThis is free software, and you are welcome to redistribute it under certain conditions;\nSee the license file distributed along with this program for details.")
-		
-	main()
-		
+    flmc.newLog(version)
+
+    print("-\nFLM  Copyright (C) 2020  Applied Geospatial Research Group")
+    print("This program comes with ABSOLUTELY NO WARRANTY;\n"
+          "This is free software, and you are welcome to redistribute it under certain conditions;\n"
+          "See the license file distributed along with this program for details.")
+
+    main()

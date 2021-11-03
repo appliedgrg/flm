@@ -31,7 +31,7 @@ import multiprocessing
 import arcpy
 from arcpy.sa import *
 arcpy.CheckOutExtension("Spatial")
-from . import FLM_Common as flmc
+import FLM_Common as flmc
 
 # Setup script path and workspace folder
 workspaceName = "FLM_ZT_output"

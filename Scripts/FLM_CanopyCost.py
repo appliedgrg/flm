@@ -31,16 +31,21 @@
 import arcpy
 from arcpy.sa import *
 arcpy.CheckOutExtension("Spatial")
-from . import FLM_Common as flmc
+import FLM_Common as flmc
 
-def main():
+
+def main(argv=None):
 	# Setup script path and output folder
 	outWorkspace = flmc.SetupWorkspace("FLM_CC_output")
 	arcpy.env.workspace = outWorkspace
+	arcpy.env.scratchWorkspace = outWorkspace
 	arcpy.env.overwriteOutput = True
 	
 	# Load arguments from file
-	args = flmc.GetArgs("FLM_CC_params.txt")
+	if argv:
+		args = argv
+	else:
+		args = flmc.GetArgs("FLM_CC_params.txt")
 
 	# Tool arguments
 	CHM_Raster = args[0].rstrip()
@@ -76,9 +81,9 @@ def main():
 	
 	# Process: Euclidean Distance
 	flmc.log("Calculating Euclidean Distance From Canopy...")
-	EucAllocation(Con(arcpy.Raster(Output_Canopy_Raster)>=1,1,""),"","","","",FLM_CC_EucRaster,"")
+	EucAllocation(Con(arcpy.Raster(Output_Canopy_Raster) >= 1, 1, ""), "", "", "", "", FLM_CC_EucRaster, "")
 	smoothCost = (float(Max_Line_Distance) - arcpy.Raster(FLM_CC_EucRaster))
-	smoothCost = Con(smoothCost>0,smoothCost,0)/float(Max_Line_Distance)
+	smoothCost = Con(smoothCost > 0, smoothCost, 0)/float(Max_Line_Distance)
 	smoothCost.save(FLM_CC_SmoothRaster)
 	flmc.logStep("Euclidean Distance")
 	
@@ -89,10 +94,13 @@ def main():
 	Raster_Mean = arcpy.Raster(FLM_CC_Mean)
 	Raster_StDev = arcpy.Raster(FLM_CC_StDev)
 	Raster_Smooth = arcpy.Raster(FLM_CC_SmoothRaster)
-	avoidance = max(min(float(CanopyAvoidance),1),0)
-	outRas = Power(Exp(Con((Raster_CC == 1), 1, Con((Raster_Mean+Raster_StDev<=0),0,(1+(Raster_Mean-Raster_StDev)/(Raster_Mean+Raster_StDev))/2)*(1-avoidance) + Raster_Smooth*avoidance )),float(Cost_Raster_Exponent))
+	avoidance = max(min(float(CanopyAvoidance), 1), 0)
+
+	# TODO: shorten following sentence
+	outRas = Power(Exp(Con((Raster_CC == 1), 1, Con((Raster_Mean+Raster_StDev <= 0), 0, (1+(Raster_Mean-Raster_StDev)/(Raster_Mean+Raster_StDev))/2)*(1-avoidance) + Raster_Smooth*avoidance)), float(Cost_Raster_Exponent))
 	outRas.save(FLM_CC_CostRaster)
 	flmc.logStep("Cost Raster")
 	
 	flmc.log("Saving Outputs...")
-	arcpy.CopyRaster_management(outRas,Output_Cost_Raster,"DEFAULTS")
+	arcpy.CopyRaster_management(outRas, Output_Cost_Raster, "DEFAULTS")
+	arcpy.ClearWorkspaceCache_management()
