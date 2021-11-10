@@ -206,7 +206,7 @@ def GetWorkspace(outWorkName):
     return outWorkspace
 
 
-def SplitLines(linesFc, outWorkspace, toolCodename, ProcessSegments, KeepFieldName = None):
+def SplitLines(linesFc, outWorkspace, toolCodename, ProcessSegments, polygons=None, KeepFieldName=None):
     """
     This function splits the input polyline shapefile (linesFc) into several shapefiles.
     ProcessSegments:
@@ -215,7 +215,8 @@ def SplitLines(linesFc, outWorkspace, toolCodename, ProcessSegments, KeepFieldNa
 
       outWorkspace: where files are placed in
       toolCodename: base name to make subfolder for tools in workspace in format FLM_toolCodename_output
-      KeepFieldName: fileds to transfer from the inputs to the outputs.
+      KeepFieldName: fields to transfer from the inputs to the outputs.
+      polygons: list of lidar coverage polygon geometry with year [(polygon geometry, year), ...]
 
     Return:
       numLines: total number of segments cached
@@ -291,7 +292,7 @@ def SplitLines(linesFc, outWorkspace, toolCodename, ProcessSegments, KeepFieldNa
                         array.add(segment_list[vertexID+1])
                     polyline = arcpy.Polyline(array, arcpy.Describe(linesFc).spatialReference)
                     # add segments and attributes for later return
-                    all_segments.append([polyline, line, dict(zip(KeepFieldName, KeepField))])
+                    all_segments.append([polyline, line, dict(zip(KeepFieldName, KeepField)), polygons])
 
                     if not USE_MEMORY_WORKSPACE:
                         cursor.insertRow(KeepField+[polyline])

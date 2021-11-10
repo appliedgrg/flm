@@ -48,6 +48,33 @@ Maximum_distance_from_centerline = 0
 def PathFile(path):
     return path[path.rfind("\\") + 1:]
 
+def retrievePolygons(polygon_shpfile):
+    """
+    Retrieve all polygon geometries from shpaefile
+    """
+    fields = ["SHAPE@", "Year"]
+    polygons = []
+    with arcpy.da.SearchCursor(polygon_shpfile, fields) as cursor:
+        for row in cursor:
+            if row[1] > 0:
+                polygons.append(row)
+
+    return polygons
+
+def existenceByLiDARYear(line_info):
+    line = line_info[0]
+    polygons = line_info[3]
+    years = []
+    for polygon in polygons:
+        if polygon[0].crosses(line) or polygon[0].contains(line):
+            years.append(polygon[1])
+
+    if len(years) > 0 and line_info[2]["YEAR"] > 0:
+        if max(years) > line_info[2]["YEAR"]:
+            return True
+
+    return False
+
 
 def getStats(point_values):
     if len(point_values) <= 1:
@@ -152,7 +179,15 @@ def workLinesMem(segment_info):
     In_CHM = f.readline().strip()
     Process_Segments = f.readline().strip()
     Out_Tagged_Line = f.readline().strip()
+    In_Lidar_Year = f.readline().strip()
     f.close()
+
+    # Determine line existence by LiDAR year
+    line_exist = [False, -9999.0, -9999, -9999, -9999, -9999, -9999, -9999, -9999]
+
+    if existenceByLiDARYear(segment_info):
+        line_exist[0] = True
+        return segment_info[0], line_exist
 
     # TODO: remove this parameter
     Expand_And_Shrink_Cell_Range = 0
@@ -305,7 +340,6 @@ def workLinesMem(segment_info):
         print(e)
         return failed_line
 
-    line_exist = False
     line_exist = tagLine(footprint, In_CHM, segment_info)
 
     flmc.log("Processing line {} done. Line exist: {}".format(fileSeg, line_exist))
@@ -371,6 +405,8 @@ def main(argv=None):
     ProcessSegments = args[6].rstrip() == "True"
     global Out_Tagged_Line
     Out_Tagged_Line = args[7].rstrip()
+    global In_Lidar_Year
+    In_Lidar_Year = args[8].rstrip()
     outWorkspace = flmc.SetupWorkspace(workspaceName)
 
     # write params to text file
@@ -392,9 +428,11 @@ def main(argv=None):
         flmc.log("ERROR: There is no field named " + Corridor_Threshold_Field + " in the input lines")
         return False
 
+    polygons = retrievePolygons(In_Lidar_Year)
+
     # Prepare input lines for multiprocessing
     segment_all = flmc.SplitLines(Centerline_Feature_Class, outWorkspace,
-                                  "LFP", ProcessSegments, Corridor_Threshold_Field)
+                                  "LFP", ProcessSegments, polygons, ["YEAR"])
 
     # TODO: inspect how GetCores works. Make sure it uses all the CPU cores
     pool = multiprocessing.Pool(processes=flmc.GetCores())

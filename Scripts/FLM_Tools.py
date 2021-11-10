@@ -38,7 +38,7 @@ def canopyCost(in_raster,
         FLM_CanopyCost.main(argv)
 
 
-def preTagging(in_center_line, in_chm, in_canopy_raster, in_cost_raster,
+def preTagging(in_center_line, in_chm, in_canopy_raster, in_cost_raster, in_lidar_year,
                out_tagged_line, corridor_thresh="CorridorTh", max_line_width=10,
                process_segments=False):
     """
@@ -46,7 +46,7 @@ def preTagging(in_center_line, in_chm, in_canopy_raster, in_cost_raster,
     """
 
     print("Tagging lines: ", out_tagged_line)
-    argv = [None] * 8
+    argv = [None] * 9
     argv[0] = in_center_line  # center line
     argv[1] = in_canopy_raster  # canopy raster
     argv[2] = in_cost_raster  # Cost raster
@@ -55,6 +55,7 @@ def preTagging(in_center_line, in_chm, in_canopy_raster, in_cost_raster,
     argv[5] = in_chm
     argv[6] = str(process_segments)  # process segments
     argv[7] = out_tagged_line  # Output line foot print
+    argv[8] = in_lidar_year  # Input LiDAR coverage with acquisition year
 
     if not os.path.exists(in_center_line):
         print("Input line file {} not exists, ignore.".format(in_center_line))
