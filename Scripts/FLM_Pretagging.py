@@ -195,7 +195,7 @@ def workLinesMem(segment_info):
     # TODO: this is constant, but need to be investigated.
     Corridor_Threshold = 3
     lineNo = segment_info[1]  # second element is the line No.
-    outWorkspaceMem = r"memory"
+    #outWorkspaceMem = r"memory"
 
     # Temporary files
     fileSeg = os.path.join(outWorkspaceMem, "FLM_PT_Segment_" + str(lineNo))
@@ -271,10 +271,10 @@ def workLinesMem(segment_info):
 
     # Buffer around line
     try:
-        arcpy.Buffer_analysis(fileSeg, fileBuffer, Maximum_distance_from_centerline,
+        arcpy.Buffer_analysis(segment_info[0], fileBuffer, Maximum_distance_from_centerline,
                               "FULL", "ROUND", "NONE", "", "PLANAR")
     except Exception as e:
-        print("Create buffer for {} failed".format(fileSeg))
+        print("Create buffer for {} failed".format(lineNo))
         print(e)
         return failed_line
 
