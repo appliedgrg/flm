@@ -70,7 +70,18 @@
             <img src="../Images/FLM_Example_Output.png" class="img-fluid mb-2" alt="..." style="max-height: 170px; max-width: 100%;">
             <div class="col-12 col-lg-8 m-auto px-md-5 text-muted"><span class="font-weight-bold">Figure 4.</span> Example outputs for the study area: corrected, small-scale center lines and areal footprint polygons for the forest lines.</div>
         </div>
-        
+               <hr>
+        <h4>Pre-processing</h4>
+        <p>To get good result out FLM tools, the quality of the input lines is critical. There are two tools: Pre-tagging and Vertex Optimization to help to batch pre-processing input lines and make them more suitable for other tools' input</p>
+        <ul>
+            <li><span class="font-weight-bold">Pre-tagging</span>: Tagging lines to three different categories: confirmed, invisible and unconfirmed. The identification process is done by examining the CHM to confirm if the line exist in the CHM or not. If it is not able to decide, then tag the line as "unconfirmed". The output of the tool need to be manually inspected and edited when necessary.</li>
+            <li><span class="font-weight-bold">Vertex Optimization</span>: Using local image analysis to move the intersections to the course of the seismic lines.</li>
+        </ul>
+
+        <div class="text-center mb-4">
+            <img src="../Images/FLM_Example_Vertex_Optimization.png" class="img-fluid mb-2" alt="..." style="max-height: 170px; max-width: 100%;">
+            <div class="col-12 col-lg-8 m-auto px-md-5 text-muted"><span class="font-weight-bold">Figure 4.</span> Method for optimizing vertices.</div>
+        </div>
         <hr>
         <h4>Line Attributes</h4>
         <p>Once mapped with FLM tools, forest lines can receive attributes which relate to their spatial properties. Additional information may allow for greater insight on forest line conditions. FLM provides a series of standard line attributes as well as the capability of deriving attributes from external data provided by the user. Table 1 provides some examples of standard attributes and a full list of currently supported attributes is available in the <a href="guide_documentation.html">documentation</a> section of this guide.</p>

@@ -31,6 +31,7 @@ import multiprocessing
 import numpy as np
 import math
 import uuid
+import shapely.geometry as shgeo
 
 # ArcGIS imports
 import arcpy
@@ -41,12 +42,57 @@ arcpy.CheckOutExtension("Spatial")
 import FLM_Common as flmc
 
 workspaceName = "FLM_VO_output"
-DISTANCE_THRESHOLD = 1  # 1 meter for intersection neighbourhood
+DISTANCE_THRESHOLD = 2  # 1 meter for intersection neighbourhood
 SEGMENT_LENGTH = 20  # Distance (meter) from intersection to anchor points
+EPSILON = 1e-9
 
 
 def PathFile(path):
     return path[path.rfind("\\") + 1:]
+
+def ArcpyLineToPlainLine(line):
+    if not line:
+        return
+
+    plain_line = []
+    for part in line:
+        if not part:
+            continue
+        for pt in part:
+            plain_line.append((pt.X, pt.Y))
+
+    return shgeo.LineString(plain_line)
+
+def intersectionOfLines(line_1, line_2):
+    line_1 = ArcpyLineToPlainLine(line_1[0])
+    line_2 = ArcpyLineToPlainLine(line_2[0])
+
+    # intersection collection, may contain points and lines
+    inter = None
+    if line_1 and line_2:
+        inter = line_1.intersection(line_2)
+
+    if inter:
+        return inter.centroid.x, inter.centroid.y
+
+    return inter
+
+
+def closestPointToLine(point, line):
+    if not line:
+        return
+    if not line[0]:
+        return
+
+    pt_list = []
+    for part in line[0]:
+        for pt in part:
+            pt_list.append([pt.X, pt.Y])
+
+    line_string = shgeo.LineString(pt_list)
+    pt = line_string.interpolate(line_string.project(shgeo.Point(point)))
+
+    return pt.x, pt.y
 
 def appendToGroup(vertex, vertex_grp):
     """
@@ -120,6 +166,8 @@ def getSlope(line, end_index):
     line: ArcPy Polyline
     end_index: 0 or -1 of the the line vertices. Consider the multipart.
     """
+    global EPSILON
+
     pt = ptsInLine(line)
 
     if end_index == 0:
@@ -129,7 +177,7 @@ def getSlope(line, end_index):
         pt_1 = pt[-1]
         pt_2 = pt[-2]
 
-    if math.isclose(pt_1.X, pt_2.X, abs_tol=1e-9):
+    if math.isclose(pt_1.X, pt_2.X, abs_tol=EPSILON):
         return math.inf
     else:
         return (pt_1.Y - pt_2.Y) / (pt_1.X - pt_2.X)
@@ -158,8 +206,8 @@ def generateAnchorPairs(vertex):
     pt_end_2 = None
 
     if len(slopes) == 4 or len(slopes) == 3:
-        diff = [abs(slopes[0] - i) for i in slopes[1:-1]]  # calculate difference of first slopes with the rest
-        index = np.argmin(diff)
+        diff = [abs(slopes[0] - i) for i in slopes[1:]]  # calculate difference of first slopes with the rest
+        index = np.argmin(diff) + 1  # 1, 2, oor 3
 
         # first anchor pair
         pt_start_1 = lines[0][2]
@@ -170,15 +218,18 @@ def generateAnchorPairs(vertex):
         b = set([0, index])
         remains = list(a.difference(b))  # the remaining index
 
-        if len(remains) == 2:
-            pt_start_2 = lines[index][2]
-            pt_end_2 = lines[index][2]
-        elif len(remains) == 1:
-            pt_start_2 = lines[index][2]
-            # symmetry point of pt_start_2 regarding vertex["point"]
-            X = vertex["point"][0] - (pt_start_2[0] - vertex["point"][0])
-            Y = vertex["point"][1] - (pt_start_2[1] - vertex["point"][1])
-            pt_end_2 = [X, Y]
+        try:
+            if len(remains) == 2:
+                pt_start_2 = lines[remains[0]][2]
+                pt_end_2 = lines[remains[1]][2]
+            elif len(remains) == 1:
+                pt_start_2 = lines[remains[0]][2]
+                # symmetry point of pt_start_2 regarding vertex["point"]
+                X = vertex["point"][0] - (pt_start_2[0] - vertex["point"][0])
+                Y = vertex["point"][1] - (pt_start_2[1] - vertex["point"][1])
+                pt_end_2 = [X, Y]
+        except Exception as e:
+            print(e)
 
     # this scenario only use two anchors and find closest point on least cost path
     if len(slopes) == 2:
@@ -190,6 +241,9 @@ def generateAnchorPairs(vertex):
         X = vertex["point"][0] - (pt_start_1[0] - vertex["point"][0])
         Y = vertex["point"][1] - (pt_start_1[1] - vertex["point"][1])
         pt_end_1 = [X, Y]
+
+    if not pt_start_1 or not pt_end_1:
+        print("Anchors not found")
 
     if len(slopes) == 4 or len(slopes) == 3:
         return pt_start_1, pt_end_1, pt_start_2, pt_end_2
@@ -280,22 +334,37 @@ def workLinesMem(vertex):
     f.close()
 
     anchors = generateAnchorPairs(vertex)
+
+    if not anchors:
+        print("No anchors retrieved")
+        return None
+
     centerline_1 = [None]
     centerline_2 = [None]
     if len(anchors) == 4:
         centerline_1 = leastCostPath(Cost_Raster, anchors[0:2], Line_Processing_Radius)
         centerline_2 = leastCostPath(Cost_Raster, anchors[2:4], Line_Processing_Radius)
+
+        if centerline_1 and centerline_2:
+            intersection = intersectionOfLines(centerline_1, centerline_2)
     elif len(anchors) == 2:
         centerline_1 = leastCostPath(Cost_Raster, anchors, Line_Processing_Radius)
+
+        if centerline_1:
+            intersection = closestPointToLine(vertex["point"], centerline_1)
 
     # Return centerline
     print("Processing vertex {} done".format(vertex["point"]))
 
     if len(anchors) == 4:
-        return centerline_1+centerline_2
+        temp = centerline_1 + centerline_2 + [intersection]
+        temp.insert(0, anchors)
+        return temp
 
     elif len(anchors) == 2:
-        return centerline_1
+        temp = centerline_1 + [intersection]
+        temp.insert(0, anchors)
+        return temp
 
 
 def main(argv=None):
@@ -348,29 +417,54 @@ def main(argv=None):
 
     # Create output centerline shapefile
     flmc.log("Create centerline shapefile...")
-    try:
-        arcpy.CreateFeatureclass_management(os.path.dirname(Out_Centerline), os.path.basename(Out_Centerline),
+    arcpy.CreateFeatureclass_management(os.path.dirname(Out_Centerline), os.path.basename(Out_Centerline),
                                             "POLYLINE", Forest_Line_Feature_Class, "DISABLED",
                                             "DISABLED", Forest_Line_Feature_Class)
-    except Exception as e:
-        print("Create feature class {} failed.".format(Out_Centerline))
-        print(e)
-        return
+
+    # write out new intersections
+    file_name = os.path.splitext(Out_Centerline)
+
+    file_anchors = file_name[0] + "_anchors" + file_name[1]
+    arcpy.CreateFeatureclass_management(os.path.dirname(file_anchors), os.path.basename(file_anchors),
+                                            "POINT", "", "DISABLED", "DISABLED", Forest_Line_Feature_Class)
+    file_inter = file_name[0] + "_intersections" + file_name[1]
+    arcpy.CreateFeatureclass_management(os.path.dirname(file_inter), os.path.basename(file_inter),
+                                            "POINT", "", "DISABLED", "DISABLED", Forest_Line_Feature_Class)
 
     # Flatten centerlines which is a list of list
     flmc.log("Writing centerlines to shapefile...")
-    cl_list = [item for sublist in centerlines for item in sublist]
-    # cl_list = []
-    # for sublist in centerlines:
-    #     if len(sublist) > 0:
-    #         for item in sublist:
-    #             cl_list.append(item)
+    cl_list = []
+    anchor_list = []
+    inter_list = []
+    for sublist in centerlines:
+        if not sublist:
+            continue
+        if len(sublist) > 0:
+            for pt in sublist[0]:
+                anchor_list.append(pt)
+            if sublist[-1]:
+                inter_list.append(sublist[-1])
+            for item in sublist[1:-1]:
+                if item:
+                    cl_list.append(item)
 
     # arcpy.Merge_management(cl_list, Out_Centerline)
     with arcpy.da.InsertCursor(Out_Centerline, ["SHAPE@"]) as cursor:
         for line in cl_list:
             if line:
                 cursor.insertRow([line])
+
+    # write all new intersections
+    with arcpy.da.InsertCursor(file_anchors, ["SHAPE@"]) as cursor:
+        for pt in anchor_list:
+            if pt:
+                cursor.insertRow([arcpy.Point(pt[0], pt[1])])
+
+    # write all new intersections
+    with arcpy.da.InsertCursor(file_inter, ["SHAPE@"]) as cursor:
+        for pt in inter_list:
+            if pt:
+                cursor.insertRow([arcpy.Point(pt[0], pt[1])])
 
     # TODO: inspect CorridorTh
     if arcpy.Exists(Out_Centerline):
