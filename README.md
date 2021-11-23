@@ -4,7 +4,7 @@
 
 ![Banner](Images/FLM_banner.png)
 
-*Copyright (C) 2019  Applied Geospatial Research Group*
+*Copyright (C) 2021  Applied Geospatial Research Group*
 
 # [FLM User Guide](http://flm.beraproject.org/)
 Check the user guide for more information.
