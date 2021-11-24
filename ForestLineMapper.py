@@ -12,7 +12,7 @@
 #   First version in Arcpy by Silvia Losada, November 2018
 #   Initial concept by Sarah Cole and Jerome Cranston, May 2018
 #   
-# Citation: Applied Geospatial Research Group, 2020. Forest Line Mapper: 
+# Citation: Applied Geospatial Research Group, 2021. Forest Line Mapper:
 # A tool for enhanced delineation and attribution of linear disturbances in 
 # forests.
 #
