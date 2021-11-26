@@ -11,7 +11,7 @@
                     "multiprocessing": true,
                     "scriptFile": "Scripts.FLM_Pretagging",
                     "paramFile": "\\Scripts\\FLM_PT_params.txt",
-                    "image": "../Images/FLM_IO_CanopyCostRaster.gif",
+                    "image": "../Images/FLM_IO_Pretagging.gif",
                     "parameters":[
                         {
                             "parameter": "Input Lines",
@@ -69,7 +69,7 @@
                     "multiprocessing": true,
                     "scriptFile": "Scripts.FLM_VertexOptimization",
                     "paramFile": "\\Scripts\\FLM_VO_params.txt",
-                    "image": "../Images/FLM_IO_CenterLine.gif",
+                    "image": "../Images/FLM_IO_VertexOptimization.gif",
                     "parameters":[
                         {
                             "parameter": "Forest Lines Feature Class",
