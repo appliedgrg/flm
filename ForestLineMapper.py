@@ -26,7 +26,7 @@
 #
 # ---------------------------------------------------------------------------
 #
-#    Copyright (C) 2020  Applied Geospatial Research Group
+#    Copyright (C) 2021  Applied Geospatial Research Group
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -151,7 +151,7 @@ def main():
 
     exit_code = False
     try:
-        exit_code = gui.main(version, FLM_tools, 2, 2, FLM_tbx_len, FLM_tbx_name, FLM_tbx_desc)
+        exit_code = gui.main(version, FLM_tools, 3, 2, FLM_tbx_len, FLM_tbx_name, FLM_tbx_desc)
     except Exception as e:
         flmc.log(e.message)
     if not exit_code:
@@ -179,7 +179,7 @@ else:
 
     flmc.newLog(version)
 
-    print("-\nFLM  Copyright (C) 2020  Applied Geospatial Research Group")
+    print("-\nFLM  Copyright (C) 2021 Applied Geospatial Research Group")
     print("This program comes with ABSOLUTELY NO WARRANTY;\n"
           "This is free software, and you are welcome to redistribute it under certain conditions;\n"
           "See the license file distributed along with this program for details.")
