@@ -2,6 +2,104 @@
     "toolbox":
     [
         {
+            "category": "Pre-processing",
+            "description":"Tools used to pre-tagging and optimizing line vertices to help centerline and other tools to produce better results.",
+            "tools": [
+                {
+                    "name": "Pre-tagging",
+                    "info": "Tagging lines by examining lines existence in CHM rasters",
+                    "multiprocessing": true,
+                    "scriptFile": "Scripts.FLM_Pretagging",
+                    "paramFile": "\\Scripts\\FLM_PT_params.txt",
+                    "image": "../Images/FLM_IO_Pretagging.gif",
+                    "parameters":[
+                        {
+                            "parameter": "Input Lines",
+                            "description": "Input forest line center shapefile which will be segmented and attributed.",
+                            "type": ".shp",
+                            "typelab": "SHP",
+                            "default": "",
+                            "output": false
+                        },
+                        {
+                            "parameter": "Canopy Height Model (CHM) Raster",
+                            "description": "Input CHM raster file used as basis for mapping forest lines and their footprint. This layer should be projected in any Universal Transverse Mercator (UTM) coordinate system. The data should be preferably derived from high resolution LiDAR or photogrammetry (>25 pts/m²).",
+                            "type": ".tif",
+                            "typelab": "TIF",
+                            "default": "",
+                            "output": false
+                        },
+                        {
+                            "parameter": "Canopy Raster",
+                            "description": "Input raster image used to exclude canopy from line footprint.",
+                            "type": ".tif",
+                            "typelab": "TIF",
+                            "default": "",
+                            "output": false
+                        },
+                        {
+                            "parameter": "Cost Raster",
+                            "description": "Input raster image used to calculate the cost corridor.",
+                            "type": ".tif",
+                            "typelab": "TIF",
+                            "default": "",
+                            "output": false
+                        },
+                        {
+                            "parameter": "Input LiDAR Coverage with Year",
+                            "description": "Polygons of different LiDAR sources coverage with acquisition year",
+                            "type": ".shp",
+                            "typelab": "SHP",
+                            "default": "",
+                            "output": false
+                        },
+                        {
+                            "parameter": "Output Tagged Line",
+                            "description": "Output features that will be tagged.",
+                            "type": ".shp",
+                            "typelab": "SHP",
+                            "default": "",
+                            "output": true
+                        }
+                    ]
+                },
+                {
+                    "name": "Vertex Optimization",
+                    "info": "Relocating line intersections to seismic line paths",
+                    "multiprocessing": true,
+                    "scriptFile": "Scripts.FLM_VertexOptimization",
+                    "paramFile": "\\Scripts\\FLM_VO_params.txt",
+                    "image": "../Images/FLM_IO_VertexOptimization.gif",
+                    "parameters":[
+                        {
+                            "parameter": "Forest Lines Feature Class",
+                            "description": "Input polyline shapefile.",
+                            "type": ".shp",
+                            "typelab": "SHP",
+                            "default": "",
+                            "output": false
+                        },
+                        {
+                            "parameter": "Cost Raster",
+                            "description": "Input raster image used to calculate the least cost path.",
+                            "type": ".tif",
+                            "typelab": "TIF",
+                            "default": "",
+                            "output": false
+                        },
+                        {
+                            "parameter": "Output Center-Line",
+                            "description": "Output optimized center-line shapefile.",
+                            "type": ".shp",
+                            "typelab": "SHP",
+                            "default": "",
+                            "output": true
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "category": "Mapping",
             "description":"Tools used to map center lines and footprint polygons of linear disturbances in forests using a Canopy Height Model (CHM) as reference.",
             "tools": [

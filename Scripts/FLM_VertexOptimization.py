@@ -1,5 +1,5 @@
 #
-#    Copyright (C) 2020  Applied Geospatial Research Group
+#    Copyright (C) 2021  Applied Geospatial Research Group
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -50,7 +50,26 @@ EPSILON = 1e-9
 def PathFile(path):
     return path[path.rfind("\\") + 1:]
 
-def ArcpyLineToPlainLine(line):
+
+def updatePtInLines(vertex, point):
+
+    line_list = []
+
+    if point:
+        for line in vertex["lines"]:
+            pt_array = line[0].getPart()
+            index = line[1]
+            if index == 0 or index == -1:
+                # the first point of first part
+                # or the last point of the last part
+                pt_array[index][index] = arcpy.Point(point[0], point[1])
+
+            line_list.append(arcpy.Polyline(pt_array))
+
+    return line_list
+
+
+def arcpyLineToPlainLine(line):
     if not line:
         return
 
@@ -63,9 +82,10 @@ def ArcpyLineToPlainLine(line):
 
     return shgeo.LineString(plain_line)
 
+
 def intersectionOfLines(line_1, line_2):
-    line_1 = ArcpyLineToPlainLine(line_1[0])
-    line_2 = ArcpyLineToPlainLine(line_2[0])
+    line_1 = arcpyLineToPlainLine(line_1[0])
+    line_2 = arcpyLineToPlainLine(line_2[0])
 
     # intersection collection, may contain points and lines
     inter = None
@@ -94,6 +114,7 @@ def closestPointToLine(point, line):
 
     return pt.x, pt.y
 
+
 def appendToGroup(vertex, vertex_grp):
     """
     Append new vertex to vertex group, by calculating distance to existing vertices
@@ -121,13 +142,15 @@ def appendToGroup(vertex, vertex_grp):
     vertex["lines"][0].append([X, Y])  # add anchor point to list (the third element)
 
     for item in vertex_grp:
-        if abs(point.X-item["point"][0]) < DISTANCE_THRESHOLD and abs(point.Y-item["point"][1]) < DISTANCE_THRESHOLD:
+        if abs(point.X - item["point"][0]) < DISTANCE_THRESHOLD and abs(
+                point.Y - item["point"][1]) < DISTANCE_THRESHOLD:
             item["lines"].append(vertex["lines"][0])
             pt_added = True
 
     # Add the first vertex or new vertex not found neighbour
     if not pt_added:
         vertex_grp.append(vertex)
+
 
 def ptsInLine(line):
     point_list = []
@@ -138,6 +161,7 @@ def ptsInLine(line):
                 point_list.append(point)
 
     return point_list
+
 
 def groupIntersections(lines):
     """
@@ -250,6 +274,7 @@ def generateAnchorPairs(vertex):
     elif len(slopes) == 2 or len(slopes) == 1:
         return pt_start_1, pt_end_1
 
+
 def leastCostPath(Cost_Raster, anchors, Line_Processing_Radius):
     """
     Calculate least cost path between two points
@@ -341,6 +366,7 @@ def workLinesMem(vertex):
 
     centerline_1 = [None]
     centerline_2 = [None]
+    intersection = None
     if len(anchors) == 4:
         centerline_1 = leastCostPath(Cost_Raster, anchors[0:2], Line_Processing_Radius)
         centerline_2 = leastCostPath(Cost_Raster, anchors[2:4], Line_Processing_Radius)
@@ -353,18 +379,15 @@ def workLinesMem(vertex):
         if centerline_1:
             intersection = closestPointToLine(vertex["point"], centerline_1)
 
-    # Return centerline
+    # Update vertices according to intersection, new centerlines are returned
+    temp = []
+    lines = updatePtInLines(vertex, intersection)
+    temp.append(anchors)
+    temp.append(centerline_1 + centerline_2)
+    temp.append(intersection)
+    temp.append(lines)
     print("Processing vertex {} done".format(vertex["point"]))
-
-    if len(anchors) == 4:
-        temp = centerline_1 + centerline_2 + [intersection]
-        temp.insert(0, anchors)
-        return temp
-
-    elif len(anchors) == 2:
-        temp = centerline_1 + [intersection]
-        temp.insert(0, anchors)
-        return temp
+    return temp
 
 
 def main(argv=None):
@@ -418,53 +441,66 @@ def main(argv=None):
     # Create output centerline shapefile
     flmc.log("Create centerline shapefile...")
     arcpy.CreateFeatureclass_management(os.path.dirname(Out_Centerline), os.path.basename(Out_Centerline),
-                                            "POLYLINE", Forest_Line_Feature_Class, "DISABLED",
-                                            "DISABLED", Forest_Line_Feature_Class)
+                                        "POLYLINE", Forest_Line_Feature_Class, "DISABLED",
+                                        "DISABLED", Forest_Line_Feature_Class)
 
     # write out new intersections
     file_name = os.path.splitext(Out_Centerline)
 
+    file_leastcost = file_name[0] + "_leastcost" + file_name[1]
+    arcpy.CreateFeatureclass_management(os.path.dirname(file_leastcost), os.path.basename(file_leastcost),
+                                        "POLYLINE", "", "DISABLED", "DISABLED", Forest_Line_Feature_Class)
+
     file_anchors = file_name[0] + "_anchors" + file_name[1]
     arcpy.CreateFeatureclass_management(os.path.dirname(file_anchors), os.path.basename(file_anchors),
-                                            "POINT", "", "DISABLED", "DISABLED", Forest_Line_Feature_Class)
+                                        "POINT", "", "DISABLED", "DISABLED", Forest_Line_Feature_Class)
     file_inter = file_name[0] + "_intersections" + file_name[1]
     arcpy.CreateFeatureclass_management(os.path.dirname(file_inter), os.path.basename(file_inter),
-                                            "POINT", "", "DISABLED", "DISABLED", Forest_Line_Feature_Class)
+                                        "POINT", "", "DISABLED", "DISABLED", Forest_Line_Feature_Class)
 
     # Flatten centerlines which is a list of list
     flmc.log("Writing centerlines to shapefile...")
-    cl_list = []
     anchor_list = []
+    leastcost_list = []
     inter_list = []
+    cl_list = []
+
     for sublist in centerlines:
         if not sublist:
             continue
         if len(sublist) > 0:
             for pt in sublist[0]:
                 anchor_list.append(pt)
-            if sublist[-1]:
-                inter_list.append(sublist[-1])
-            for item in sublist[1:-1]:
-                if item:
-                    cl_list.append(item)
+            for line in sublist[1]:
+                leastcost_list.append(line)
+
+            inter_list.append(sublist[2])
+
+            for line in sublist[3]:
+                cl_list.append(line)
 
     # arcpy.Merge_management(cl_list, Out_Centerline)
-    with arcpy.da.InsertCursor(Out_Centerline, ["SHAPE@"]) as cursor:
-        for line in cl_list:
-            if line:
-                cursor.insertRow([line])
-
     # write all new intersections
     with arcpy.da.InsertCursor(file_anchors, ["SHAPE@"]) as cursor:
         for pt in anchor_list:
             if pt:
                 cursor.insertRow([arcpy.Point(pt[0], pt[1])])
 
+    with arcpy.da.InsertCursor(file_leastcost, ["SHAPE@"]) as cursor:
+        for line in leastcost_list:
+            if line:
+                cursor.insertRow([line])
+
     # write all new intersections
     with arcpy.da.InsertCursor(file_inter, ["SHAPE@"]) as cursor:
         for pt in inter_list:
             if pt:
                 cursor.insertRow([arcpy.Point(pt[0], pt[1])])
+
+    with arcpy.da.InsertCursor(Out_Centerline, ["SHAPE@"]) as cursor:
+        for line in cl_list:
+            if line:
+                cursor.insertRow([line])
 
     # TODO: inspect CorridorTh
     if arcpy.Exists(Out_Centerline):
