@@ -1,5 +1,5 @@
 #
-#    Copyright (C) 2020  Applied Geospatial Research Group
+#    Copyright (C) 2021  Applied Geospatial Research Group
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -211,7 +211,7 @@ def main(version, tools, cols, rows, binSizes, binNames, binTips):
     lab = tk.Label(toolSelection, text="Forest Line Mapper", font=fontHeader)
     lab.pack(side=tk.TOP, fill=tk.X, padx=5, pady=0)
     lab = tk.Label(toolSelection, text="A toolset for enhanced delineation and attribution of linear disturbances "
-                                       "in forests. Copyright (C) 2019 Applied Geospatial Research Group.",
+                                       "in forests. Copyright (C) 2021 Applied Geospatial Research Group.",
                    font=fontText, wraplength=minWidth, justify=tk.LEFT)
     lab.pack(side=tk.TOP, fill=tk.X, padx=5, pady=0)
     AddSpace(toolSelection)
@@ -227,10 +227,11 @@ def main(version, tools, cols, rows, binSizes, binNames, binTips):
             bin = tk.Frame(binCol)
             bin.pack(side=tk.TOP, fill=tk.X, padx=0, pady=8)
             binId = i * rows + j
-            binName = tk.Label(bin, text=binNames[binId], font=fontBold)
-            binName.pack(side=tk.TOP, pady=0)
-            ttp.CreateToolTip(binName, binTips[binId], wraplength=minWidth)
-            c.append(bin)
+            if binId < 5:
+                binName = tk.Label(bin, text=binNames[binId], font=fontBold)
+                binName.pack(side=tk.TOP, pady=0)
+                ttp.CreateToolTip(binName, binTips[binId], wraplength=minWidth)
+                c.append(bin)
         bins.append(c)
 
     binId = 0
