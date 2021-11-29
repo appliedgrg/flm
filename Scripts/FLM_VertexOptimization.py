@@ -62,7 +62,16 @@ def updatePtInLines(vertex, point):
             if index == 0 or index == -1:
                 # the first point of first part
                 # or the last point of the last part
-                pt_array[index][index] = arcpy.Point(point[0], point[1])
+                replace_index = 0
+                if index == -1:
+                    replace_index = len(pt_array[index])-1
+
+                try:
+                    pt_array[index].replace(replace_index, arcpy.Point(point[0], point[1]))
+                    # pt_array[index].remove(index)
+                    # pt_array[index].insert(index, arcpy.Point(point[0], point[1]))
+                except Exception as e:
+                    print(e)
 
             line_list.append(arcpy.Polyline(pt_array))
 
@@ -139,7 +148,7 @@ def appendToGroup(vertex, vertex_grp):
     dist_pt = math.sqrt(sum((px - qx) ** 2.0 for px, qx in zip([pt_1.X, pt_1.Y], [pt_2.X, pt_2.Y])))
     X = pt_1.X + (pt_2.X - pt_1.X) * SEGMENT_LENGTH / dist_pt
     Y = pt_1.Y + (pt_2.Y - pt_1.Y) * SEGMENT_LENGTH / dist_pt
-    vertex["lines"][0].append([X, Y])  # add anchor point to list (the third element)
+    vertex["lines"][0].insert(-1, [X, Y])  # add anchor point to list (the third element)
 
     for item in vertex_grp:
         if abs(point.X - item["point"][0]) < DISTANCE_THRESHOLD and abs(
@@ -176,8 +185,8 @@ def groupIntersections(lines):
         point_list = ptsInLine(line[0])
 
         # Find origin and destination coordinates
-        pt_start = {"point": [point_list[0].X, point_list[0].Y], "lines": [[line[0], 0]]}
-        pt_end = {"point": [point_list[-1].X, point_list[-1].Y], "lines": [[line[0], -1]]}
+        pt_start = {"point": [point_list[0].X, point_list[0].Y], "lines": [[line[0], 0, {"lineNo": line[1]}]]}
+        pt_end = {"point": [point_list[-1].X, point_list[-1].Y], "lines": [[line[0], -1, {"lineNo": line[1]]]}
         appendToGroup(pt_start, vertex_grp)
         appendToGroup(pt_end, vertex_grp)
 
@@ -381,11 +390,11 @@ def workLinesMem(vertex):
 
     # Update vertices according to intersection, new centerlines are returned
     temp = []
-    lines = updatePtInLines(vertex, intersection)
+    # lines = updatePtInLines(vertex, intersection)
     temp.append(anchors)
     temp.append(centerline_1 + centerline_2)
     temp.append(intersection)
-    temp.append(lines)
+    temp.append(vertex)
     print("Processing vertex {} done".format(vertex["point"]))
     return temp
 
@@ -422,7 +431,14 @@ def main(argv=None):
     f.close()
 
     # Prepare input lines for multiprocessing
-    segment_all = flmc.SplitLines(Forest_Line_Feature_Class, outWorkspace, "CL", False)
+    desc = arcpy.Describe(Forest_Line_Feature_Class)
+    oid = desc.oidFieldName
+    flds = []
+    for i in desc.fields:
+        if i.type != "Geometry":  # Only attributes
+            flds.append(i.name)
+
+    segment_all = flmc.SplitLines(Forest_Line_Feature_Class, outWorkspace, "CL", False, KeepFieldName=flds)
     vertex_grp = groupIntersections(segment_all)
 
     pool = multiprocessing.Pool(processes=flmc.GetCores())

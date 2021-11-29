@@ -206,7 +206,8 @@ def GetWorkspace(outWorkName):
     return outWorkspace
 
 
-def SplitLines(linesFc, outWorkspace, toolCodename, ProcessSegments, polygons=None, KeepFieldName=None):
+def SplitLines(linesFc, outWorkspace, toolCodename, ProcessSegments,
+               polygons=None, KeepFieldName=None):
     """
     This function splits the input polyline shapefile (linesFc) into several shapefiles.
     ProcessSegments:
@@ -215,8 +216,8 @@ def SplitLines(linesFc, outWorkspace, toolCodename, ProcessSegments, polygons=No
 
       outWorkspace: where files are placed in
       toolCodename: base name to make subfolder for tools in workspace in format FLM_toolCodename_output
-      KeepFieldName: fields to transfer from the inputs to the outputs.
       polygons: list of lidar coverage polygon geometry with year [(polygon geometry, year), ...]
+      KeepFieldName: fields to transfer from the inputs to the outputs.
 
     Return:
       numLines: total number of segments cached
