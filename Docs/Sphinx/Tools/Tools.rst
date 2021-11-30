@@ -20,7 +20,7 @@ FLM provide tools for enhanced delineation and attribution of linear disturbance
 
   Mapping/CanopyCostRaster.rst
   Mapping/Centerline.rst
-  Mapping/LineFootPrint.rst
+  Mapping/LineFootprint.rst
 
 **Attributes**
 
