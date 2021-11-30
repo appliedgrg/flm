@@ -71,6 +71,7 @@
                     "scriptFile": "Scripts.FLM_VertexOptimization",
                     "paramFile": "\\Scripts\\FLM_VO_params.txt",
                     "image": "../Images/FLM_IO_VertexOptimization.gif",
+                    "tech_link": "https://forest-line-mapper.readthedocs.io/en/latest/Tools/Pre-processing/VertexOptimization.html",
                     "parameters":[
                         {
                             "parameter": "Forest Lines Feature Class",
@@ -111,6 +112,7 @@
                     "scriptFile": "Scripts.FLM_CanopyCost",
                     "paramFile": "\\Scripts\\FLM_CC_params.txt",
                     "image": "../Images/FLM_IO_CanopyCostRaster.gif",
+                    "tech_link": "https://forest-line-mapper.readthedocs.io/en/latest/Tools/Mapping/CanopyCostRaster.html",
                     "parameters":[
                         {
                             "parameter": "Canopy Height Model (CHM) Raster",
@@ -185,6 +187,7 @@
                     "scriptFile": "Scripts.FLM_CenterLine",
                     "paramFile": "\\Scripts\\FLM_CL_params.txt",
                     "image": "../Images/FLM_IO_CenterLine.gif",
+                    "tech_link": "https://forest-line-mapper.readthedocs.io/en/latest/Tools/Mapping/Centerline.html",
                     "parameters":[
                         {
                             "parameter": "Forest Lines Feature Class",
@@ -235,6 +238,7 @@
                     "scriptFile": "Scripts.FLM_LineFootprint",
                     "paramFile": "\\Scripts\\FLM_LFP_params.txt",
                     "image": "../Images/FLM_IO_LineFootprint.gif",
+                    "tech_link": "https://forest-line-mapper.readthedocs.io/en/latest/Tools/Mapping/LineFootprint.html",
                     "parameters":[
                         {
                             "parameter": "Center-lines Feature Class",
@@ -315,6 +319,7 @@
                     "scriptFile": "Scripts.FLM_ForestLineAttributes",
                     "paramFile": "\\Scripts\\FLM_FLA_params.txt",
                     "image": "../Images/FLM_IO_ForestLineAttributes.gif",
+                    "tech_link": "https://forest-line-mapper.readthedocs.io/en/latest/Tools/Attribution/ForestLineAttributes.html",
                     "parameters":[
                         {
                             "parameter": "Input Lines",
@@ -389,6 +394,7 @@
                     "scriptFile": "Scripts.FLM_RasterLineAttributes",
                     "paramFile": "\\Scripts\\FLM_RLA_params.txt",
                     "image": "../Images/FLM_IO_RasterLineAttributes.gif",
+                    "tech_link": "https://forest-line-mapper.readthedocs.io/en/latest/Tools/Attribution/RasterLineAttributes.html",
                     "parameters":[
                         {
                             "parameter": "Input Lines",
@@ -469,6 +475,7 @@
                     "scriptFile": "Scripts.FLM_ClipShapeByRaster",
                     "paramFile": "\\Scripts\\FLM_CSR_params.txt",
                     "image": "../Images/FLM_IO_ClipShapeByRaster.gif",
+                    "tech_link": "https://forest-line-mapper.readthedocs.io/en/latest/Tools/Auxiliary/ClipShapeByRaster.html",
                     "parameters":[
                         {
                             "parameter": "Shapefile",
@@ -511,6 +518,7 @@
                     "scriptFile": "Scripts.FLM_SplitByPolygon",
                     "paramFile": "\\Scripts\\FLM_SBP_params.txt",
                     "image": "../Images/FLM_IO_SBP.gif",
+                    "tech_link": "https://forest-line-mapper.readthedocs.io/en/latest/Tools/Auxiliary/SplitByPolygon.html",
                     "parameters":[
                         {
                             "parameter": "Input Lines",
@@ -545,6 +553,7 @@
                     "scriptFile": "Scripts.FLM_ZonalThreshold",
                     "paramFile": "\\Scripts\\FLM_ZT_params.txt",
                     "image": "../Images/FLM_IO_ZT.gif",
+                    "tech_link": "https://forest-line-mapper.readthedocs.io/en/latest/Tools/Auxiliary/ZonalThreshold.html",
                     "parameters":[
                         {
                             "parameter": "Input Lines",
@@ -617,6 +626,7 @@
                     "scriptFile": "Scripts.FLM_Corridor",
                     "paramFile": "\\Scripts\\FLM_CO_params.txt",
                     "image": "../Images/FLM_IO_CO.gif",
+                    "tech_link": "https://forest-line-mapper.readthedocs.io/en/latest/Tools/Alternative/CorridorFootprint.html",
                     "parameters":[
                         {
                             "parameter": "Centerlines Feature Class",
@@ -675,6 +685,7 @@
                     "scriptFile": "Scripts.FLM_CorridorFootprint",
                     "paramFile": "\\Scripts\\FLM_CFP_params.txt",
                     "image": "../Images/FLM_IO_CFP.gif",
+                    "tech_link": "https://forest-line-mapper.readthedocs.io/en/latest/Tools/Alternative/CorridorRaster.html",
                     "parameters":[
                         {
                             "parameter": "Center-lines Feature Class",
