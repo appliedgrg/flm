@@ -12,6 +12,7 @@
                     "scriptFile": "Scripts.FLM_Pretagging",
                     "paramFile": "\\Scripts\\FLM_PT_params.txt",
                     "image": "../Images/FLM_IO_Pretagging.gif",
+                    "tech_link": "https://forest-line-mapper.readthedocs.io/en/latest/Tools/Pre-processing/Pre-tagging.html",
                     "parameters":[
                         {
                             "parameter": "Input Lines",
