@@ -186,7 +186,7 @@ def groupIntersections(lines):
 
         # Find origin and destination coordinates
         pt_start = {"point": [point_list[0].X, point_list[0].Y], "lines": [[line[0], 0, {"lineNo": line[1]}]]}
-        pt_end = {"point": [point_list[-1].X, point_list[-1].Y], "lines": [[line[0], -1, {"lineNo": line[1]]]}
+        pt_end = {"point": [point_list[-1].X, point_list[-1].Y], "lines": [[line[0], -1, {"lineNo": line[1]}]]}
         appendToGroup(pt_start, vertex_grp)
         appendToGroup(pt_end, vertex_grp)
 
