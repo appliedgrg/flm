@@ -30,6 +30,10 @@ Parameters
 
 * **Output Tagged Line**:	Output features that will be tagged.
 
+Algorithm
+----------
+.. figure:: ../../flowchart_pre-tagging.png
+   :align: center
 
 Notes
 =============
