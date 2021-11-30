@@ -73,6 +73,9 @@
                     //Tool description
                     $("#"+contentId).append("<p>"+tool.info+"</p>");
                     
+                    //Tool description
+                    $("#"+contentId).append("<p> For more infomation, please check the <a href="+tool.tech_link+"> technical documentation </a> </p>");
+                    
                     //Add parameter table and header
                     var pTableId = "pTable_"+toolId;
                     $("#"+contentId).append("<table class='table table-striped'><thead class='thead-light'><tr><th scope='col'>Parameter</th><th scope='col'>Description</th><th scope='col' class='d-none d-md-table-cell'>Type</th><th scope='col' class='d-none d-md-table-cell'>Default</th></tr></thead><tbody id = '"+pTableId+"'></tbody></table>");
