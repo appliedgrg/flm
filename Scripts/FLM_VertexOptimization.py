@@ -496,8 +496,30 @@ def main(argv=None):
 
             for line in sublist[3]["lines"]:
                 index = line[1]
-                pt_array = ptarray_all[line[3]["lineNo"]][0]
-                ptarray_all.update({line[3]["lineNo"]: updatePtInLines(pt_array, index, sublist[2])})
+                lineNo = line[3]["lineNo"]
+                pt_array = ptarray_all[lineNo][0]
+
+                if not pt_array or not sublist[2]:
+                    continue
+                pt_inter = sublist[2]
+                new_intersection = arcpy.Point(pt_inter[0], pt_inter[1])
+                # new_pt_array = updatePtInLines(pt_array, index, sublist[2])
+                if index == 0 or index == -1:
+                    # the first point of first part
+                    # or the last point of the last part
+                    replace_index = 0
+                    if index == -1:
+                        try:
+                            replace_index = len(pt_array[index]) - 1
+                        except Exception as e:
+                            print(e)
+
+                    try:
+                        pt_array[index].replace(replace_index, new_intersection)
+                    except Exception as e:
+                        print(e)
+
+                ptarray_all[lineNo][0] = pt_array
 
 
     # arcpy.Merge_management(cl_list, Out_Centerline)
@@ -518,8 +540,8 @@ def main(argv=None):
             if pt:
                 cursor.insertRow([arcpy.Point(pt[0], pt[1])])
 
-    with arcpy.da.InsertCursor(Out_Centerline, ["SHAPE@"]) as cursor:
-        for line in ptarray_all.values:
+    with arcpy.da.InsertCursor(Out_Centerline, ["SHAPE@"]+flds) as cursor:
+        for line in ptarray_all.values():
             if line:
                 row = [arcpy.Polyline(line[0])]
                 for i in flds:
