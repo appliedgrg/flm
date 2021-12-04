@@ -11,9 +11,11 @@ Python Interface
 Method
 -----------
 Zonal Threshold provide Python method for calling directly:
-.. code-block:: python
+
+.. code-block::
+
     def zonalThreshold(in_line, corridor_thresh, canopy_raster, canopy_search_radius
-                           min_value, max_value, out_line)
+                       min_value, max_value, out_line)
 
 Parameters
 -----------

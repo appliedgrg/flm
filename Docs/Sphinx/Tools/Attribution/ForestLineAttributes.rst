@@ -11,9 +11,11 @@ Python Interface
 Method
 -----------
 Forest Line Atributes provide Python method for calling directly:
+
 .. code-block:: python
-    def lineAttribute(sampling_type, in_line, in_footprint, in_chm, out_line_attribute,
-                      segment_lenght=30, line_split_tolerance=3, max_line_width=25):
+
+   def lineAttribute(sampling_type, in_line, in_footprint, in_chm, out_line_attribute,
+                     segment_lenght=30, line_split_tolerance=3, max_line_width=25):
 
 Parameters
 -----------

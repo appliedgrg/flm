@@ -11,7 +11,9 @@ Python Interface
 Method
 -----------
 Canopy Cost Raster provide Python method for calling directly:
-.. code-block:: python
+
+.. code-block:: python 
+    
     def canopyCost(in_raster,
                    out_canopy_raster, out_cost_raster,
                    height_thresh=1, search_radius=3,

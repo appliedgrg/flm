@@ -11,8 +11,10 @@ Python Interface
 Method
 -----------
 Clip Shape By Raster provide Python method for calling directly:
-.. code-block:: python
-    def clipShapeByRaster(in_line, clip_raster, shrink_size, out_line)
+
+.. code-block:: Python
+   
+   def clipShapeByRaster(in_line, clip_raster, shrink_size, out_line)
 
 Parameters
 -----------

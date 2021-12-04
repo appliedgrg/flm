@@ -11,9 +11,10 @@ Python Interface
 Method
 -----------
 Footprint provide Python method for calling directly:
-.. code-block:: python
-    def lineFootprint(in_center_line, in_canopy_raster, in_cost_raster,
-                      out_footprint,
+
+.. code-block::
+
+    def lineFootprint(in_center_line, in_canopy_raster, in_cost_raster, out_footprint,
                       corridor_thresh="CorridorTh", max_line_width=10,
                       expand_shrink_range=0, process_segments=False):
 

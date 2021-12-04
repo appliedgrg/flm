@@ -11,9 +11,11 @@ Python Interface
 Method
 -----------
 Raster Line Attributes provide Python method for calling directly:
-.. code-block:: python
-    def rasterAttribute(sampling_type, in_line, in_footprint, in_chm, out_line_attribute,
-                      segment_lenght=30, line_split_tolerance=3, max_line_width=25):
+
+.. code-block::
+  
+   def rasterAttribute(sampling_type, in_line, in_footprint, in_chm, out_line_attribute,
+                       segment_lenght=30, line_split_tolerance=3, max_line_width=25):
 
 Parameters
 -----------

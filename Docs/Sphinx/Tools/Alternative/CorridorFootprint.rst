@@ -11,8 +11,10 @@ Python Interface
 Method
 -----------
 Corridor Footprint provide Python method for calling directly:
+
 .. code-block:: python
-    def corridorFootprint(in_line, in_canopy_raster, in_corridor_raster, corridor_thresh, max_line_width, expand_shrink_range, out_footprint)
+   
+   def corridorFootprint(in_line, in_canopy_raster, in_corridor_raster, corridor_thresh, max_line_width, expand_shrink_range, out_footprint)
 
 Parameters
 -----------

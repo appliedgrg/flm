@@ -11,8 +11,10 @@ Python Interface
 Method
 -----------
 Split By Polygon provide Python method for calling directly:
-.. code-block:: python
-    def splitByPolygon(in_line, split_polygon, out_line)
+
+.. code-block::
+  
+   def splitByPolygon(in_line, split_polygon, out_line)
 
 Parameters
 -----------
