@@ -11,7 +11,9 @@ Python Interface
 Method
 -----------
 Vertex Optimization provide Python method for calling directly:
-.. code-block:: python
+
+.. code-block::
+  
     def vertexOptimization(in_line, in_cost_raster, out_center_line, line_radius=35)
 
 Parameters

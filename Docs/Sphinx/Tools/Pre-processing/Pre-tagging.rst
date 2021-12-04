@@ -11,10 +11,11 @@ Python Interface
 Method
 -----------
 Pre-tagging provide Python method for calling directly:
-.. code-block:: python
+
+.. code-block::
+
     def preTagging(in_center_line, in_chm, in_canopy_raster, in_cost_raster, in_lidar_year,
-                   out_tagged_line, corridor_thresh="CorridorTh", max_line_width=10,
-                   process_segments=False):
+                   out_tagged_line, corridor_thresh="CorridorTh", max_line_width=10, process_segments=False):
 
 Parameters
 -----------
@@ -30,6 +31,10 @@ Parameters
 
 * **Output Tagged Line**:	Output features that will be tagged.
 
+Algorithm
+----------
+.. figure:: ../../flowchart_pre-tagging.png
+   :align: center
 
 Notes
 =============

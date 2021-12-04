@@ -51,31 +51,25 @@ def PathFile(path):
     return path[path.rfind("\\") + 1:]
 
 
-def updatePtInLines(vertex, point):
-
-    line_list = []
+def updatePtInLines(pt_array, index, point):
 
     if point:
-        for line in vertex["lines"]:
-            pt_array = line[0].getPart()
-            index = line[1]
-            if index == 0 or index == -1:
-                # the first point of first part
-                # or the last point of the last part
-                replace_index = 0
-                if index == -1:
-                    replace_index = len(pt_array[index])-1
-
+        if index == 0 or index == -1:
+        # the first point of first part
+        # or the last point of the last part
+            replace_index = 0
+            if index == -1:
                 try:
-                    pt_array[index].replace(replace_index, arcpy.Point(point[0], point[1]))
-                    # pt_array[index].remove(index)
-                    # pt_array[index].insert(index, arcpy.Point(point[0], point[1]))
+                    replace_index = len(pt_array[index])-1
                 except Exception as e:
                     print(e)
 
-            line_list.append(arcpy.Polyline(pt_array))
+            try:
+                pt_array[index].replace(replace_index, arcpy.Point(point[0], point[1]))
+            except Exception as e:
+                print(e)
 
-    return line_list
+    return pt_array
 
 
 def arcpyLineToPlainLine(line):
@@ -481,6 +475,14 @@ def main(argv=None):
     inter_list = []
     cl_list = []
 
+    # Dump all polylines into point array for vertex updates
+    ptarray_all = {}
+    for i in segment_all:
+        pt = []
+        pt.append(i[0].getPart())
+        pt.append(i[2])
+        ptarray_all[i[1]] = pt
+
     for sublist in centerlines:
         if not sublist:
             continue
@@ -492,8 +494,33 @@ def main(argv=None):
 
             inter_list.append(sublist[2])
 
-            for line in sublist[3]:
-                cl_list.append(line)
+            for line in sublist[3]["lines"]:
+                index = line[1]
+                lineNo = line[3]["lineNo"]
+                pt_array = ptarray_all[lineNo][0]
+
+                if not pt_array or not sublist[2]:
+                    continue
+                pt_inter = sublist[2]
+                new_intersection = arcpy.Point(pt_inter[0], pt_inter[1])
+                # new_pt_array = updatePtInLines(pt_array, index, sublist[2])
+                if index == 0 or index == -1:
+                    # the first point of first part
+                    # or the last point of the last part
+                    replace_index = 0
+                    if index == -1:
+                        try:
+                            replace_index = len(pt_array[index]) - 1
+                        except Exception as e:
+                            print(e)
+
+                    try:
+                        pt_array[index].replace(replace_index, new_intersection)
+                    except Exception as e:
+                        print(e)
+
+                ptarray_all[lineNo][0] = pt_array
+
 
     # arcpy.Merge_management(cl_list, Out_Centerline)
     # write all new intersections
@@ -513,10 +540,14 @@ def main(argv=None):
             if pt:
                 cursor.insertRow([arcpy.Point(pt[0], pt[1])])
 
-    with arcpy.da.InsertCursor(Out_Centerline, ["SHAPE@"]) as cursor:
-        for line in cl_list:
+    with arcpy.da.InsertCursor(Out_Centerline, ["SHAPE@"]+flds) as cursor:
+        for line in ptarray_all.values():
             if line:
-                cursor.insertRow([line])
+                row = [arcpy.Polyline(line[0])]
+                for i in flds:
+                    row.append(line[1][i])
+
+                cursor.insertRow(row)
 
     # TODO: inspect CorridorTh
     if arcpy.Exists(Out_Centerline):

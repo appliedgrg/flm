@@ -11,7 +11,9 @@ Python Interface
 Method
 -----------
 Centerline provide Python method for calling directly:
-.. code-block:: python
+
+.. code-block::
+
     def centerline(in_line, in_cost_raster, out_center_line,
                    line_radius=35, process_segments=True)
 

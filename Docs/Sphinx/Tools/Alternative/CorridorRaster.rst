@@ -11,7 +11,9 @@ Python Interface
 Method
 -----------
 Corridor Raster provide Python method for calling directly:
+
 .. code-block:: python
+
     def corridorRaster(in_line, in_canopy_raster, in_cost_raster, max_line_width, process_segment, out_raster)
 
 Parameters
