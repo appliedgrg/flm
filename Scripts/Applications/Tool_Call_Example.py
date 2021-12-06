@@ -52,8 +52,11 @@ def main():
     # FLM_Tools.preTagging(in_line, in_chm, in_canopy_raster, in_cost_raster, in_lidar_year, out_tagged_line)
     # FLM_Tools.centerline(in_line, in_cost_raster, out_center_line)
     # FLM_Tools.lineFootprint(in_line, in_canopy_raster, in_cost_raster, out_footprint)
+    FLM_Tools.lineAttribute("WHOLE-LINE", out_center_line, out_footprint, in_chm, out_attribute_whole)
+    # FLM_Tools.lineAttribute("ARBITRARY", out_center_line, out_footprint, in_chm, out_attribute_arbitrary)
+    # FLM_Tools.lineAttribute("IN-FEATURES", out_center_line, out_footprint, in_chm, out_attribute_in_features)
     # FLM_Tools.lineAttribute("LINE-CROSSINGS", out_center_line, out_footprint, in_chm, out_attribute_line_crossings)
-    FLM_Tools.vertexOptimization(in_line, in_cost_raster, out_center_line_optimize)
+    # FLM_Tools.vertexOptimization(in_line, in_cost_raster, out_center_line_optimize)
 
 
 if __name__ == "__main__":
