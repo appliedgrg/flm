@@ -642,7 +642,7 @@
                     "scriptFile": "Scripts.FLM_Corridor",
                     "paramFile": "\\Scripts\\FLM_CO_params.txt",
                     "image": "../Images/FLM_IO_CO.gif",
-                    "tech_link": "https://forest-line-mapper.readthedocs.io/en/latest/Tools/Alternative/CorridorFootprint.html",
+                    "tech_link": "https://forest-line-mapper.readthedocs.io/en/latest/Tools/Alternative/CorridorRaster.html",
                     "parameters":[
                         {
                             "parameter": "Centerlines Feature Class",
@@ -701,7 +701,7 @@
                     "scriptFile": "Scripts.FLM_CorridorFootprint",
                     "paramFile": "\\Scripts\\FLM_CFP_params.txt",
                     "image": "../Images/FLM_IO_CFP.gif",
-                    "tech_link": "https://forest-line-mapper.readthedocs.io/en/latest/Tools/Alternative/CorridorRaster.html",
+                    "tech_link": "https://forest-line-mapper.readthedocs.io/en/latest/Tools/Alternative/CorridorFootprint.html",
                     "parameters":[
                         {
                             "parameter": "Center-lines Feature Class",
