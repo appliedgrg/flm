@@ -41,9 +41,8 @@ import FLM_Common as flmc
 
 workspaceName = "FLM_PT_output"
 outWorkspace = ""
-Corridor_Threshold_Field = ""
-Maximum_distance_from_centerline = 0
-
+Maximum_distance_from_centerline = 32
+ProcessSegments = False  # keep whole line by default
 
 def PathFile(path):
     return path[path.rfind("\\") + 1:]
@@ -172,14 +171,12 @@ def workLinesMem(segment_info):
     f = open(outWorkspace + "\\params.txt")
     outWorkspace = f.readline().strip()
     Centerline_Feature_Class = f.readline().strip()
+    In_CHM = f.readline().strip()
     Canopy_Raster = f.readline().strip()
     Cost_Raster = f.readline().strip()
-    Corridor_Threshold_Field = f.readline().strip()
-    Maximum_distance_from_centerline = float(f.readline().strip())
-    In_CHM = f.readline().strip()
-    Process_Segments = f.readline().strip()
-    Out_Tagged_Line = f.readline().strip()
     In_Lidar_Year = f.readline().strip()
+    Maximum_distance_from_centerline = float(f.readline().strip())
+    Out_Tagged_Line = f.readline().strip()
     f.close()
 
     # Determine line existence by LiDAR year
@@ -195,7 +192,7 @@ def workLinesMem(segment_info):
     # TODO: this is constant, but need to be investigated.
     Corridor_Threshold = 3
     lineNo = segment_info[1]  # second element is the line No.
-    #outWorkspaceMem = r"memory"
+    outWorkspaceMem = r"memory"
 
     # Temporary files
     fileSeg = os.path.join(outWorkspaceMem, "FLM_PT_Segment_" + str(lineNo))
@@ -391,48 +388,44 @@ def main(argv=None):
     # Tool arguments
     global Centerline_Feature_Class
     Centerline_Feature_Class = args[0].rstrip()
-    global Canopy_Raster
-    Canopy_Raster = args[1].rstrip()
-    global Cost_Raster
-    Cost_Raster = args[2].rstrip()
-    global Corridor_Threshold_Field
-    Corridor_Threshold_Field = args[3].rstrip()
-    global Maximum_distance_from_centerline
-    Maximum_distance_from_centerline = float(args[4].rstrip()) / 2.0
     global In_CHM
-    In_CHM = args[5].rstrip()
-    global ProcessSegments
-    ProcessSegments = args[6].rstrip() == "True"
-    global Out_Tagged_Line
-    Out_Tagged_Line = args[7].rstrip()
+    In_CHM = args[1].rstrip()
+    global Canopy_Raster
+    Canopy_Raster = args[2].rstrip()
+    global Cost_Raster
+    Cost_Raster = args[3].rstrip()
     global In_Lidar_Year
-    In_Lidar_Year = args[8].rstrip()
+    In_Lidar_Year = args[4].rstrip()
+    global Maximum_distance_from_centerline
+    Maximum_distance_from_centerline = float(args[5].rstrip()) / 2.0
+    global Out_Tagged_Line
+    Out_Tagged_Line = args[6].rstrip()
     outWorkspace = flmc.SetupWorkspace(workspaceName)
 
     # write params to text file
     f = open(outWorkspace + "\\params.txt", "w")
     f.write(outWorkspace + "\n")
     f.write(Centerline_Feature_Class + "\n")
+    f.write(In_CHM + "\n")
     f.write(Canopy_Raster + "\n")
     f.write(Cost_Raster + "\n")
-    f.write(Corridor_Threshold_Field + "\n")
+    f.write(In_Lidar_Year + "\n")
     f.write(str(Maximum_distance_from_centerline) + "\n")
-    f.write(In_CHM + "\n")
-    f.write(str(ProcessSegments) + "\n")
     f.write(Out_Tagged_Line + "\n")
     f.close()
 
     # TODO: this code block should turn into building keeping fields
     # now only Corridor_Threshold_Field is kept
-    if not HasField(Centerline_Feature_Class, Corridor_Threshold_Field):
-        flmc.log("ERROR: There is no field named " + Corridor_Threshold_Field + " in the input lines")
-        return False
+    # if not HasField(Centerline_Feature_Class, Corridor_Threshold_Field):
+    #     flmc.log("ERROR: There is no field named " + Corridor_Threshold_Field + " in the input lines")
+    #     return False
 
     polygons = retrievePolygons(In_Lidar_Year)
 
     # Prepare input lines for multiprocessing
+    global ProcessSegments
     segment_all = flmc.SplitLines(Centerline_Feature_Class, outWorkspace,
-                                  "LFP", ProcessSegments, polygons, ["YEAR"])
+                                  "LFP", ProcessSegments, ["YEAR"], polygons)
 
     # TODO: inspect how GetCores works. Make sure it uses all the CPU cores
     pool = multiprocessing.Pool(processes=flmc.GetCores())
