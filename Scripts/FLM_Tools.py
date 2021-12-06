@@ -39,8 +39,7 @@ def canopyCost(in_raster,
 
 
 def preTagging(in_center_line, in_chm, in_canopy_raster, in_cost_raster, in_lidar_year,
-               out_tagged_line, corridor_thresh="CorridorTh", max_line_width=10,
-               process_segments=False):
+               out_tagged_line, corridor_thresh="CorridorTh", max_line_width=32):
     """
     Generate line footprint
     """
@@ -48,14 +47,12 @@ def preTagging(in_center_line, in_chm, in_canopy_raster, in_cost_raster, in_lida
     print("Tagging lines: ", out_tagged_line)
     argv = [None] * 9
     argv[0] = in_center_line  # center line
-    argv[1] = in_canopy_raster  # canopy raster
-    argv[2] = in_cost_raster  # Cost raster
-    argv[3] = corridor_thresh  # corridor threshold field
-    argv[4] = str(max_line_width)  # maximam line width
-    argv[5] = in_chm
-    argv[6] = str(process_segments)  # process segments
-    argv[7] = out_tagged_line  # Output line foot print
-    argv[8] = in_lidar_year  # Input LiDAR coverage with acquisition year
+    argv[1] = in_chm
+    argv[2] = in_canopy_raster  # canopy raster
+    argv[3] = in_cost_raster  # Cost raster
+    argv[4] = in_lidar_year  # Input LiDAR coverage with acquisition year
+    argv[5] = str(max_line_width)  # maximam line width
+    argv[6] = out_tagged_line  # Output line foot print
 
     if not os.path.exists(in_center_line):
         print("Input line file {} not exists, ignore.".format(in_center_line))
@@ -68,16 +65,17 @@ def preTagging(in_center_line, in_chm, in_canopy_raster, in_cost_raster, in_lida
     FLM_Pretagging.main(argv)
 
 
-def vertexOptimization(in_line, in_cost_raster, out_center_line, line_radius=35):
+def vertexOptimization(in_line, in_cost_raster, out_center_line, line_process_radius=35):
     """
     Optimize vertices
+    TODO:
     """
 
     print("Processing center line: ", out_center_line)
-    argv = [None] * 5
+    argv = [None] * 4
     argv[0] = in_line  # input line
     argv[1] = in_cost_raster  # Cost raster
-    argv[2] = str(line_radius)  # line process radius
+    argv[2] = str(line_process_radius)  # line process radius
     argv[3] = out_center_line  # Output center line
 
     if not os.path.exists(in_line):
@@ -150,7 +148,7 @@ def lineAttribute(sampling_type, in_line, in_footprint, in_chm, out_line_attribu
                   segment_lenght=30, line_split_tolerance=3, max_line_width=25):
     """
     Generate line attribute
-    sampling_type: IN_FEATURES, WHOLE_LINE, LINE_CROSSINGS, ARBITRARY
+    sampling_type: IN-FEATURES, WHOLE-LINE, LINE-CROSSINGS, ARBITRARY
     """
 
     print("Processing forest line attributes {0} under mode {1}".format(out_line_attribute, sampling_type))
