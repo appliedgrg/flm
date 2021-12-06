@@ -207,7 +207,7 @@ def GetWorkspace(outWorkName):
 
 
 def SplitLines(linesFc, outWorkspace, toolCodename, ProcessSegments,
-               polygons=None, KeepFieldName=None):
+               KeepFieldName=None, polygons=None):
     """
     This function splits the input polyline shapefile (linesFc) into several shapefiles.
     ProcessSegments:
