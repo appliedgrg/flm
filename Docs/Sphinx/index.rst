@@ -2,6 +2,7 @@
 ======================
 Forest Line Mapper
 ======================
+.. figure:: ../../Images/FLM_banner.png
 
 .. toctree::
    :maxdepth: 2
