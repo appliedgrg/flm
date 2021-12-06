@@ -7,15 +7,14 @@ Forest Line Mapper
    :maxdepth: 2
    :hidden:
 
+   Installation.rst
    Tools/Tools.rst
+   ProgrammingGuide.rst
    Bibliography.rst
 
 
 FLM is a series of script tools for facilitating the high-resolution mapping and studying of forest lines (petroleum exploration corridors in forested areas) via processing canopy height models (LiDAR or photogrammetry derived raster images where pixel-values represent the ground-height of vegetation).
 
-
-Why another library
--------------------
 
 Motivation
 -------------------
@@ -25,7 +24,7 @@ Given that the process of manually digitizing detailed small-scale (boreal) fore
 FLM overview
 -------------------------
 
-OpenMVG is cut in various modules:
+FLM is cut in various modules:
 
 * **Scripts**, core modules,
 
@@ -41,8 +40,7 @@ OpenMVG is cut in various modules:
 
 Dependencies
 --------------
-FLM is built using ArcGIS Pro Anaconda distribution, you need to install a clone of Arcpy to make FLM run. Please refer to Installation for setting up the environment.
-On Linux openMVG will use the local png, zlib and jpeg libraries if they are available.
+FLM is built using ArcGIS Pro Anaconda distribution, you need to install a clone of Arcpy to make FLM run. Please refer to :doc:`Installation` for setting up the environment.
 
 Cite Us
 =======

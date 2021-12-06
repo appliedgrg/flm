@@ -33,7 +33,7 @@ Parameters
 
 Algorithm
 ----------
-.. figure:: ../../flowchart_pre-tagging.png
+.. figure:: ../../Images/flowchart_pre-tagging.png
    :align: center
 
 Notes
