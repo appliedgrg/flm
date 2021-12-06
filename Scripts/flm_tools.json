@@ -55,6 +55,14 @@
                             "output": false
                         },
                         {
+                            "parameter": "Line Processing Radius",
+                            "description": "Maximum processing distance from input lines. A large search radius may increase processing times whereas a small radius may cause undesired clipping.",
+                            "type": "number",
+                            "typelab": "number",
+                            "default": "35",
+                            "output": false
+                        },
+                        {
                             "parameter": "Output Tagged Line",
                             "description": "Output features that will be tagged.",
                             "type": ".shp",
@@ -87,6 +95,14 @@
                             "type": ".tif",
                             "typelab": "TIF",
                             "default": "",
+                            "output": false
+                        },
+                        {
+                            "parameter": "Line Processing Radius",
+                            "description": "Maximum processing distance from input lines. A large search radius may increase processing times whereas a small radius may cause undesired clipping.",
+                            "type": "number",
+                            "typelab": "number",
+                            "default": "35",
                             "output": false
                         },
                         {
