@@ -375,6 +375,11 @@ def main(argv=None):
     f.write(str(heightAnalysis) + "\n")
     f.close()
 
+    # Only process the following SampleingType
+    if SamplingType not in ["IN-FEATURES", "WHOLE-LINE", "LINE-CROSSINGS", "ARBITRARY"]:
+        print("SamplingType is not correct, please verify it.")
+        return
+
     # Temporary layers
     fileBuffer = outWorkspace + "\\FLM_SLA_Buffer.shp"
     fileIdentity = outWorkspace + "\\FLM_SLA_Identity.shp"
