@@ -118,7 +118,7 @@ def lineFootprint(in_center_line, in_canopy_raster, in_cost_raster,
                    out_footprint,
                    corridor_thresh="CorridorTh", max_line_width=10,
                    expand_shrink_range=0, process_segments=False,
-                   corridor_threshold = 3):
+                   corridor_threshold=3):
     """
     Generate line footprint
     """
