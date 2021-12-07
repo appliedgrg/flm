@@ -232,10 +232,9 @@ def workLinesMemory(segment_info):
     Corridor_Threshold_Field = f.readline().strip()
     Maximum_distance_from_centerline = float(f.readline().strip())
     Expand_And_Shrink_Cell_Range = f.readline().strip()
+    Corridor_Threshold = f.readline().strip()
     f.close()
 
-    # TODO: this is constant, but need to be investigated.
-    Corridor_Threshold = 3
     lineNo = segment_info[1]  # second element is the line No.
     outWorkspaceMem = r"memory"
 
@@ -440,11 +439,13 @@ def main(argv=None):
     Expand_And_Shrink_Cell_Range = args[5].rstrip()
     global ProcessSegments
     ProcessSegments = args[6].rstrip() == "True"
-    global Output_Footprint
+    global Corridor_Threshold
     Output_Footprint = args[7].rstrip()
+    global Output_Footprint
+    Output_Footprint = args[8].rstrip()
     outWorkspace = flmc.SetupWorkspace(workspaceName)
 
-    # write params to text file
+    # write params to text file for use in function workLinesMemory
     f = open(outWorkspace + "\\params.txt", "w")
     f.write(outWorkspace + "\n")
     f.write(Centerline_Feature_Class + "\n")
@@ -453,6 +454,7 @@ def main(argv=None):
     f.write(Corridor_Threshold_Field + "\n")
     f.write(str(Maximum_distance_from_centerline) + "\n")
     f.write(Expand_And_Shrink_Cell_Range + "\n")
+    f.write(str(Corridor_Threshold) + "\n")
     f.close()
 
     # TODO: this code block is not necessary

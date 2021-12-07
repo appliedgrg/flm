@@ -117,7 +117,8 @@ def centerline(in_line, in_cost_raster, out_center_line,
 def lineFootprint(in_center_line, in_canopy_raster, in_cost_raster,
                    out_footprint,
                    corridor_thresh="CorridorTh", max_line_width=10,
-                   expand_shrink_range=0, process_segments=False):
+                   expand_shrink_range=0, process_segments=False,
+                   corridor_threshold = 3):
     """
     Generate line footprint
     """
@@ -131,7 +132,8 @@ def lineFootprint(in_center_line, in_canopy_raster, in_cost_raster,
     argv[4] = str(max_line_width)  # maximam line width
     argv[5] = str(expand_shrink_range)  # expand and shrink cell range
     argv[6] = str(process_segments)  # process segments
-    argv[7] = out_footprint  # Output line foot print
+    argv[7] = str(corridor_threshold)
+    argv[8] = out_footprint  # Output line foot print
 
     if not os.path.exists(in_center_line):
         print("Input line file {} not exists, ignore.".format(in_center_line))
