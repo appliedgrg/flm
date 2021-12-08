@@ -230,9 +230,9 @@ def workLinesMemory(segment_info):
     Canopy_Raster = f.readline().strip()
     Cost_Raster = f.readline().strip()
     Corridor_Threshold_Field = f.readline().strip()
+    Corridor_Threshold = float(f.readline().strip())
     Maximum_distance_from_centerline = float(f.readline().strip())
     Expand_And_Shrink_Cell_Range = f.readline().strip()
-    Corridor_Threshold = f.readline().strip()
     f.close()
 
     lineNo = segment_info[1]  # second element is the line No.
@@ -433,14 +433,14 @@ def main(argv=None):
     Cost_Raster = args[2].rstrip()
     global Corridor_Threshold_Field
     Corridor_Threshold_Field = args[3].rstrip()
-    global Maximum_distance_from_centerline
-    Maximum_distance_from_centerline = float(args[4].rstrip()) / 2.0
-    global Expand_And_Shrink_Cell_Range
-    Expand_And_Shrink_Cell_Range = args[5].rstrip()
-    global ProcessSegments
-    ProcessSegments = args[6].rstrip() == "True"
     global Corridor_Threshold
-    Output_Footprint = args[7].rstrip()
+    Corridor_Threshold = args[4].rstrip()
+    global Maximum_distance_from_centerline
+    Maximum_distance_from_centerline = float(args[5].rstrip()) / 2.0
+    global Expand_And_Shrink_Cell_Range
+    Expand_And_Shrink_Cell_Range = args[6].rstrip()
+    global ProcessSegments
+    ProcessSegments = args[7].rstrip() == "True"
     global Output_Footprint
     Output_Footprint = args[8].rstrip()
     outWorkspace = flmc.SetupWorkspace(workspaceName)
@@ -452,9 +452,9 @@ def main(argv=None):
     f.write(Canopy_Raster + "\n")
     f.write(Cost_Raster + "\n")
     f.write(Corridor_Threshold_Field + "\n")
+    f.write(Corridor_Threshold + "\n")
     f.write(str(Maximum_distance_from_centerline) + "\n")
     f.write(Expand_And_Shrink_Cell_Range + "\n")
-    f.write(str(Corridor_Threshold) + "\n")
     f.close()
 
     # TODO: this code block is not necessary

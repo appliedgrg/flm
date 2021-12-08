@@ -121,10 +121,11 @@ def lineFootprint(in_center_line, in_canopy_raster, in_cost_raster,
                    corridor_threshold=3):
     """
     Generate line footprint
+
     """
 
     print("Processing canopy line footprint: ", out_footprint)
-    argv = [None] * 8
+    argv = [None] * 9
     argv[0] = in_center_line  # center line
     argv[1] = in_canopy_raster  # canopy raster
     argv[2] = in_cost_raster  # Cost raster
