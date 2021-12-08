@@ -143,7 +143,7 @@
                             "description": "Height threshold in meters above which CHM pixels are considered canopy.",
                             "type": "number",
                             "typelab": "number",
-                            "default": "1",
+                            "default": "0.5",
                             "output": false
                         },
                         {
@@ -151,7 +151,7 @@
                             "description": "Radius of canopy influence in the cost raster. This factor smooths the canopy in the cost raster which helps to prevent gaps in sparsely vegetated areas (e.g. wetlands) to be incorrectly identified as footprint. A large search radius (>=5m) may cause excessive smoothing of the cost raster which can lead to least cost paths ignoring forest-line nuances in sparsely vegetated forests. A small radius (<=1m) may cause the least cost path to cut corners through small gaps in sparse vegetation as well as avoid small obstacles that should not affect overall line shape.",
                             "type": "number",
                             "typelab": "number",
-                            "default": "3",
+                            "default": "1.5",
                             "output": false
                         },
                         {
@@ -159,7 +159,7 @@
                             "description": "Maximum euclidean distance from canopy. This is a second smoothing factor which helps to position the forest line shape in the center of the line footprint. An excessively small (<=1m) or large (>20m) value may cause the center line to be positioned close to one of the edges of the footprint.",
                             "type": "number",
                             "typelab": "number",
-                            "default": "10",
+                            "default": "1.5",
                             "output": false
                         },
                         {
@@ -167,7 +167,7 @@
                             "description": "Ratio of importance between canopy search radius and euclidean distance. A value close to zero (0) prioritizes search radius whereas a value close to one (1) prioritizes euclidean distance. A small value (<=0.1) may cause the forest lines to miss nuances in sparsely vegetated terrain whereas a big value (>=0.5) may overemphasize turns in complex trails. This factor influences final footprint size in a minor way.",
                             "type": "number",
                             "typelab": "number",
-                            "default": "0.3",
+                            "default": "0.0",
                             "output": false
                         },
                         {
@@ -175,7 +175,7 @@
                             "description": "Affects the cost of vegetated areas in an exponential fashion. A low (<=1) exponent may lead to lines cutting through corners, whereas a large (>=3) exponent may lead to least cost paths completely avoiding narrow lines.",
                             "type": "number",
                             "typelab": "number",
-                            "default": "1.5",
+                            "default": "1",
                             "output": false
                         },
                         {
@@ -226,7 +226,7 @@
                             "description": "Maximum processing distance from input lines. A large search radius may increase processing times whereas a small radius may cause undesired clipping.",
                             "type": "number",
                             "typelab": "number",
-                            "default": "35",
+                            "default": "15",
                             "output": false
                         },
                         {
