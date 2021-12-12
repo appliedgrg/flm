@@ -44,7 +44,6 @@ import FLM_Common as flmc
 workspaceName = "FLM_VO_output"
 DISTANCE_THRESHOLD = 2  # 1 meter for intersection neighbourhood
 SEGMENT_LENGTH = 20  # Distance (meter) from intersection to anchor points
-EPSILON = 1e-9
 
 
 def PathFile(path):
@@ -193,7 +192,6 @@ def getSlope(line, end_index):
     line: ArcPy Polyline
     end_index: 0 or -1 of the the line vertices. Consider the multipart.
     """
-    global EPSILON
 
     pt = ptsInLine(line)
 
@@ -204,7 +202,7 @@ def getSlope(line, end_index):
         pt_1 = pt[-1]
         pt_2 = pt[-2]
 
-    if math.isclose(pt_1.X, pt_2.X, abs_tol=EPSILON):
+    if math.isclose(pt_1.X, pt_2.X, abs_tol=flmc.EPSILON):
         return math.inf
     else:
         return (pt_1.Y - pt_2.Y) / (pt_1.X - pt_2.X)
@@ -300,7 +298,7 @@ def leastCostPath(Cost_Raster, anchors, Line_Processing_Radius):
     fileCenterline = os.path.join(outWorkspaceMem, "FLM_VO_Centerline_" + str(lineNo))
 
     # line from points
-    # TODO change the way to set spatial reference
+    # TODO: change the way to set spatial reference
     x1 = anchors[0][0]
     y1 = anchors[0][1]
     x2 = anchors[1][0]
@@ -425,14 +423,9 @@ def main(argv=None):
     f.close()
 
     # Prepare input lines for multiprocessing
-    desc = arcpy.Describe(Forest_Line_Feature_Class)
-    oid = desc.oidFieldName
-    flds = []
-    for i in desc.fields:
-        if i.type != "Geometry":  # Only attributes
-            flds.append(i.name)
+    fields = flmc.GetAllFieldsFromShp(Forest_Line_Feature_Class)
 
-    segment_all = flmc.SplitLines(Forest_Line_Feature_Class, outWorkspace, "CL", False, KeepFieldName=flds)
+    segment_all = flmc.SplitLines(Forest_Line_Feature_Class, outWorkspace, "CL", False, KeepFieldName=fields)
     vertex_grp = groupIntersections(segment_all)
 
     pool = multiprocessing.Pool(processes=flmc.GetCores())
@@ -540,11 +533,11 @@ def main(argv=None):
             if pt:
                 cursor.insertRow([arcpy.Point(pt[0], pt[1])])
 
-    with arcpy.da.InsertCursor(Out_Centerline, ["SHAPE@"]+flds) as cursor:
+    with arcpy.da.InsertCursor(Out_Centerline, ["SHAPE@"] + fields) as cursor:
         for line in ptarray_all.values():
             if line:
                 row = [arcpy.Polyline(line[0])]
-                for i in flds:
+                for i in fields:
                     row.append(line[1][i])
 
                 cursor.insertRow(row)
