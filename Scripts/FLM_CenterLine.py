@@ -327,8 +327,7 @@ def main(argv=None):
 
     # Flatten centerlines which is a list of list
     flmc.log("Writing centerlines to shapefile...")
-    # TODO: is this necessary? Since we need list of single line next
-    # cl_list = [item for sublist in centerlines for item in sublist]
+
     cl_list = []
     for sublist in centerlines:
         if len(sublist) > 0:
@@ -341,6 +340,8 @@ def main(argv=None):
             cursor.insertRow([line])
 
     # TODO: inspect CorridorTh
+    #       CorridorTh is added to footprint tool as new parameter
+    #       This can be removed after testing
     if arcpy.Exists(Out_Centerline):
         arcpy.AddField_management(Out_Centerline, "CorridorTh", "DOUBLE")
         arcpy.CalculateField_management(Out_Centerline, "CorridorTh", "3")

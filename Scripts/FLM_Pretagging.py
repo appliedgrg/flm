@@ -29,6 +29,7 @@
 # System imports
 import os
 import multiprocessing
+import math
 
 from statistics import *
 
@@ -146,13 +147,28 @@ def tagLine(footprint_list, in_chm, in_line):
     except Exception as e:
         print(e)
 
-    # determine if line exist
-    if pt_stats and pt_stats[0] < 0.5:
-        lineExistence = True
-    else:
-        lineExistence = False
+    # determine if line status: confirmed, unconfirmed and invisible
+    def validStats(stats):
+        """Check if there is value in list stats is not close to flmc.EPSILON
+        If there is at least one such value, return Ture,
+        or return False, which means list like [-9999, -9999, ..., -9999]"""
 
-    return [str(lineExistence)] + list(pt_stats) + list(pt_stats_buffer)
+        isValid = False
+        for i in stats:
+            if not math.isclose(i, flmc.NO_DATA, rel_tol=flmc.EPSILON):
+                isValid = True
+
+        return isValid
+
+    # TODO: need more sophisticated rules to determine line status
+    if pt_stats and pt_stats[0] < 0.5:
+        lineExistence = "confirmed"
+    elif not validStats(pt_stats):
+        lineExistence = "unconfirmed"
+    else:
+        lineExistence = "invisible"
+
+    return [lineExistence] + list(pt_stats) + list(pt_stats_buffer)
 
 
 def workLinesMem(segment_info):
@@ -160,7 +176,7 @@ def workLinesMem(segment_info):
     New version of worklines. It uses memory workspace instead of shapefiles.
     The refactoring is to accelerate the processing speed.
     """
-    failed_line = (segment_info[0], ("False", -9999.0, -9999.0, -9999.0, -9999.0, -9999.0, -9999.0, -9999.0, -9999.0))
+    failed_line = (segment_info[0], ("False", -9999.0, -9999.0, -9999.0, -9999.0, -9999.0, -9999.0, -9999.0, -9999.0), segment_info[2])
     # input verification
     if segment_info is None or len(segment_info) <= 1:
         print("Input segment is corrupted, ignore")
@@ -184,7 +200,7 @@ def workLinesMem(segment_info):
 
     if existenceByLiDARYear(segment_info):
         line_exist[0] = True
-        return segment_info[0], line_exist
+        return segment_info[0], line_exist, segment_info[2]
 
     # TODO: remove this parameter
     Expand_And_Shrink_Cell_Range = 0
@@ -361,7 +377,7 @@ def workLinesMem(segment_info):
         print("Line Footprint: Deleting temporary file failed. Inspect later.")
         return failed_line
 
-    return segment_info[0], line_exist
+    return segment_info[0], line_exist, segment_info[2]
 
 def HasField(fc, fi):
     fieldnames = [field.name for field in arcpy.ListFields(fc)]
@@ -414,18 +430,17 @@ def main(argv=None):
     f.write(Out_Tagged_Line + "\n")
     f.close()
 
-    # TODO: this code block should turn into building keeping fields
-    # now only Corridor_Threshold_Field is kept
-    # if not HasField(Centerline_Feature_Class, Corridor_Threshold_Field):
-    #     flmc.log("ERROR: There is no field named " + Corridor_Threshold_Field + " in the input lines")
-    #     return False
+    # Remind if Status field is already in Shapefile
+    if HasField(Centerline_Feature_Class, "Status"):
+        print("{} has Status field, it will be overwritten.".format(Centerline_Feature_Class))
 
     polygons = retrievePolygons(In_Lidar_Year)
 
     # Prepare input lines for multiprocessing
+    fields = flmc.GetAllFieldsFromShp(Centerline_Feature_Class)
     global ProcessSegments
     segment_all = flmc.SplitLines(Centerline_Feature_Class, outWorkspace,
-                                  "LFP", ProcessSegments, ["YEAR"], polygons)
+                                  "LFP", ProcessSegments, fields, polygons)
 
     # TODO: inspect how GetCores works. Make sure it uses all the CPU cores
     pool = multiprocessing.Pool(processes=flmc.GetCores())
@@ -437,30 +452,63 @@ def main(argv=None):
     pool.join()
     flmc.logStep("Tagging lines multiprocessing")
 
-    flmc.log("Merging tagged_lines...")
+    flmc.log("Write lines with existence and all statistics...")
     try:
-        # create tagged line feature class
-        arcpy.CreateFeatureclass_management(os.path.dirname(Out_Tagged_Line), os.path.basename(Out_Tagged_Line),
+        # create tagged line feature class with stats
+        (root, ext) = os.path.splitext(Out_Tagged_Line)
+        root = root + "_stats"
+        out_tagged_line_stats = root + ext
+        arcpy.CreateFeatureclass_management(os.path.dirname(out_tagged_line_stats), os.path.basename(out_tagged_line_stats),
                                             "Polyline", "", "DISABLED", "DISABLED", Centerline_Feature_Class)
-        arcpy.AddField_management(Out_Tagged_Line, "Existence", "TEXT")
+        arcpy.AddField_management(out_tagged_line_stats, "Status", "TEXT")
 
-        arcpy.AddField_management(Out_Tagged_Line, "Mean", "DOUBLE")
-        arcpy.AddField_management(Out_Tagged_Line, "Median", "DOUBLE")
-        arcpy.AddField_management(Out_Tagged_Line, "Variance", "DOUBLE")
-        arcpy.AddField_management(Out_Tagged_Line, "Stdev", "DOUBLE")
+        arcpy.AddField_management(out_tagged_line_stats, "Mean", "DOUBLE")
+        arcpy.AddField_management(out_tagged_line_stats, "Median", "DOUBLE")
+        arcpy.AddField_management(out_tagged_line_stats, "Variance", "DOUBLE")
+        arcpy.AddField_management(out_tagged_line_stats, "Stdev", "DOUBLE")
 
-        arcpy.AddField_management(Out_Tagged_Line, "Mean_B", "DOUBLE")
-        arcpy.AddField_management(Out_Tagged_Line, "Median_B", "DOUBLE")
-        arcpy.AddField_management(Out_Tagged_Line, "Variance_B", "DOUBLE")
-        arcpy.AddField_management(Out_Tagged_Line, "Stdev_B", "DOUBLE")
+        arcpy.AddField_management(out_tagged_line_stats, "Mean_B", "DOUBLE")
+        arcpy.AddField_management(out_tagged_line_stats, "Median_B", "DOUBLE")
+        arcpy.AddField_management(out_tagged_line_stats, "Variance_B", "DOUBLE")
+        arcpy.AddField_management(out_tagged_line_stats, "Stdev_B", "DOUBLE")
 
-        fields = ["SHAPE@", "Existence", "Mean", "Median", "Variance", "Stdev",
+        fields_stats = ["SHAPE@", "Status", "Mean", "Median", "Variance", "Stdev",
                   "Mean_B", "Median_B", "Variance_B", "Stdev_B"]
-        with arcpy.da.InsertCursor(Out_Tagged_Line, fields) as cursor:
+        with arcpy.da.InsertCursor(out_tagged_line_stats, fields_stats) as cursor:
             for line in tagged_lines:
                 cursor.insertRow([line[0]] + list(line[1]))
 
         # arcpy.Delete_management(fileMerge)
+    except Exception as e:
+        print(e)
+
+    flmc.log("Writing lines with existence and all original attributes.")
+    try:
+        # create tagged line feature class with existence and all original attributes
+        arcpy.CreateFeatureclass_management(os.path.dirname(Out_Tagged_Line), os.path.basename(Out_Tagged_Line),
+                                            "Polyline", Centerline_Feature_Class,
+                                            "DISABLED", "DISABLED", Centerline_Feature_Class)
+        # Add Status field to indicate line existence type: confirmed, unconfirmed and invisible
+        status_appended = False
+        if not HasField(Centerline_Feature_Class, "Status"):
+            arcpy.AddField_management(Out_Tagged_Line, "Status", "TEXT")
+            fields.append("Status")
+            status_appended = True
+
+        with arcpy.da.InsertCursor(Out_Tagged_Line, ["Shape@"]+fields) as cursor:
+            for line in tagged_lines:
+                row = []
+                for i in fields:
+                    if i != "Status":
+                        row.append(line[2][i])
+
+                # Line status
+                if status_appended:
+                    row.append(line[1][0])
+                else:  # overwrite Status value
+                    row[fields.index("Status")] = line[1][0]
+
+                cursor.insertRow([line[0]] + row)
     except Exception as e:
         print(e)
 
