@@ -68,7 +68,6 @@ def preTagging(in_center_line, in_chm, in_canopy_raster, in_cost_raster, in_lida
 def vertexOptimization(in_line, in_cost_raster, out_center_line, line_process_radius=35):
     """
     Optimize vertices
-    TODO:
     """
 
     print("Processing center line: ", out_center_line)
@@ -100,7 +99,7 @@ def centerline(in_line, in_cost_raster, out_center_line,
     argv[0] = in_line  # input line
     argv[1] = in_cost_raster  # Cost raster
     argv[2] = str(line_radius)  # line process radius
-    argv[3] = str(process_segments)  # Process segments TODO bool or sting?
+    argv[3] = str(process_segments)  # Process segments TODO: bool or sting?
     argv[4] = out_center_line  # Output center line
 
     if not os.path.exists(in_line):
