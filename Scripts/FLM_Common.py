@@ -350,6 +350,14 @@ def SplitFeature (fc, idField, outWorkspace, toolCodename):
     logStep("Feature Split")
 
 
+def HasField(fc, fi):
+  fieldnames = [field.name for field in arcpy.ListFields(fc)]
+  if fi in fieldnames:
+    return True
+  else:
+    return False
+
+
 def GetAllFieldsFromShp(in_shp):
     """Retrieve all the fields in input shapefile except Geometry"""
 

@@ -394,8 +394,11 @@ def main(argv=None):
     flmc.logStep("Line segmentation")
 
     # Linear attributes
+    # Get all original fields
+    keepFields = flmc.GetAllFieldsFromShp(SLA_Segmented_Lines)
     flmc.log("Adding attributes...")
     arcpy.AddGeometryAttributes_management(SLA_Segmented_Lines, "LENGTH;LINE_BEARING", "METERS")
+    keepFields += ["LENGTH", "BEARING"]
 
     if areaAnalysis:
         arcpy.Buffer_analysis(SLA_Segmented_Lines, fileBuffer, LineSearchRadius, line_side="FULL",
@@ -416,16 +419,12 @@ def main(argv=None):
                                                Length_Unit="METERS", Area_Unit="SQUARE_METERS", Coordinate_System="")
         arcpy.JoinField_management(SLA_Segmented_Lines, arcpy.Describe(SLA_Segmented_Lines).OIDFieldName,
                                    fileFootprints, "ORIG_FID", fields="POLY_AREA;PERIMETER")
-
+        keepFields += ["POLY_AREA", "PERIMETER"]
         arcpy.Delete_management(fileBuffer)
         arcpy.Delete_management(fileIdentity)
         arcpy.Delete_management(fileFootprints)
 
     # Add other fields
-    keepFields = ["LENGTH", "BEARING"]
-    if areaAnalysis:
-        keepFields += ["POLY_AREA", "PERIMETER"]
-
     arcpy.AddField_management(SLA_Segmented_Lines, "Direction", "TEXT")
     arcpy.AddField_management(SLA_Segmented_Lines, "Sinuosity", "DOUBLE")
     keepFields += ["Direction", "Sinuosity"]
@@ -469,7 +468,11 @@ def main(argv=None):
     # la_list = [item for sublist in line_with_attributes for item in sublist]
     with arcpy.da.InsertCursor(Attributed_Segments, ["SHAPE@"]+keepFields) as cursor:
         for line in line_with_attributes:
-            cursor.insertRow(line[0] + list(line[1].values()))
+            row = []
+            for fld in keepFields:
+                row.append(line[1][fld])
+
+            cursor.insertRow(line[0] + row)
 
     flmc.logStep("Line attribute file: {} done".format(Attributed_Segments))
 

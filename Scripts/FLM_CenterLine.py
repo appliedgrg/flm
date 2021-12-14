@@ -261,7 +261,7 @@ def workLinesMem(segment_info):
 
     # Return centerline
     print("Processing line {} done".format(fileSeg))
-    return centerline
+    return centerline, segment_info[2]
 
 
 def main(argv=None):
@@ -299,7 +299,8 @@ def main(argv=None):
     f.close()
 
     # Prepare input lines for multiprocessing
-    segment_all = flmc.SplitLines(Forest_Line_Feature_Class, outWorkspace, "CL", ProcessSegments)
+    fields = flmc.GetAllFieldsFromShp(Forest_Line_Feature_Class)
+    segment_all = flmc.SplitLines(Forest_Line_Feature_Class, outWorkspace, "CL", ProcessSegments, fields)
 
     pool = multiprocessing.Pool(processes=flmc.GetCores())
     flmc.log("Multiprocessing center lines...")
@@ -331,13 +332,17 @@ def main(argv=None):
     cl_list = []
     for sublist in centerlines:
         if len(sublist) > 0:
-            for item in sublist:
-                cl_list.append(item)
+            for item in sublist[0]:
+                cl_list.append([item, sublist[1]])
 
     # arcpy.Merge_management(cl_list, Out_Centerline)
-    with arcpy.da.InsertCursor(Out_Centerline, ["SHAPE@"]) as cursor:
+    with arcpy.da.InsertCursor(Out_Centerline, ["SHAPE@"]+fields) as cursor:
         for line in cl_list:
-            cursor.insertRow([line])
+            row = []
+            for i in fields:
+                    row.append(line[1][i])
+
+            cursor.insertRow([line[0]]+row)
 
     # TODO: inspect CorridorTh
     #       CorridorTh is added to footprint tool as new parameter
