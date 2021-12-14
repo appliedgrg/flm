@@ -390,12 +390,12 @@ def main(argv=None):
     flmc.log("Preparing line segments...")
     # Segment lines
     flmc.log("FlmLineSplit: Input_Lines = " + Input_Lines)
+    # Get all original fields
+    keepFields = flmc.GetAllFieldsFromShp(Input_Lines)
     SLA_Segmented_Lines = flma.FlmLineSplit(outWorkspace, Input_Lines, SamplingType, Segment_Length, Tolerance_Radius)
     flmc.logStep("Line segmentation")
 
     # Linear attributes
-    # Get all original fields
-    keepFields = flmc.GetAllFieldsFromShp(SLA_Segmented_Lines)
     flmc.log("Adding attributes...")
     arcpy.AddGeometryAttributes_management(SLA_Segmented_Lines, "LENGTH;LINE_BEARING", "METERS")
     keepFields += ["LENGTH", "BEARING"]

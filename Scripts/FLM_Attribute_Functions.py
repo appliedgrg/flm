@@ -54,11 +54,9 @@ def FlmLineSplit(workspace, Input_Lines, SamplingType, Segment_Length, Tolerance
 
     # TODO: resume UnsplitLine after defining disolve fields
     # arcpy.UnsplitLine_management(Input_Lines, FLA_Line_Unsplit)
-    FLA_Line_Unsplit = Input_Lines
-    arcpy.MultipartToSinglepart_management(FLA_Line_Unsplit, FLA_Line_Unsplit_Single)
-    if flmc.HasField(FLA_Line_Unsplit_Single, "ORIG_FID"):
-        arcpy.DeleteField_management(FLA_Line_Unsplit_Single, "ORIG_FID")
+    arcpy.Copy_management(Input_Lines, FLA_Line_Unsplit)
 
+    arcpy.MultipartToSinglepart_management(FLA_Line_Unsplit, FLA_Line_Unsplit_Single)
     #arcpy.Delete_management(FLA_Line_Unsplit)
 
     if SamplingType == "ARBITRARY":
