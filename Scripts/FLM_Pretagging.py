@@ -506,7 +506,7 @@ def main(argv=None):
                 if status_appended:
                     row.append(line[1][0])
                 else:  # overwrite Status value
-                    row[fields.index("Status")] = line[1][0]
+                    row.insert(fields.index("Status"), line[1][0])
 
                 cursor.insertRow([line[0]] + row)
     except Exception as e:
