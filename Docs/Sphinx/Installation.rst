@@ -55,12 +55,30 @@ After installation, you might need to restart ArcGIS Pro to make the change take
 Run Forest Line Mapper
 =======================
 
-.. highlight:: bat
+Forest Line Mapper can be launched by ForestLineMapper.bat in FLM root folder. Before launch FLM, open ForestLineMapper.bat in text editor to check the configuration is correct.
 
-Forest Line Mapper can be launched by ForestLineMapper.bat in FLM root folder. Before launch FLM, open ForestLineMapper.bat in text editor to check the configuration is correct.:: 
+.. code-block:: bat
 
     @echo off
     set scriptName=ForestLineMapper.py
     set pro=%PROGRAMFILES%\ArcGIS\Pro\bin\Python\Scripts\propy
 
 If your ArcGIS Pro is istalled in another directory, do change the third line for the path. Now save the batch file and double click it, FLM will launch.
+
+ArcGIS Pro Upgrades
+====================
+
+.. warning::
+   When ArcGIS Pro upgrades to new version, you probably receive error when start FLM stating "version mismatch". In that case, the cloned environment is not updated accordingly. Please remove the cloned environment and repeat the installation process.
+
+Error might show up related to ``numpy``:
+
+.. code-block:: console
+
+   RuntimeError: module compiled against API version 0xe but this version of numpy is 0xd
+
+Go to ESRI ``Python Command Prompt`` and run 
+
+.. code-block:: console 
+
+   pip3 install --upgrade numpy

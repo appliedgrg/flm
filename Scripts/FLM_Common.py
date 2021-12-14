@@ -48,6 +48,8 @@ scriptPath = os.path.dirname(os.path.realpath(__file__))
 coresFile = "mpc.txt"
 
 USE_MEMORY_WORKSPACE = 1  # switch of using memory workspace or not
+EPSILON = 1e-9
+NO_DATA = -9999
 
 def logStart(tool):
     log("----------")
@@ -249,9 +251,9 @@ def SplitLines(linesFc, outWorkspace, toolCodename, ProcessSegments,
     for row in rows:
         feat = row.getValue(shapeField)   # creates a geometry object
 
-        KeepField = []
+        KeepFieldValue = []
         for fieldName in KeepFieldName:
-            KeepField.append(row.getValue(fieldName))
+            KeepFieldValue.append(row.getValue(fieldName))
 
         segmentnum = 0
         for segment in feat:  # loops through every segment in a line
@@ -293,10 +295,10 @@ def SplitLines(linesFc, outWorkspace, toolCodename, ProcessSegments,
                         array.add(segment_list[vertexID+1])
                     polyline = arcpy.Polyline(array, arcpy.Describe(linesFc).spatialReference)
                     # add segments and attributes for later return
-                    all_segments.append([polyline, line, dict(zip(KeepFieldName, KeepField)), polygons])
+                    all_segments.append([polyline, line, dict(zip(KeepFieldName, KeepFieldValue)), polygons])
 
                     if not USE_MEMORY_WORKSPACE:
-                        cursor.insertRow(KeepField+[polyline])
+                        cursor.insertRow(KeepFieldValue + [polyline])
 
                         del cursor
 
@@ -346,4 +348,26 @@ def SplitFeature (fc, idField, outWorkspace, toolCodename):
     del rows
 
     logStep("Feature Split")
+
+
+def HasField(fc, fi):
+  fieldnames = [field.name for field in arcpy.ListFields(fc)]
+  if fi in fieldnames:
+    return True
+  else:
+    return False
+
+
+def GetAllFieldsFromShp(in_shp):
+    """Retrieve all the fields in input shapefile except Geometry"""
+
+    # Prepare input lines for multiprocessing
+    desc = arcpy.Describe(in_shp)
+    oid = desc.oidFieldName
+    fields = []
+    for i in desc.fields:
+        if i.type != "Geometry":  # Only attributes
+            fields.append(i.name)
+
+    return fields
 
