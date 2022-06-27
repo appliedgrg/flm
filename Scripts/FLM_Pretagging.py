@@ -50,7 +50,7 @@ def PathFile(path):
 
 def retrievePolygons(polygon_shpfile):
     """
-    Retrieve all polygon geometries from shpaefile
+    Retrieve all polygon geometries from shapefile
     """
     fields = ["SHAPE@", "Year"]
     polygons = []
@@ -87,9 +87,10 @@ def getStats(point_values):
 
     return pt_mean, pt_median, pt_variance, pt_stdev
 
+
 def tagLine(footprint_list, in_chm, in_line):
     if not footprint_list or len(footprint_list) == 0:
-        return (False, -9999.0, -9999, -9999, -9999, -9999, -9999, -9999, -9999)
+        return False, -9999.0, -9999, -9999, -9999, -9999, -9999, -9999, -9999
 
     footprint = footprint_list[0]
     outWorkspaceMem = r"memory"
@@ -379,13 +380,6 @@ def workLinesMem(segment_info):
 
     return segment_info[0], line_exist, segment_info[2]
 
-def HasField(fc, fi):
-    fieldnames = [field.name for field in arcpy.ListFields(fc)]
-    if fi in fieldnames:
-        return True
-    else:
-        return False
-
 
 def main(argv=None):
     # Setup script path and workspace folder
@@ -431,7 +425,7 @@ def main(argv=None):
     f.close()
 
     # Remind if Status field is already in Shapefile
-    if HasField(Centerline_Feature_Class, "Status"):
+    if flmc.HasField(Centerline_Feature_Class, "Status"):
         print("{} has Status field, it will be overwritten.".format(Centerline_Feature_Class))
 
     polygons = retrievePolygons(In_Lidar_Year)
@@ -458,7 +452,8 @@ def main(argv=None):
         (root, ext) = os.path.splitext(Out_Tagged_Line)
         root = root + "_stats"
         out_tagged_line_stats = root + ext
-        arcpy.CreateFeatureclass_management(os.path.dirname(out_tagged_line_stats), os.path.basename(out_tagged_line_stats),
+        arcpy.CreateFeatureclass_management(os.path.dirname(out_tagged_line_stats),
+                                            os.path.basename(out_tagged_line_stats),
                                             "Polyline", "", "DISABLED", "DISABLED", Centerline_Feature_Class)
         arcpy.AddField_management(out_tagged_line_stats, "Status", "TEXT")
 
@@ -473,7 +468,7 @@ def main(argv=None):
         arcpy.AddField_management(out_tagged_line_stats, "Stdev_B", "DOUBLE")
 
         fields_stats = ["SHAPE@", "Status", "Mean", "Median", "Variance", "Stdev",
-                  "Mean_B", "Median_B", "Variance_B", "Stdev_B"]
+                        "Mean_B", "Median_B", "Variance_B", "Stdev_B"]
         with arcpy.da.InsertCursor(out_tagged_line_stats, fields_stats) as cursor:
             for line in tagged_lines:
                 cursor.insertRow([line[0]] + list(line[1]))
@@ -490,7 +485,7 @@ def main(argv=None):
                                             "DISABLED", "DISABLED", Centerline_Feature_Class)
         # Add Status field to indicate line existence type: confirmed, unconfirmed and invisible
         status_appended = False
-        if not HasField(Centerline_Feature_Class, "Status"):
+        if not flmc.HasField(Centerline_Feature_Class, "Status"):
             arcpy.AddField_management(Out_Tagged_Line, "Status", "TEXT")
             fields.append("Status")
             status_appended = True

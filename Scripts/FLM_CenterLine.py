@@ -168,10 +168,15 @@ def workLinesMem(segment_info):
                 segment_list.append(point)
 
     # Find origin and destination coordinates
-    x1 = segment_list[0].X
-    y1 = segment_list[0].Y
-    x2 = segment_list[-1].X
-    y2 = segment_list[-1].Y
+    try:
+        x1 = segment_list[0].X
+        y1 = segment_list[0].Y
+        x2 = segment_list[-1].X
+        y2 = segment_list[-1].Y
+    except Exception as e:
+        print("Line with FID {} is empty.".format(segment_info[2]["FID"]))
+        print(e)
+        return
 
     # Create segment feature class
     try:
@@ -331,9 +336,10 @@ def main(argv=None):
 
     cl_list = []
     for sublist in centerlines:
-        if len(sublist) > 0:
-            for item in sublist[0]:
-                cl_list.append([item, sublist[1]])
+        if sublist:
+            if len(sublist) > 0:
+                for item in sublist[0]:
+                    cl_list.append([item, sublist[1]])
 
     # arcpy.Merge_management(cl_list, Out_Centerline)
     with arcpy.da.InsertCursor(Out_Centerline, ["SHAPE@"]+fields) as cursor:
