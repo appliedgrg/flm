@@ -203,6 +203,52 @@ def SetupWorkspace (outWorkName):
     return outWorkspace
 
 
+def SetupWorkspace_2(outWorkName):
+    """
+    This function creates a folder outWorkName in the scriptPath folder.
+    If it already exists, all shapefiles and rasters in it are deleted.
+    """
+    import arcpy
+    import shutil
+
+    outWorkspace = scriptPath + "\\" + outWorkName
+
+    # Setup output folder
+    try:
+        if not os.path.isdir(outWorkspace):# arcpy.CreateFileGDB_management(scriptPath, outWorkName +".gdb")
+            os.mkdir(outWorkspace)
+            log("Scratch workspace " + str(outWorkspace) + " created.")
+        else:
+            shutil.rmtree(outWorkspace)
+            os.mkdir(outWorkspace)
+
+    except Exception as e:
+        log("Scratch workspace " + str(outWorkspace) + " Error: {}".format(e))
+
+
+    arcpy.env.workspace = outWorkspace
+
+    # Delete old files
+
+    # oldShapefiles = arcpy.ListFeatureClasses()
+    # if len(oldShapefiles) > 0:
+    #     log("There are " + str(len(oldShapefiles)) + " old shapefiles in workspace folder. These will be deleted.")
+    #     for fc in oldShapefiles:
+    #         arcpy.Delete_management(fc)
+    # del oldShapefiles
+    #
+    # oldRasters = arcpy.ListRasters()
+    # if len(oldRasters) > 0:
+    #     log("There are " + str(len(oldRasters)) + " old rasters in workspace folder. These will be deleted.")
+    #     for ras in oldRasters:
+    #         arcpy.Delete_management(ras)
+    # del oldRasters
+
+    logStep("Workspace Setup")
+
+    return outWorkspace
+
+
 def GetWorkspace(outWorkName):
     outWorkspace = scriptPath + "\\" + outWorkName
     return outWorkspace
@@ -315,6 +361,355 @@ def SplitLines(linesFc, outWorkspace, toolCodename, ProcessSegments,
     log("There are " + str(numLines) + " lines to process.")
     logStep("Line Setup")
     return all_segments
+
+def SplitLines_Cal_DyCC(linesFc, outWorkspace, toolCodename, ProcessSegments,chm,TreeSearchRadius,MaximumLineDistance,
+                                                CanopyAvoidance,CostRasterExponent,Corridor_Threshold_Field,
+                                                Maximum_distance_from_centerline, Expand_And_Shrink_Cell_Range,
+													 KeepFieldName, polygons=None):
+    """
+    This function splits the input polyline shapefile (linesFc) into several shapefiles.
+    ProcessSegments:
+      False: shapefile will be created for each feature.
+      True:  one shapefile will be created for each pair of vertices in the input lines.
+
+      outWorkspace: where files are placed in
+      toolCodename: base name to make subfolder for tools in workspace in format FLM_toolCodename_output
+      polygons: list of lidar coverage polygon geometry with year [(polygon geometry, year), ...]
+      KeepFieldName: fields to transfer from the inputs to the outputs.
+
+    Return:
+      numLines: total number of segments cached
+      all_segments: all segment polylines in a list which is intended to be used in multiprocessing
+    """
+
+    if KeepFieldName is None:
+        KeepFieldName = []
+    elif isinstance(KeepFieldName, str):
+        KeepFieldName = [KeepFieldName]
+
+    # Create search cursor on input center lines file
+    line = 0
+    rows = arcpy.SearchCursor(linesFc)
+    all_segments = []  # return all segment polylines
+
+    # Separates the input feature class into multiple feature classes,
+    # each containing a single line, hereby referenced as "segment"
+    log("Lines Setup for dynamic canopy and cost raster...")
+
+    desc = arcpy.Describe(linesFc)
+    fieldDict = {}
+    for field in desc.fields:
+        fieldDict[field.name] = field.type
+
+    shapeField = desc.ShapeFieldName
+    del desc
+
+    for row in rows:
+        feat = row.getValue(shapeField)   # creates a geometry object
+
+        KeepField = []
+        for fieldName in KeepFieldName:
+            KeepField.append(row.getValue(fieldName))
+
+        segmentnum = 0
+        for segment in feat:  # loops through every segment in a line
+            segment_list = []
+            # loops through every vertex of every segment
+            # get.PArt returns an array of points for a particular part in the geometry
+            for pnt in feat.getPart(segmentnum):
+                if pnt:	 # adds all the vertices to segment_list, which creates an array
+                    segment_list.append(arcpy.Point(float(pnt.X), float(pnt.Y)))
+
+            segmentnum += 1
+
+            # loops through every vertex in the list   #-1 is done
+            # so the second last vertex is the start of a segment and the code is within range...
+            for vertexID in range(0, len(segment_list)-1):
+                line += 1
+                segment_fname = "FLM_"+toolCodename + "_Segment_" + str(line) #+ ".shp"
+                segment_fpath = outWorkspace + "\\" + segment_fname
+                if arcpy.Exists(segment_fpath):
+                    arcpy.Delete_management(segment_fpath)
+
+                try:
+                    if not USE_MEMORY_WORKSPACE:  # Use memory workspace
+                        arcpy.CreateFeatureclass_management(outWorkspace, segment_fname, "POLYLINE",
+                                                            "", "DISABLED", "DISABLED", linesFc)
+
+                        for fieldName in KeepFieldName:
+                            if(fieldName in fieldDict):
+                                arcpy.AddField_management(outWorkspace+"\\"+segment_fname,
+                                                          fieldName, fieldDict[fieldName])
+
+                        cursor = arcpy.da.InsertCursor(segment_fpath, KeepFieldName+["SHAPE@"])
+
+                    if not ProcessSegments:
+                        array = arcpy.Array(segment_list)
+                    else:
+                        array = arcpy.Array()
+                        array.add(segment_list[vertexID])
+                        array.add(segment_list[vertexID+1])
+                    polyline = arcpy.Polyline(array, arcpy.Describe(linesFc).spatialReference)
+                    # add segments and attributes for later return
+                    all_segments.append([polyline, line, dict(zip(KeepFieldName, KeepField)), KeepFieldName[0],chm,
+                                         TreeSearchRadius, MaximumLineDistance,
+                                         CanopyAvoidance, CostRasterExponent,ProcessSegments,
+                                         Corridor_Threshold_Field, Maximum_distance_from_centerline, Expand_And_Shrink_Cell_Range
+                                         ])
+
+                    if not USE_MEMORY_WORKSPACE:
+                        cursor.insertRow(KeepField+[polyline])
+
+                        del cursor
+
+                    if not ProcessSegments:
+                        break
+                except Exception as e:
+                    print("Creating segment feature class failed: " + segment_fname + ".")
+                    print(e)
+
+    del rows
+
+    # At this point all lines have been separated into different feature classes located at the scratch workspace
+    numLines = line
+    log("There are " + str(numLines) + " lines to process.")
+    logStep("Line Setup")
+    return all_segments
+
+def SplitLines_FP_DynCC(linesFc, outWorkspace, toolCodename, ProcessSegments,Corridor_Threshold_Field,
+                        DynCanopyCostRasterlist,Maximum_distance_from_centerline,Expand_And_Shrink_Cell_Range,Canopy_Threshold_Field):
+    """
+    This function splits the input polyline shapefile (linesFc) into several shapefiles.
+    ProcessSegments:
+      False: shapefile will be created for each feature.
+      True:  one shapefile will be created for each pair of vertices in the input lines.
+
+      outWorkspace: where files are placed in
+      toolCodename: base name to make subfolder for tools in workspace in format FLM_toolCodename_output
+      polygons: list of lidar coverage polygon geometry with year [(polygon geometry, year), ...]
+      KeepFieldName: fields to transfer from the inputs to the outputs.
+
+    Return:
+      numLines: total number of segments cached
+      all_segments: all segment polylines in a list which is intended to be used in multiprocessing
+    """
+
+    KeepFieldName = []
+    KeepFieldName.append(Corridor_Threshold_Field)
+    KeepFieldName.append(Canopy_Threshold_Field)
+    if KeepFieldName is None:
+        KeepFieldName = []
+    elif isinstance(KeepFieldName, str):
+        KeepFieldName = [KeepFieldName]
+
+    # Create search cursor on input center lines file
+    line = DynCanopyCostRasterlist[0][0]-1
+    rows = arcpy.SearchCursor(linesFc)
+    all_segments = []  # return all segment polylines
+
+
+    # Separates the input feature class into multiple feature classes,
+    # each containing a single line, hereby referenced as "segment"
+    log("Lines Setup...")
+
+    desc = arcpy.Describe(linesFc)
+    fieldDict = {}
+    for field in desc.fields:
+        fieldDict[field.name] = field.type
+
+    shapeField = desc.ShapeFieldName
+    del desc
+
+    for row in rows:
+        feat = row.getValue(shapeField)   # creates a geometry object
+
+        KeepField = []
+        for fieldName in KeepFieldName:
+            KeepField.append(row.getValue(fieldName))
+
+        segmentnum = 0
+        for segment in feat:  # loops through every segment in a line
+            segment_list = []
+            # loops through every vertex of every segment
+            # get.PArt returns an array of points for a particular part in the geometry
+            for pnt in feat.getPart(segmentnum):
+                if pnt:	 # adds all the vertices to segment_list, which creates an array
+                    segment_list.append(arcpy.Point(float(pnt.X), float(pnt.Y)))
+
+            segmentnum += 1
+
+            # loops through every vertex in the list   #-1 is done
+            # so the second last vertex is the start of a segment and the code is within range...
+            for vertexID in range(0, len(segment_list)-1):
+                line += 1
+                segment_fname = "FLM_"+toolCodename + "_Segment_" + str(line) + ".shp"
+                segment_fpath = outWorkspace + "\\" + segment_fname
+                if arcpy.Exists(segment_fpath):
+                    arcpy.Delete_management(segment_fpath)
+
+                try:
+                    if not USE_MEMORY_WORKSPACE:  # Use memory workspace
+                        arcpy.CreateFeatureclass_management(outWorkspace, segment_fname, "POLYLINE",
+                                                            "", "DISABLED", "DISABLED", linesFc)
+
+                        for fieldName in KeepFieldName:
+                            if(fieldName in fieldDict):
+                                arcpy.AddField_management(outWorkspace+"\\"+segment_fname,
+                                                          fieldName, fieldDict[fieldName])
+
+                        cursor = arcpy.da.InsertCursor(segment_fpath, KeepFieldName+["SHAPE@"])
+
+                    if not ProcessSegments:
+                        array = arcpy.Array(segment_list)
+                    else:
+                        array = arcpy.Array()
+                        array.add(segment_list[vertexID])
+                        array.add(segment_list[vertexID+1])
+                    polyline = arcpy.Polyline(array, arcpy.Describe(linesFc).spatialReference)
+                    # add segments and attributes for later return
+                    for Match_DynCC in DynCanopyCostRasterlist:
+                        if (Match_DynCC[0]) == line:
+                            Canopy_Raster = Match_DynCC[1]
+                            Cost_Raster = Match_DynCC[2]
+                            break
+                    all_segments.append([polyline, line, dict(zip(KeepFieldName, KeepField)), KeepFieldName[0],
+                                         Canopy_Raster, Cost_Raster,Maximum_distance_from_centerline,
+                                         Expand_And_Shrink_Cell_Range,KeepFieldName[1],ProcessSegments])
+
+                    if not USE_MEMORY_WORKSPACE:
+                        cursor.insertRow(KeepField+[polyline])
+
+                        del cursor
+
+                    if not ProcessSegments:
+                        break
+                except Exception as e:
+                    print("Creating segment feature class failed: " + segment_fname + ".")
+                    print(e)
+
+    del rows
+    # import FLM_LineFootprint as flm_fp
+    # pool = multiprocessing.Pool(processes=GetCores())
+    # log("Multiprocessing line corridors...")
+    # log("Using {} CPU cores".format(GetCores()))
+    # footprints = pool.map(flm_fp.workLinesMemorywDynCC, all_segments)
+    # At this point all lines have been separated into different feature classes located at the scratch workspace
+    numLines = line
+    log("There are " + str(numLines) + " lines to process.")
+    logStep("Line Setup")
+    return all_segments
+
+def SplitLines_Percentile(linesFc, outWorkspace, ProcessSegments,
+               KeepFieldName=None, polygons=None):
+    """
+    This function splits the input polyline shapefile (linesFc) into several shapefiles.
+    ProcessSegments:
+      False: shapefile will be created for each feature.
+      True:  one shapefile will be created for each pair of vertices in the input lines.
+
+      outWorkspace: where files are placed in
+      toolCodename: base name to make subfolder for tools in workspace in format FLM_toolCodename_output
+      polygons: list of lidar coverage polygon geometry with year [(polygon geometry, year), ...]
+      KeepFieldName: fields to transfer from the inputs to the outputs.
+
+    Return:
+      numLines: total number of segments cached
+      all_segments: all segment polylines in a list which is intended to be used in multiprocessing
+    """
+
+    if KeepFieldName is None:
+        KeepFieldName = []
+        KeepField = arcpy.ListFields(linesFc)
+        for field in KeepField:
+            KeepFieldName.append(field.name)
+    elif isinstance(KeepFieldName, str):
+        KeepFieldName = [KeepFieldName]
+
+    # Create search cursor on input center lines file
+    line = 0
+    rows = arcpy.SearchCursor(linesFc)
+    all_segments = []  # return all segment polylines
+
+    # Separates the input feature class into multiple feature classes,
+    # each containing a single line, hereby referenced as "segment"
+    #log("Lines Setup...")
+
+    desc = arcpy.Describe(linesFc)
+    fieldDict = {}
+    for field in desc.fields:
+        fieldDict[field.name] = field.type
+
+    shapeField = desc.ShapeFieldName
+    del desc
+
+    for row in rows:
+        feat = row.getValue(shapeField)   # creates a geometry object
+
+        KeepField = []
+        for fieldName in KeepFieldName:
+            KeepField.append(row.getValue(fieldName))
+
+        segmentnum = 0
+        for segment in feat:  # loops through every segment in a line
+            segment_list = []
+            # loops through every vertex of every segment
+            # get.PArt returns an array of points for a particular part in the geometry
+            for pnt in feat.getPart(segmentnum):
+                if pnt:	 # adds all the vertices to segment_list, which creates an array
+                    segment_list.append(arcpy.Point(float(pnt.X), float(pnt.Y)))
+
+            segmentnum += 1
+
+            # loops through every vertex in the list   #-1 is done
+            # so the second last vertex is the start of a segment and the code is within range...
+            for vertexID in range(0, len(segment_list)-1):
+                line += 1
+                segment_fname = "FLM_PCL_Segment_" + str(line) + ".shp"
+                segment_fpath = outWorkspace + "\\" + segment_fname
+                if arcpy.Exists(segment_fpath):
+                    arcpy.Delete_management(segment_fpath)
+
+                try:
+                    if not USE_MEMORY_WORKSPACE:  # Use memory workspace
+                        arcpy.CreateFeatureclass_management(outWorkspace, segment_fname, "POLYLINE",
+                                                            "", "DISABLED", "DISABLED", linesFc)
+
+                        for fieldName in KeepFieldName:
+                            if(fieldName in fieldDict):
+                                arcpy.AddField_management(outWorkspace+"\\"+segment_fname,
+                                                          fieldName, fieldDict[fieldName])
+
+                        cursor = arcpy.da.InsertCursor(segment_fpath, KeepFieldName+["SHAPE@"])
+
+                    if not ProcessSegments:
+                        array = arcpy.Array(segment_list)
+                    else:
+                        array = arcpy.Array()
+                        array.add(segment_list[vertexID])
+                        array.add(segment_list[vertexID+1])
+                    polyline = arcpy.Polyline(array, arcpy.Describe(linesFc).spatialReference)
+                    # add segments and attributes for later return
+                    all_segments.append([polyline, line, dict(zip(KeepFieldName, KeepField)), polygons])
+
+                    if not USE_MEMORY_WORKSPACE:
+                        cursor.insertRow(KeepField+[polyline])
+
+                        del cursor
+
+                    if not ProcessSegments:
+                        break
+                except Exception as e:
+                    print("Creating segment feature class failed: " + segment_fname + ".")
+                    print(e)
+
+    del rows
+
+    # At this point all lines have been separated into different feature classes located at the scratch workspace
+    numLines = line
+    log("There are " + str(numLines) + " lines to process.")
+    #logStep("Line Setup")
+    return all_segments
+
 
 
 def SplitFeature (fc, idField, outWorkspace, toolCodename):
