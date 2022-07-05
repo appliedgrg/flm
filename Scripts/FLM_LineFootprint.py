@@ -114,7 +114,8 @@ def workLines(lineNo):
 
     # Create origin feature class
     try:
-        arcpy.CreateFeatureclass_management(outWorkspace, PathFile(fileOrigin), "POINT", Centerline_Feature_Class, "DISABLED",
+        arcpy.CreateFeatureclass_management(outWorkspace, PathFile(fileOrigin), "POINT", Centerline_Feature_Class,
+                                            "DISABLED",
                                             "DISABLED", Centerline_Feature_Class)
         cursor = arcpy.da.InsertCursor(fileOrigin, ["SHAPE@XY"])
         xy = (float(x1), float(y1))
@@ -140,7 +141,8 @@ def workLines(lineNo):
 
     # Buffer around line
     try:
-        arcpy.Buffer_analysis(fileSeg, fileBuffer, Maximum_distance_from_centerline, "FULL", "ROUND", "NONE", "", "PLANAR")
+        arcpy.Buffer_analysis(fileSeg, fileBuffer, Maximum_distance_from_centerline, "FULL", "ROUND", "NONE", "",
+                              "PLANAR")
     except Exception as e:
         print("Create buffer for {} failed".format(fileSeg))
         print(e)
@@ -321,8 +323,8 @@ def workLinesMemory(segment_info):
 
     # Clip cost raster using buffer
     DescBuffer = arcpy.Describe(fileBuffer)
-    SearchBox = str(DescBuffer.extent.XMin) + " " + str(DescBuffer.extent.YMin) + " " + str(
-        DescBuffer.extent.XMax) + " " + str(DescBuffer.extent.YMax)
+    SearchBox = str(DescBuffer.extent.XMin) + " " + str(DescBuffer.extent.YMin) + " " + \
+                str(DescBuffer.extent.XMax) + " " + str(DescBuffer.extent.YMax)
     arcpy.Clip_management(Cost_Raster, SearchBox, fileClip, fileBuffer, "",
                           "ClippingGeometry", "NO_MAINTAIN_EXTENT")
 
@@ -353,7 +355,8 @@ def workLinesMemory(segment_info):
         RasterCorridor.save(fileCorridorMin)
 
         # Process: Stamp CC and Max Line Width
-        RasterClass = SetNull(IsNull(Raster(fileCorridorMin)), (Raster(fileCorridorMin) + (Raster(Canopy_Raster) >= 1)) > 0)
+        RasterClass = SetNull(IsNull(Raster(fileCorridorMin)),
+                              (Raster(fileCorridorMin) + (Raster(Canopy_Raster) >= 1)) > 0)
         RasterClass.save(fileThreshold)
         del RasterCorridor, RasterClass
 
@@ -376,6 +379,7 @@ def workLinesMemory(segment_info):
         # Process: Raster to Polygon
         footprint = arcpy.RasterToPolygon_conversion(fileNull, arcpy.Geometry(),
                                                      "SIMPLIFY", "VALUE", "MULTIPLE_OUTER_PART", "")
+
     except Exception as e:
         print(e)
 
@@ -401,6 +405,7 @@ def workLinesMemory(segment_info):
         print("Line Footprint: Deleting temporary file failed. Inspect later.")
 
     return footprint  # list of polygons
+
 
 def HasField(fc, fi):
     fieldnames = [field.name for field in arcpy.ListFields(fc)]
