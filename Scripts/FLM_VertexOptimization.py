@@ -177,15 +177,20 @@ def groupIntersections(lines):
     pt_index: 0 is start vertex, -1 is end vertex
     """
     vertex_grp = []
+    try:
+        for line in lines:
+            if line[0].pointCount > 0:
+                point_list = ptsInLine(line[0])
 
-    for line in lines:
-        point_list = ptsInLine(line[0])
-
-        # Add line to groups based on proximity of two end points to group
-        pt_start = {"point": [point_list[0].X, point_list[0].Y], "lines": [[line[0], 0, {"lineNo": line[1]}]]}
-        pt_end = {"point": [point_list[-1].X, point_list[-1].Y], "lines": [[line[0], -1, {"lineNo": line[1]}]]}
-        appendToGroup(pt_start, vertex_grp, line[2]['UID'])
-        appendToGroup(pt_end, vertex_grp, line[2]['UID'])
+                # Add line to groups based on proximity of two end points to group
+                pt_start = {"point": [point_list[0].X, point_list[0].Y], "lines": [[line[0], 0, {"lineNo": line[1]}]]}
+                pt_end = {"point": [point_list[-1].X, point_list[-1].Y], "lines": [[line[0], -1, {"lineNo": line[1]}]]}
+                appendToGroup(pt_start, vertex_grp, line[2]['UID'])
+                appendToGroup(pt_end, vertex_grp, line[2]['UID'])
+            else:
+                print("Line is empty")
+    except Exception as e:
+        print(e)
 
     return vertex_grp
 
@@ -206,10 +211,22 @@ def getAngle(line, end_index):
         pt_1 = pt[-1]
         pt_2 = pt[-2]
 
+    deltaX = pt_2.X - pt_1.X
+    deltaY = pt_2.Y - pt_1.Y
     if math.isclose(pt_1.X, pt_2.X, abs_tol=flmc.EPSILON):
-        return math.inf
+        angle = math.pi / 2
+        if deltaY > 0:
+            angle = math.pi/2
+        elif deltaY < 0:
+            angle = -math.pi/2
     else:
-        return np.arctan((pt_1.Y - pt_2.Y) / (pt_1.X - pt_2.X))
+        angle = np.arctan(deltaY/deltaX)
+
+        # arctan in range [-pi/2, pi/2], regulate all angles to [[-pi/2, 3*pi/2]]
+        if deltaX < 0:
+            angle += math.pi  # the second or fourth quadrant
+
+    return angle
 
 
 def generateAnchorPairs(vertex):
@@ -235,30 +252,19 @@ def generateAnchorPairs(vertex):
     pt_end_2 = None
 
     if len(slopes) == 4:
-        # calculate difference of first slopes with the rest
-        diff = [abs(slopes[0] - i) for i in slopes[1:]]
-        index = np.argmin(diff) + 1  # 1, 2, or 3
+        # get sort order of angles
+        index = np.argsort(slopes)
 
-        # first anchor pair
-        pt_start_1 = lines[0][2]
-        pt_end_1 = lines[index][2]
+        # first anchor pair (first and third in the sorted array)
+        pt_start_1 = lines[index[0]][2]
+        pt_end_1 = lines[index[2]][2]
 
-        # the rest one or two index
-        a = {0, 1, 2, 3}
-        b = set([0, index])
-        remains = list(a.difference(b))  # the remaining index
-
-        try:
-            pt_start_2 = lines[remains[0]][2]
-            pt_end_2 = lines[remains[1]][2]
-        except Exception as e:
-            print(e)
+        pt_start_2 = lines[index[1]][2]
+        pt_end_2 = lines[index[3]][2]
     elif len(slopes) == 3:
-        # calculate difference of first slopes with the rest
-        if abs(slopes[0] - slopes[1]) < abs(slopes[0] - slopes[2]):
-            index = [0, 1]
-        index = np.argmin([abs(slopes[0]-slopes[1]), abs(slopes[0]-slopes[2]), abs(slopes[1]-slopes[2])])
-        pairs = [(0, 1), (0, 2), (0, 3)]
+        # find the largest difference between angles
+        index = np.argmax([abs(slopes[0]-slopes[1]), abs(slopes[0]-slopes[2]), abs(slopes[1]-slopes[2])])
+        pairs = [(0, 1), (0, 2), (1, 2)]
         pair = pairs[index]
 
         # first anchor pair
