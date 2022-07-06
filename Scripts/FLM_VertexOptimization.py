@@ -126,7 +126,7 @@ def appendToGroup(vertex, vertex_grp, UID):
     global DISTANCE_THRESHOLD
     global SEGMENT_LENGTH
 
-    vertex["lines"][0][2]["lineNo"] = UID
+    vertex["lines"][0][2]["UID"] = UID
 
     # Calculate anchor point for each vertex
     point = arcpy.Point(vertex["point"][0], vertex["point"][1])
