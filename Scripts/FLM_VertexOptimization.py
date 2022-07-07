@@ -30,6 +30,7 @@ import os
 import multiprocessing
 import numpy as np
 import math
+import traceback
 import uuid
 import shapely.geometry as shgeo
 
@@ -160,11 +161,14 @@ def appendToGroup(vertex, vertex_grp, UID):
 
 def ptsInLine(line):
     point_list = []
-    for part in line:
-        for point in part:  # loops through every point in a line
-            # loops through every vertex of every segment
-            if point:  # adds all the vertices to segment_list, which creates an array
-                point_list.append(point)
+    try:
+        for part in line:
+            for point in part:  # loops through every point in a line
+                # loops through every vertex of every segment
+                if point:  # adds all the vertices to segment_list, which creates an array
+                    point_list.append(point)
+    except Exception as e:
+        print(e)
 
     return point_list
 
@@ -179,18 +183,19 @@ def groupIntersections(lines):
     vertex_grp = []
     try:
         for line in lines:
-            if line[0].pointCount > 0:
-                point_list = ptsInLine(line[0])
+            point_list = ptsInLine(line[0])
 
-                # Add line to groups based on proximity of two end points to group
-                pt_start = {"point": [point_list[0].X, point_list[0].Y], "lines": [[line[0], 0, {"lineNo": line[1]}]]}
-                pt_end = {"point": [point_list[-1].X, point_list[-1].Y], "lines": [[line[0], -1, {"lineNo": line[1]}]]}
-                appendToGroup(pt_start, vertex_grp, line[2]['UID'])
-                appendToGroup(pt_end, vertex_grp, line[2]['UID'])
-            else:
-                print("Line is empty")
+            if len(point_list) == 0:
+                print("Line {} is empty".format(line[2]['UID']))
+                continue
+
+            # Add line to groups based on proximity of two end points to group
+            pt_start = {"point": [point_list[0].X, point_list[0].Y], "lines": [[line[0], 0, {"lineNo": line[1]}]]}
+            pt_end = {"point": [point_list[-1].X, point_list[-1].Y], "lines": [[line[0], -1, {"lineNo": line[1]}]]}
+            appendToGroup(pt_start, vertex_grp, line[2]['UID'])
+            appendToGroup(pt_end, vertex_grp, line[2]['UID'])
     except Exception as e:
-        print(e)
+        traceback.print_exc()
 
     return vertex_grp
 
@@ -222,7 +227,7 @@ def getAngle(line, end_index):
     else:
         angle = np.arctan(deltaY/deltaX)
 
-        # arctan in range [-pi/2, pi/2], regulate all angles to [[-pi/2, 3*pi/2]]
+        # arctan is in range [-pi/2, pi/2], regulate all angles to [[-pi/2, 3*pi/2]]
         if deltaX < 0:
             angle += math.pi  # the second or fourth quadrant
 
@@ -263,7 +268,9 @@ def generateAnchorPairs(vertex):
         pt_end_2 = lines[index[3]][2]
     elif len(slopes) == 3:
         # find the largest difference between angles
-        index = np.argmax([abs(slopes[0]-slopes[1]), abs(slopes[0]-slopes[2]), abs(slopes[1]-slopes[2])])
+        angle_diff = [abs(slopes[0]-slopes[1]), abs(slopes[0]-slopes[2]), abs(slopes[1]-slopes[2])]
+        angle_diff = [i-math.pi if i>math.pi else i for i in angle_diff]
+        index = np.argmax(angle_diff)
         pairs = [(0, 1), (0, 2), (1, 2)]
         pair = pairs[index]
 
@@ -474,8 +481,15 @@ def main(argv=None):
     # Prepare input lines for multiprocessing
     fields = flmc.GetAllFieldsFromShp(Forest_Line_Feature_Class)
 
-    segment_all = flmc.SplitLines(Forest_Line_Feature_Class, outWorkspace, "CL", False, KeepFieldName=fields)
-    vertex_grp = groupIntersections(segment_all)
+    try:
+        segment_all = flmc.SplitLines(Forest_Line_Feature_Class, outWorkspace, "CL", False, KeepFieldName=fields)
+    except IndexError:
+        print(e)
+
+    try:
+        vertex_grp = groupIntersections(segment_all)
+    except IndexError:
+        print(e)
 
     pool = multiprocessing.Pool(processes=flmc.GetCores())
     flmc.log("Multiprocessing center lines...")
@@ -585,11 +599,15 @@ def main(argv=None):
     with arcpy.da.InsertCursor(Out_Centerline, ["SHAPE@"] + fields) as cursor:
         for line in ptarray_all.values():
             if line:
-                row = [arcpy.Polyline(line[0])]
-                for i in fields:
-                    row.append(line[1][i])
+                try:
+                    if line[0].count > 0:
+                        row = [arcpy.Polyline(line[0])]
+                        for i in fields:
+                            row.append(line[1][i])
 
-                cursor.insertRow(row)
+                        cursor.insertRow(row)
+                except Exception as e:
+                    print("Write output lines: {}".format(e))
 
     # TODO: inspect CorridorTh
     if arcpy.Exists(Out_Centerline):
