@@ -269,8 +269,8 @@ def generateAnchorPairs(vertex):
     elif len(slopes) == 3:
         # find the largest difference between angles
         angle_diff = [abs(slopes[0]-slopes[1]), abs(slopes[0]-slopes[2]), abs(slopes[1]-slopes[2])]
-        angle_diff = [i-math.pi if i>math.pi else i for i in angle_diff]
-        index = np.argmax(angle_diff)
+        angle_diff_norm = [2*math.pi-i if i > math.pi else i for i in angle_diff]
+        index = np.argmax(angle_diff_norm)
         pairs = [(0, 1), (0, 2), (1, 2)]
         pair = pairs[index]
 
@@ -279,8 +279,7 @@ def generateAnchorPairs(vertex):
         pt_end_1 = lines[pair[1]][2]
 
         # the rest one index
-        a = {0, 1, 2}
-        remain = list(a.difference(pair))[0]  # the remaining index
+        remain = list({0, 1, 2}-set(pair))[0]  # the remaining index
 
         try:
             pt_start_2 = lines[remain][2]
@@ -391,8 +390,6 @@ def workLinesMem(vertex):
     # Temporary files
     outWorkspace = flmc.GetWorkspace(workspaceName)
 
-    print("Processing line {}".format(vertex["lines"][0][3]["lineNo"]))
-
     # read params from text file
     f = open(outWorkspace + "\\params.txt")
     Forest_Line_Feature_Class = f.readline().strip()
@@ -405,8 +402,6 @@ def workLinesMem(vertex):
         anchors = generateAnchorPairs(vertex)
     except Exception as e:
         print(e)
-
-    print("Generate anchor pairs done")
 
     if not anchors:
         print("No anchors retrieved")
