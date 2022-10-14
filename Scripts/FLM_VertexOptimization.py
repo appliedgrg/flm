@@ -30,6 +30,7 @@ import os
 import multiprocessing
 import numpy as np
 import math
+import traceback
 import uuid
 import shapely.geometry as shgeo
 
@@ -117,13 +118,16 @@ def closestPointToLine(point, line):
     return pt.x, pt.y
 
 
-def appendToGroup(vertex, vertex_grp):
+def appendToGroup(vertex, vertex_grp, UID):
     """
     Append new vertex to vertex group, by calculating distance to existing vertices
+    An anchor point will be added together with line
     """
     pt_added = False
     global DISTANCE_THRESHOLD
     global SEGMENT_LENGTH
+
+    vertex["lines"][0][2]["UID"] = UID
 
     # Calculate anchor point for each vertex
     point = arcpy.Point(vertex["point"][0], vertex["point"][1])
@@ -138,6 +142,7 @@ def appendToGroup(vertex, vertex_grp):
         pt_1 = point
         pt_2 = pts[-2]
 
+    # Calculate anchor point
     dist_pt = math.sqrt(sum((px - qx) ** 2.0 for px, qx in zip([pt_1.X, pt_1.Y], [pt_2.X, pt_2.Y])))
     X = pt_1.X + (pt_2.X - pt_1.X) * SEGMENT_LENGTH / dist_pt
     Y = pt_1.Y + (pt_2.Y - pt_1.Y) * SEGMENT_LENGTH / dist_pt
@@ -156,11 +161,14 @@ def appendToGroup(vertex, vertex_grp):
 
 def ptsInLine(line):
     point_list = []
-    for part in line:
-        for point in part:  # loops through every point in a line
-            # loops through every vertex of every segment
-            if point:  # adds all the vertices to segment_list, which creates an array
-                point_list.append(point)
+    try:
+        for part in line:
+            for point in part:  # loops through every point in a line
+                # loops through every vertex of every segment
+                if point:  # adds all the vertices to segment_list, which creates an array
+                    point_list.append(point)
+    except Exception as e:
+        print(e)
 
     return point_list
 
@@ -173,22 +181,28 @@ def groupIntersections(lines):
     pt_index: 0 is start vertex, -1 is end vertex
     """
     vertex_grp = []
+    try:
+        for line in lines:
+            point_list = ptsInLine(line[0])
 
-    for line in lines:
-        point_list = ptsInLine(line[0])
+            if len(point_list) == 0:
+                print("Line {} is empty".format(line[2]['UID']))
+                continue
 
-        # Find origin and destination coordinates
-        pt_start = {"point": [point_list[0].X, point_list[0].Y], "lines": [[line[0], 0, {"lineNo": line[1]}]]}
-        pt_end = {"point": [point_list[-1].X, point_list[-1].Y], "lines": [[line[0], -1, {"lineNo": line[1]}]]}
-        appendToGroup(pt_start, vertex_grp)
-        appendToGroup(pt_end, vertex_grp)
+            # Add line to groups based on proximity of two end points to group
+            pt_start = {"point": [point_list[0].X, point_list[0].Y], "lines": [[line[0], 0, {"lineNo": line[1]}]]}
+            pt_end = {"point": [point_list[-1].X, point_list[-1].Y], "lines": [[line[0], -1, {"lineNo": line[1]}]]}
+            appendToGroup(pt_start, vertex_grp, line[2]['UID'])
+            appendToGroup(pt_end, vertex_grp, line[2]['UID'])
+    except Exception as e:
+        traceback.print_exc()
 
     return vertex_grp
 
 
-def getSlope(line, end_index):
+def getAngle(line, end_index):
     """
-    Calculate the slope of the first or last segment
+    Calculate the angle of the first or last segment
     line: ArcPy Polyline
     end_index: 0 or -1 of the the line vertices. Consider the multipart.
     """
@@ -202,10 +216,22 @@ def getSlope(line, end_index):
         pt_1 = pt[-1]
         pt_2 = pt[-2]
 
+    deltaX = pt_2.X - pt_1.X
+    deltaY = pt_2.Y - pt_1.Y
     if math.isclose(pt_1.X, pt_2.X, abs_tol=flmc.EPSILON):
-        return math.inf
+        angle = math.pi / 2
+        if deltaY > 0:
+            angle = math.pi/2
+        elif deltaY < 0:
+            angle = -math.pi/2
     else:
-        return (pt_1.Y - pt_2.Y) / (pt_1.X - pt_2.X)
+        angle = np.arctan(deltaY/deltaX)
+
+        # arctan is in range [-pi/2, pi/2], regulate all angles to [[-pi/2, 3*pi/2]]
+        if deltaX < 0:
+            angle += math.pi  # the second or fourth quadrant
+
+    return angle
 
 
 def generateAnchorPairs(vertex):
@@ -222,7 +248,7 @@ def generateAnchorPairs(vertex):
     for line in lines:
         line_seg = line[0]
         pt_index = line[1]
-        slopes.append(getSlope(line_seg, pt_index))
+        slopes.append(getAngle(line_seg, pt_index))
 
     index = 0  # the index of line which paired with first line.
     pt_start_1 = None
@@ -230,34 +256,42 @@ def generateAnchorPairs(vertex):
     pt_start_2 = None
     pt_end_2 = None
 
-    if len(slopes) == 4 or len(slopes) == 3:
-        diff = [abs(slopes[0] - i) for i in slopes[1:]]  # calculate difference of first slopes with the rest
-        index = np.argmin(diff) + 1  # 1, 2, oor 3
+    if len(slopes) == 4:
+        # get sort order of angles
+        index = np.argsort(slopes)
+
+        # first anchor pair (first and third in the sorted array)
+        pt_start_1 = lines[index[0]][2]
+        pt_end_1 = lines[index[2]][2]
+
+        pt_start_2 = lines[index[1]][2]
+        pt_end_2 = lines[index[3]][2]
+    elif len(slopes) == 3:
+        # find the largest difference between angles
+        angle_diff = [abs(slopes[0]-slopes[1]), abs(slopes[0]-slopes[2]), abs(slopes[1]-slopes[2])]
+        angle_diff_norm = [2*math.pi-i if i > math.pi else i for i in angle_diff]
+        index = np.argmax(angle_diff_norm)
+        pairs = [(0, 1), (0, 2), (1, 2)]
+        pair = pairs[index]
 
         # first anchor pair
-        pt_start_1 = lines[0][2]
-        pt_end_1 = lines[index][2]
+        pt_start_1 = lines[pair[0]][2]
+        pt_end_1 = lines[pair[1]][2]
 
-        # the rest one or two index
-        a = {0, 1, 2, 3}
-        b = set([0, index])
-        remains = list(a.difference(b))  # the remaining index
+        # the rest one index
+        remain = list({0, 1, 2}-set(pair))[0]  # the remaining index
 
         try:
-            if len(remains) == 2:
-                pt_start_2 = lines[remains[0]][2]
-                pt_end_2 = lines[remains[1]][2]
-            elif len(remains) == 1:
-                pt_start_2 = lines[remains[0]][2]
-                # symmetry point of pt_start_2 regarding vertex["point"]
-                X = vertex["point"][0] - (pt_start_2[0] - vertex["point"][0])
-                Y = vertex["point"][1] - (pt_start_2[1] - vertex["point"][1])
-                pt_end_2 = [X, Y]
+            pt_start_2 = lines[remain][2]
+            # symmetry point of pt_start_2 regarding vertex["point"]
+            X = vertex["point"][0] - (pt_start_2[0] - vertex["point"][0])
+            Y = vertex["point"][1] - (pt_start_2[1] - vertex["point"][1])
+            pt_end_2 = [X, Y]
         except Exception as e:
             print(e)
 
-    # this scenario only use two anchors and find closest point on least cost path
-    if len(slopes) == 2:
+    # this scenario only use two anchors and find the closest point on least cost path
+    elif len(slopes) == 2:
         pt_start_1 = lines[0][2]
         pt_end_1 = lines[1][2]
     elif len(slopes) == 1:
@@ -288,7 +322,9 @@ def leastCostPath(Cost_Raster, anchors, Line_Processing_Radius):
         centerline = [None]
         return centerline
 
-    lineNo = uuid.uuid4().hex  # random line No.
+    # lineNo = uuid.uuid4().hex  # random line No.
+    lineNo = os.getpid()
+
     outWorkspaceMem = r"memory"
     arcpy.env.workspace = r"memory"
 
@@ -306,14 +342,16 @@ def leastCostPath(Cost_Raster, anchors, Line_Processing_Radius):
     line = arcpy.Polyline(arcpy.Array([arcpy.Point(x1, y1), arcpy.Point(x2, y2)]), arcpy.SpatialReference(3400))
     try:
         # Buffer around line
-        lineBuffer = arcpy.Buffer_analysis([line], arcpy.Geometry(), Line_Processing_Radius,
-                                           "FULL", "ROUND", "NONE", "", "PLANAR")
+        # lineBuffer = arcpy.Buffer_analysis([line], arcpy.Geometry(), Line_Processing_Radius,
+        #                                   "FULL", "ROUND", "NONE", "", "PLANAR")
+        lineBuffer = line.buffer(Line_Processing_Radius)
 
         # Clip cost raster using buffer
-        SearchBox = str(lineBuffer[0].extent.XMin) + " " + str(lineBuffer[0].extent.YMin) + " " + \
-                    str(lineBuffer[0].extent.XMax) + " " + str(lineBuffer[0].extent.YMax)
-        arcpy.Clip_management(Cost_Raster, SearchBox, fileClip, lineBuffer, "", "ClippingGeometry",
-                              "NO_MAINTAIN_EXTENT")
+        SearchBox = str(lineBuffer.extent.XMin) + " " + str(lineBuffer.extent.YMin) + " " + \
+                    str(lineBuffer.extent.XMax) + " " + str(lineBuffer.extent.YMax)
+        # arcpy.Clip_management(Cost_Raster, SearchBox, fileClip, lineBuffer, "", "ClippingGeometry",
+        #                      "NO_MAINTAIN_EXTENT")
+        arcpy.Clip_management(Cost_Raster, SearchBox, fileClip, "#", "#", "None", "NO_MAINTAIN_EXTENT")
 
         # Least cost path
         fileCostDist = CostDistance(arcpy.PointGeometry(arcpy.Point(x1, y1)), fileClip, "", fileCostBack)
@@ -359,7 +397,11 @@ def workLinesMem(vertex):
     Line_Processing_Radius = float(f.readline().strip())
     f.close()
 
-    anchors = generateAnchorPairs(vertex)
+    anchors = []
+    try:
+        anchors = generateAnchorPairs(vertex)
+    except Exception as e:
+        print(e)
 
     if not anchors:
         print("No anchors retrieved")
@@ -368,26 +410,35 @@ def workLinesMem(vertex):
     centerline_1 = [None]
     centerline_2 = [None]
     intersection = None
-    if len(anchors) == 4:
-        centerline_1 = leastCostPath(Cost_Raster, anchors[0:2], Line_Processing_Radius)
-        centerline_2 = leastCostPath(Cost_Raster, anchors[2:4], Line_Processing_Radius)
 
-        if centerline_1 and centerline_2:
-            intersection = intersectionOfLines(centerline_1, centerline_2)
-    elif len(anchors) == 2:
-        centerline_1 = leastCostPath(Cost_Raster, anchors, Line_Processing_Radius)
+    try:
+        if len(anchors) == 4:
+            centerline_1 = leastCostPath(Cost_Raster, anchors[0:2], Line_Processing_Radius)
+            centerline_2 = leastCostPath(Cost_Raster, anchors[2:4], Line_Processing_Radius)
 
-        if centerline_1:
-            intersection = closestPointToLine(vertex["point"], centerline_1)
+            if centerline_1 and centerline_2:
+                intersection = intersectionOfLines(centerline_1, centerline_2)
+        elif len(anchors) == 2:
+            centerline_1 = leastCostPath(Cost_Raster, anchors, Line_Processing_Radius)
 
-    # Update vertices according to intersection, new centerlines are returned
-    temp = []
-    # lines = updatePtInLines(vertex, intersection)
-    temp.append(anchors)
-    temp.append(centerline_1 + centerline_2)
-    temp.append(intersection)
-    temp.append(vertex)
-    print("Processing vertex {} done".format(vertex["point"]))
+            if centerline_1:
+                intersection = closestPointToLine(vertex["point"], centerline_1)
+    except Exception as e:
+        print(e)
+
+    # Update vertices according to intersection, new center lines are returned
+    try:
+        temp = []
+
+        # lines = updatePtInLines(vertex, intersection)
+        temp.append(anchors)
+        temp.append(centerline_1 + centerline_2)
+        temp.append(intersection)
+        temp.append(vertex)
+        print("Processing vertex {} done".format(vertex["point"]))
+    except Exception as e:
+        print(e)
+
     return temp
 
 
@@ -425,8 +476,15 @@ def main(argv=None):
     # Prepare input lines for multiprocessing
     fields = flmc.GetAllFieldsFromShp(Forest_Line_Feature_Class)
 
-    segment_all = flmc.SplitLines(Forest_Line_Feature_Class, outWorkspace, "CL", False, KeepFieldName=fields)
-    vertex_grp = groupIntersections(segment_all)
+    try:
+        segment_all = flmc.SplitLines(Forest_Line_Feature_Class, outWorkspace, "CL", False, KeepFieldName=fields)
+    except IndexError:
+        print(e)
+
+    try:
+        vertex_grp = groupIntersections(segment_all)
+    except IndexError:
+        print(e)
 
     pool = multiprocessing.Pool(processes=flmc.GetCores())
     flmc.log("Multiprocessing center lines...")
@@ -536,11 +594,15 @@ def main(argv=None):
     with arcpy.da.InsertCursor(Out_Centerline, ["SHAPE@"] + fields) as cursor:
         for line in ptarray_all.values():
             if line:
-                row = [arcpy.Polyline(line[0])]
-                for i in fields:
-                    row.append(line[1][i])
+                try:
+                    if line[0].count > 0:
+                        row = [arcpy.Polyline(line[0])]
+                        for i in fields:
+                            row.append(line[1][i])
 
-                cursor.insertRow(row)
+                        cursor.insertRow(row)
+                except Exception as e:
+                    print("Write output lines: {}".format(e))
 
     # TODO: inspect CorridorTh
     if arcpy.Exists(Out_Centerline):

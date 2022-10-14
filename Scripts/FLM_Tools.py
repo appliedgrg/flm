@@ -14,6 +14,7 @@ currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfram
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
 
+
 def canopyCost(in_raster,
                out_canopy_raster, out_cost_raster,
                height_thresh=1, search_radius=3,
@@ -51,7 +52,7 @@ def preTagging(in_center_line, in_chm, in_canopy_raster, in_cost_raster, in_lida
     argv[2] = in_canopy_raster  # canopy raster
     argv[3] = in_cost_raster  # Cost raster
     argv[4] = in_lidar_year  # Input LiDAR coverage with acquisition year
-    argv[5] = str(max_line_width)  # maximam line width
+    argv[5] = str(max_line_width)  # maximum line width
     argv[6] = out_tagged_line  # Output line foot print
 
     if not os.path.exists(in_center_line):
@@ -82,7 +83,7 @@ def vertexOptimization(in_line, in_cost_raster, out_center_line, line_process_ra
         return
 
     if os.path.exists(out_center_line):
-        print("Centeline file {} already exists, ignore.".format(out_center_line))
+        print("Centerline file {} already exists, ignore.".format(out_center_line))
         return
 
     FLM_VertexOptimization.main(argv)
@@ -107,7 +108,7 @@ def centerline(in_line, in_cost_raster, out_center_line,
         return
 
     if os.path.exists(out_center_line):
-        print("Centeline file {} already exists, ignore.".format(out_center_line))
+        print("Centerline file {} already exists, ignore.".format(out_center_line))
         return
 
     FLM_CenterLine.main(argv)
@@ -123,14 +124,14 @@ def lineFootprint(in_center_line, in_canopy_raster, in_cost_raster,
 
     """
 
-    print("Processing canopy line footprint: ", out_footprint)
+    print("Processing line footprint: ", out_footprint)
     argv = [None] * 9
     argv[0] = in_center_line  # center line
     argv[1] = in_canopy_raster  # canopy raster
     argv[2] = in_cost_raster  # Cost raster
     argv[3] = corridor_thresh  # corridor threshold field
     argv[4] = str(corridor_threshold)
-    argv[5] = str(max_line_width)  # maximam line width
+    argv[5] = str(max_line_width)  # maximum line width
     argv[6] = str(expand_shrink_range)  # expand and shrink cell range
     argv[7] = str(process_segments)  # process segments
     argv[8] = out_footprint  # Output line foot print
@@ -147,7 +148,7 @@ def lineFootprint(in_center_line, in_canopy_raster, in_cost_raster,
 
 
 def lineAttribute(sampling_type, in_line, in_footprint, in_chm, out_line_attribute,
-                  segment_lenght=30, line_split_tolerance=3, max_line_width=25):
+                  segment_length=30, line_split_tolerance=3, max_line_width=25):
     """
     Generate line attribute
     sampling_type: IN-FEATURES, WHOLE-LINE, LINE-CROSSINGS, ARBITRARY
@@ -159,7 +160,7 @@ def lineAttribute(sampling_type, in_line, in_footprint, in_chm, out_line_attribu
     argv[1] = in_footprint  # line footprint
     argv[2] = in_chm  # input CHM
     argv[3] = sampling_type    # sampling type
-    argv[4] = str(segment_lenght)  # Segment length
+    argv[4] = str(segment_length)  # Segment length
     argv[5] = str(line_split_tolerance)  # line split tolerance
     argv[6] = str(max_line_width)  # maximum line width
     argv[7] = out_line_attribute   # Output line attributes
