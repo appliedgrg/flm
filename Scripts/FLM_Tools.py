@@ -177,3 +177,104 @@ def lineAttribute(sampling_type, in_line, in_footprint, in_chm, out_line_attribu
 
 def rasterAttribute(self):
     return
+
+def FLM_DynamicCanopyThreshold(cl_fc,chm,process_segments,Search_R, Canopy_Percentile,CanopyTh_Percent,
+                             TreeSearchRadius,MaximumLineDistance,  CanopyAvoidance,CostRasterExponent):
+    """
+       Generate line attribute
+       sampling_type: IN-FEATURES, WHOLE-LINE, LINE-CROSSINGS, ARBITRARY
+       """
+
+    print("Processing dynamic footprint")
+    try:
+        argv = [None] * 10
+        argv[0] = cl_fc  # input line (output)
+        argv[1] = chm  # CHM raster
+        argv[2] = str(process_segments)  # process segments
+        argv[3] = str(Search_R)  # Offset line distance
+        argv[4] = str(Canopy_Percentile)  # Canopy Nth Percentile
+        argv[5] = str(CanopyTh_Percent) # Canopy Threshold Percentage
+        argv[6] = str(TreeSearchRadius)  # Tree Search Radius
+        argv[7] = str(MaximumLineDistance)  # Maximum Line Distance
+        argv[8] = str(CanopyAvoidance)  # Canopy Avoidance
+        argv[9] = str(CostRasterExponent)  # Cost Raster Exponent
+
+    except Exception as e:
+        print("Error: Please Check the input.")
+        print(e)
+        sys.exit()
+
+
+    if not os.path.exists(cl_fc):
+        print("Input line file {} not exists, ignore.".format(cl_fc))
+        return
+
+    FLM_DynamicCanopyThreshold.main(argv)
+
+def FLM_DynamicLineFootprint(cl_fc,chm,max_line_width,expand_shrink_range,process_segments,out_footprint,
+                             TreeSearchRadius,MaximumLineDistance, CanopyAvoidance,CostRasterExponent):
+    """
+       Generate line attribute
+       sampling_type: IN-FEATURES, WHOLE-LINE, LINE-CROSSINGS, ARBITRARY
+       """
+
+    print("Processing dynamic footprint")
+    try:
+        argv = [None] * 10
+        argv[0] = cl_fc  # input line (output)
+        argv[1] = chm  # CHM raster
+        argv[2] = str(max_line_width)  # maximam line width
+        argv[3] = str(expand_shrink_range)  # expand and shrink cell range
+        argv[4] = str(process_segments)  # process segments
+        argv[5] = out_footprint  # Output line foot print
+        argv[6] = str(TreeSearchRadius)  # Tree Search Radius
+        argv[7] = str(MaximumLineDistance)  # Maximum Line Distance
+        argv[8] = str(CanopyAvoidance)  # Canopy Avoidance
+        argv[9] = str(CostRasterExponent)  # Cost Raster Exponent
+    except Exception as e:
+        print("Error: Please Check the input.")
+        print(e)
+        sys.exit()
+
+
+    if not os.path.exists(cl_fc):
+        print("Input line file {} not exists, ignore.".format(cl_fc))
+        return
+
+    FLM_DynamicLineFootprint.main(argv)
+
+def FLM_DynamicLineFootprintFullStep(cl_fc,chm,max_line_width,expand_shrink_range,process_segments,Search_R,out_footprint,
+                             Canopy_Percentile,CanopyTh_Percent,TreeSearchRadius,MaximumLineDistance,
+                             CanopyAvoidance,CostRasterExponent):
+    """
+       Generate line attribute
+       sampling_type: IN-FEATURES, WHOLE-LINE, LINE-CROSSINGS, ARBITRARY
+       """
+
+    print("Processing dynamic footprint")
+    try:
+        argv = [None] * 13
+        argv[0] = cl_fc  # input line (output)
+        argv[1] = chm  # CHM raster
+        argv[2] = str(max_line_width)  # maximam line width
+        argv[3] = str(expand_shrink_range)  # expand and shrink cell range
+        argv[4] = str(process_segments)  # process segments
+        argv[5] = out_footprint  # Output line foot print
+        argv[6] = str(Search_R)  # Offset line distance
+        argv[7] = str(Canopy_Percentile)  # Canopy Nth Percentile
+        argv[8] = str(CanopyTh_Percent) # Canopy Threshold Percentage
+        argv[9] = str(TreeSearchRadius)  # Tree Search Radius
+        argv[10] = str(MaximumLineDistance)  # Maximum Line Distance
+        argv[11] = str(CanopyAvoidance)  # Canopy Avoidance
+        argv[12] = str(CostRasterExponent)  # Cost Raster Exponent
+    except Exception as e:
+        print("Error: Please Check the input.")
+        print(e)
+        sys.exit()
+
+
+    if not os.path.exists(cl_fc):
+        print("Input line file {} not exists, ignore.".format(cl_fc))
+        return
+
+    FLM_DynamicLineFootprintFullStep.main(argv)
