@@ -42,7 +42,7 @@ try:
 except ImportError:
     import Tkinter as tk
 
-timeStart = time.clock()
+timeStart = time.perf_counter()
 timeLast = timeStart
 scriptPath = os.path.dirname(os.path.realpath(__file__))
 coresFile = "mpc.txt"
@@ -54,7 +54,7 @@ NO_DATA = -9999
 def logStart(tool):
     log("----------")
     global timeStart, timeLast
-    timeStart = time.clock()
+    timeStart = time.perf_counter()
     timeLast = timeStart
     log("Running tool: "+tool.title)
     log("Processing initiated at: "+time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.localtime()))
@@ -68,7 +68,7 @@ def logStart(tool):
 
 def logStep(stepName):
     global timeLast
-    timeThis = time.clock()
+    timeThis = time.perf_counter()
     log(stepName+" is done! Execution time: "+"{:.2f}".format(timeThis-timeLast)+" seconds")
     timeLast = timeThis
     log("----------")
@@ -76,7 +76,7 @@ def logStep(stepName):
 
 def logEnd(tool):
     log("\nTool "+tool.title+" has executed successfully!")
-    timeEnd = time.clock()
+    timeEnd = time.perf_counter()
     global timeStart
     log("Total Execution Time: "+"{:.2f}".format(timeEnd-timeStart)+" seconds")
 
