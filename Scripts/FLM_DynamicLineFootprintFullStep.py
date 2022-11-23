@@ -35,15 +35,15 @@
 
 # System imports
 import os
+import sys
 import numpy
 import multiprocessing
 
 import math
 from functools import partial
+from memory_profiler import profile
 
 # ArcGIS imports
-import sys
-
 import arcpy
 from arcpy.sa import *
 
@@ -54,7 +54,6 @@ workspaceName = "FLM_DLFP_output"
 outWorkspace = ""
 Corridor_Threshold_Field = ""
 Maximum_distance_from_centerline = 0
-
 
 def PathFile(path):
     return path[path.rfind("\\") + 1:]
@@ -368,8 +367,8 @@ def update_simpCL(seg,fieldName,split_simCL, wherecluase):
 
     except Exception as e:
         print(e)
-        print("Cannot Update simpCL for simple CL {}".format(seg[0]))
 
+        print("Cannot Update simpCL for simple CL {}".format(seg[0]))
 
 def CC_call(input_line):
     outWorkspace = r"memory"
@@ -394,22 +393,19 @@ def CC_call(input_line):
         Cost_Raster_Exponent = float(input_line[7])
 
         Output_Canopy_Raster = r"memory/out_canopy_raster" + str(input_line[0])
-
         tempbuffer = r"memory\outrbuffer" + str(input_line[0])
 
         # get params for footprint
         Centerline_Feature_Class = input_line[12]
-
         Corridor_Threshold_Field = input_line[8]
 
         Maximum_distance_from_centerline = input_line[9]
         Expand_And_Shrink_Cell_Range = input_line[10]
-
     except Exception as e:
         arcpy.AddMessage(
             "Something wrong getting parameter for line no.{}.......".format(str(input_line[0])))
         arcpy.AddMessage(e)
-
+        return
 
     try:
         # create a buffer for the input CL for clipping the CHM raster around the CL
@@ -422,87 +418,90 @@ def CC_call(input_line):
                 SearchBox = str(desbuffer.extent.XMin) + " " + str(desbuffer.extent.YMin) + " " + str(
                     desbuffer.extent.XMax) + " " + str(desbuffer.extent.YMax)
         del sCursor
-        #Clip the CHM with buffer area for Canopy and cost raster creation
+
+        # Clip the CHM with buffer area for Canopy and cost raster creation
         CHMClipM = r"memory\clipCHM_" + str(input_line[0])
         with arcpy.EnvManager(snapRaster=chm_raster):  # clip the raster using the buffered area
-
             arcpy.Clip_management(chm_raster, SearchBox, CHMClipM, tempbuffer, "-99999",
                                   "ClippingGeometry", "NO_MAINTAIN_EXTENT")
-
     except Exception as e:
         arcpy.AddMessage(
             "Something wrong Create buffer for line no.{}.......".format(str(input_line[0])))
         arcpy.AddMessage(e)
+        return
 
     chm_raster = arcpy.Raster(CHMClipM)
-    # Local variables:
 
+    # Local variables:
     FLM_CC_EucRaster = outWorkspace + "\\FLM_CC_EucRaster" + str(input_line[0])
     FLM_CC_SmoothRaster = outWorkspace + "\\FLM_CC_SmoothRaster" + str(input_line[0])
     FLM_CC_Mean = outWorkspace + "\\FLM_CC_Mean" + str(input_line[0])
     FLM_CC_StDev = outWorkspace + "\\FLM_CC_StDev" + str(input_line[0])
     FLM_CC_CostRaster = outWorkspace + "\\FLM_CC_CostRaster" + str(input_line[0])
 
-    # Process: Turn CHM into a Canopy Closure (CC) map
+    try:
+        # Process: Turn CHM into a Canopy Closure (CC) map
+        arcpy.gp.Con_sa(chm_raster, 1, Output_Canopy_Raster, 0, "VALUE > " + str(Min_Canopy_Height))
 
-    arcpy.gp.Con_sa(chm_raster, 1, Output_Canopy_Raster, 0, "VALUE > " + str(Min_Canopy_Height))
+        # Process: CC Mean
+        # arcpy.AddMessage("Calculating Focal Mean...")
+        arcpy.gp.FocalStatistics_sa(Output_Canopy_Raster, FLM_CC_Mean, Tree_Search_Area, "MEAN")
 
-    # Process: CC Mean
-    # arcpy.AddMessage("Calculating Focal Mean...")
-    arcpy.gp.FocalStatistics_sa(Output_Canopy_Raster, FLM_CC_Mean, Tree_Search_Area, "MEAN")
+        # Process: CC StDev
+        # arcpy.AddMessage("Calculating Focal StDev..")
+        arcpy.gp.FocalStatistics_sa(Output_Canopy_Raster, FLM_CC_StDev, Tree_Search_Area, "STD")
 
+        # Process: Euclidean Distance
+        # arcpy.AddMessage("Calculating Euclidean Distance From Canopy...")
+        EucAllocation(Con(arcpy.Raster(Output_Canopy_Raster) >= 1, 1, ""), "", "", "", "", FLM_CC_EucRaster, "")
 
-    # Process: CC StDev
-    # arcpy.AddMessage("Calculating Focal StDev..")
-    arcpy.gp.FocalStatistics_sa(Output_Canopy_Raster, FLM_CC_StDev, Tree_Search_Area, "STD")
+        smoothCost = (float(Max_Line_Distance) - arcpy.Raster(FLM_CC_EucRaster))
+        smoothCost = Con(smoothCost > 0, smoothCost, 0) / float(Max_Line_Distance)
+        smoothCost.save(FLM_CC_SmoothRaster)
+    except Exception as e:
+        print(e)
+        print(input_line)
+        return
 
+    try:
+        # Process: Cost Raster Calculation
+        # arcpy.AddMessage("Calculating Cost Raster for FID:{}......".format(input_line[1]))
+        arcpy.env.compression = "NONE"
+        Raster_CC = arcpy.Raster(Output_Canopy_Raster)
+        Raster_Mean = arcpy.Raster(FLM_CC_Mean)
+        Raster_StDev = arcpy.Raster(FLM_CC_StDev)
+        Raster_Smooth = arcpy.Raster(FLM_CC_SmoothRaster)
+        avoidance = max(min(float(CanopyAvoidance), 1), 0)
 
-    # Process: Euclidean Distance
-    # arcpy.AddMessage("Calculating Euclidean Distance From Canopy...")
-    EucAllocation(Con(arcpy.Raster(Output_Canopy_Raster) >= 1, 1, ""), "", "", "", "", FLM_CC_EucRaster, "")
+        # Original formula as follow
+        # outRas = Power(Exp(Con((Raster_CC == 1), 1, Con((Raster_Mean + Raster_StDev <= 0), 0, (
+        # 			1 + (Raster_Mean - Raster_StDev) / (Raster_Mean + Raster_StDev)) / 2) * (
+        # 								   1 - avoidance) + Raster_Smooth * avoidance)), float(Cost_Raster_Exponent))
 
-    smoothCost = (float(Max_Line_Distance) - arcpy.Raster(FLM_CC_EucRaster))
-    smoothCost = Con(smoothCost > 0, smoothCost, 0) / float(Max_Line_Distance)
-    smoothCost.save(FLM_CC_SmoothRaster)
+        # decomposite above formula to steps
+        with arcpy.EnvManager(snapRaster=chm_raster):
 
-
-    # Process: Cost Raster Calculation
-    # arcpy.AddMessage("Calculating Cost Raster for FID:{}......".format(input_line[1]))
-    arcpy.env.compression = "NONE"
-    Raster_CC = arcpy.Raster(Output_Canopy_Raster)
-    Raster_Mean = arcpy.Raster(FLM_CC_Mean)
-    Raster_StDev = arcpy.Raster(FLM_CC_StDev)
-    Raster_Smooth = arcpy.Raster(FLM_CC_SmoothRaster)
-    avoidance = max(min(float(CanopyAvoidance), 1), 0)
-
-    # Original formula as follow
-    # outRas = Power(Exp(Con((Raster_CC == 1), 1, Con((Raster_Mean + Raster_StDev <= 0), 0, (
-    # 			1 + (Raster_Mean - Raster_StDev) / (Raster_Mean + Raster_StDev)) / 2) * (
-    # 								   1 - avoidance) + Raster_Smooth * avoidance)), float(Cost_Raster_Exponent))
-
-    #decomposite above formula to steps
-    with arcpy.EnvManager(snapRaster=chm_raster):
-
-        aM = (1 + (Raster_Mean - Raster_StDev) / (Raster_Mean + Raster_StDev)) / 2
-        aaM = (Raster_Mean + Raster_StDev)
-        bM = arcpy.sa.Con(aaM, 0, aM, "Value <= 0")
-        cM = bM * (1 - avoidance) + (Raster_Smooth * avoidance)
-        dM = arcpy.sa.Con(Raster_CC, 1, cM, "Value = 1")
-        eM = arcpy.sa.Exp(dM)
-        outRas = arcpy.sa.Power(eM, float(Cost_Raster_Exponent))
-
+            aM = (1 + (Raster_Mean - Raster_StDev) / (Raster_Mean + Raster_StDev)) / 2
+            aaM = (Raster_Mean + Raster_StDev)
+            bM = arcpy.sa.Con(aaM, 0, aM, "Value <= 0")
+            cM = bM * (1 - avoidance) + (Raster_Smooth * avoidance)
+            dM = arcpy.sa.Con(Raster_CC, 1, cM, "Value = 1")
+            eM = arcpy.sa.Exp(dM)
+            outRas = arcpy.sa.Power(eM, float(Cost_Raster_Exponent))
+    except Exception as e:
+        print(e)
+        print(input_line)
+        return
 
     Canopy_Raster = Raster_CC
     Cost_Raster = outRas
     del aM, aaM, bM, cM, dM, eM
 
-
-
     # TODO: this is constant, but need to be investigated.
     ################################# Input Test Corridor Threshold here #############################################
     Corridor_Threshold = 3
 
-    ##Or
+    ## Or
 
     # if Min_Canopy_Height>Corridor_Threshold_Field:
     #     Corridor_Threshold = Min_Canopy_Height
@@ -611,6 +610,7 @@ def CC_call(input_line):
         arcpy.gp.Corridor_sa(fileCostDa, fileCostDb, fileCorridor)
     except Exception as e:
         print(e)
+        return
 
     footprint = []
 
@@ -655,10 +655,10 @@ def CC_call(input_line):
                                                      "SIMPLIFY", "VALUE", "MULTIPLE_OUTER_PART", "")
     except Exception as e:
         print(e)
+        return
 
-    #flmc.log("Processing line {} done".format(fileSeg))
+    # flmc.log("Processing line {} done".format(fileSeg))
     print("Processing line {} done".format(fileSeg))
-
 
     # Clean temporary files
     try:
@@ -676,13 +676,26 @@ def CC_call(input_line):
         arcpy.Delete_management(fileShrink)
         arcpy.Delete_management(fileClean)
         arcpy.Delete_management(fileNull)
+
+        arcpy.Delete_management(Output_Canopy_Raster)
+        arcpy.Delete_management(tempbuffer)
+        arcpy.Delete_management(CHMClipM)
+        arcpy.Delete_management(Raster_CC)
+        arcpy.Delete_management(Raster_StDev)
+        arcpy.Delete_management(Raster_Smooth)
+        arcpy.Delete_management(smoothCost)
+
+        arcpy.Delete_management(FLM_CC_EucRaster)
+        arcpy.Delete_management(FLM_CC_SmoothRaster)
+        arcpy.Delete_management(FLM_CC_Mean)
+        arcpy.Delete_management(FLM_CC_StDev)
     except Exception as e:
         print("Line Footprint: Deleting temporary file failed. Inspect later.")
+        return
 
-    arcpy.ClearWorkspaceCache_management()
-    arcpy.Delete_management(r"memory/")
+    # arcpy.ClearWorkspaceCache_management()
+    # arcpy.Delete_management(r"memory/")
     del Raster_CC
-    del Raster_Mean
     del Raster_StDev
     del Raster_Smooth
     del avoidance
@@ -691,11 +704,14 @@ def CC_call(input_line):
 
     return footprint  # list of polygons
 
+# decorated_worker = profile(_CC_call)
+# def CC_call(*args, **kwargs):
+#     return decorated_worker(*args, **kwargs)
 def Percentile_Call(workspaceName, outWorkspace, Centerline_Feature_Class, Output_Footprint, chm, Search_R,
                     Canopy_Percentile, CanopyTh_Percent, ProcessSegments,
                     TreeSearchRadius, MaximumLineDistance, CanopyAvoidance, CostRasterExponent):
     # outWorkspace = flmc.SetupWorkspace(workspaceName)
-    #outWorkspace = flmc.GetWorkspace(workspaceName)
+    # outWorkspace = flmc.GetWorkspace(workspaceName)
     arcpy.env.workspace = outWorkspace
     arcpy.env.overwriteOutput = True
     cl_fc = Centerline_Feature_Class
@@ -801,7 +817,7 @@ def Percentile_Call(workspaceName, outWorkspace, Centerline_Feature_Class, Outpu
     del Search_R_index
     del lastitem_index
     del lstFields
-    del twoLines
+    # del twoLines
 
     edit.stopOperation()
     edit.stopEditing(True)
@@ -812,7 +828,7 @@ def Percentile_Call(workspaceName, outWorkspace, Centerline_Feature_Class, Outpu
 
     CHMCelly = arcpy.GetRasterProperties_management(chm, "CELLSIZEY").getOutput(0)
 
-    Cell_size = (round((int(CHMCellx) + int(CHMCelly)) / 2))
+    Cell_size = 100 * (float(CHMCellx) + float(CHMCelly)) / 2
     points_interval = str(Cell_size) + " Meters"
     # arcpy.AddMessage(points_interval)
 
@@ -921,11 +937,8 @@ def Percentile_Call(workspaceName, outWorkspace, Centerline_Feature_Class, Outpu
     pool.close()
     pool.join()
 
-
-
     All_buffer_simCl = r"memory/buffer_simCL"
     arcpy.Buffer_analysis(Temp_Splited_simplify_cl,All_buffer_simCl, "2.0 Meters", "FULL", "FLAT", "NONE",  None, "PLANAR")
-
 
     arcpy.SpatialJoin_analysis(before_updated_Percentile_CL,
                                All_buffer_simCl,Percentile_CL,
@@ -933,17 +946,12 @@ def Percentile_Call(workspaceName, outWorkspace, Centerline_Feature_Class, Outpu
 
     print("Updating Percentile Statistic into CL attributes Done.")
 
-
-
-
     Percentile_SimplifiedCL = os.path.abspath(os.path.dirname(Output_Footprint) + "/" \
                                  + os.path.basename(Centerline_Feature_Class).rpartition('.')[
                                      0] + ProcMode+ "_Percentile_SimplifiedCL.shp")
 
     arcpy.CopyFeatures_management(Temp_Splited_simplify_cl, Percentile_SimplifiedCL)
     arcpy.Delete_management(Temp_Splited_simplify_cl)
-
-
 
     Splited_Updated_Percentilecl=r"memory/updated_Percentile_CL"
     arcpy.CopyFeatures_management(Percentile_CL,Splited_Updated_Percentilecl)
@@ -1023,16 +1031,13 @@ def main(argv=None):
         arcpy.CheckOutExtension("3D")
         
         arcpy.CheckOutExtension("Spatial")
-        
 
     except Exception as e:
-        print("e") 
-       
-    
+        print(e)
+
     Updated_CL_fc = Percentile_Call(workspaceName, outWorkspace, Centerline_Feature_Class, Output_Footprint, CHM_Raster,
                                   Search_R, Canopy_Percentile, CanopyTh_Percent, ProcessSegments,
                                   TreeSearchRadius, MaximumLineDistance, CanopyAvoidance, CostRasterExponent)
-
 
     segment_all_Cal_DynCC=[]
     print("Preparing lines for Dynamic Footprint........")
@@ -1067,20 +1072,23 @@ def main(argv=None):
     pool.close()
     pool.join()
 
-   
-
     flmc.log("Merging footprints...")
 
     try:
         # Flatten footprints which is a list of list
-        ft_list = [item for sublist in footprints for item in sublist]
+        ft_list = []
+        for sublist in footprints:
+            if sublist:
+                for item in sublist:
+                    if item:
+                        ft_list.append(item)
 
         fileMerge = outWorkspace + "\\FLM_LFP_Merge.shp"
         arcpy.Merge_management(ft_list, fileMerge)
         arcpy.Dissolve_management(fileMerge, Output_Footprint)
         arcpy.Delete_management(fileMerge)
     except Exception as e:
-        print("e")
+        print(e)
 
     flmc.logStep("Footprints merged.")
     arcpy.CheckInExtension("Spatial")

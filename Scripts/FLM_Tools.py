@@ -2,6 +2,10 @@ import inspect
 import os
 import sys
 
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parentdir = os.path.dirname(currentdir)
+sys.path.insert(0, parentdir)
+
 # local imports
 import FLM_CanopyCost
 import FLM_Pretagging
@@ -9,11 +13,7 @@ import FLM_VertexOptimization
 import FLM_CenterLine
 import FLM_LineFootprint
 import FLM_ForestLineAttributes
-
-currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-parentdir = os.path.dirname(currentdir)
-sys.path.insert(0, parentdir)
-
+import FLM_DynamicLineFootprintFullStep
 
 def canopyCost(in_raster,
                out_canopy_raster, out_cost_raster,
@@ -145,6 +145,47 @@ def lineFootprint(in_center_line, in_canopy_raster, in_cost_raster,
         return
 
     FLM_LineFootprint.main(argv)
+
+
+def dynamicLineFootprint(in_center_line, in_chm_raster, out_footprint, max_line_width=32,
+                   expand_shrink_range=0, process_segments=False, offset_line_distance=10,
+                   canopy_percentile=90, canopy_thresh_percentage=50, tree_search_radius=1.5,
+                   max_line_distance=1.5, canopy_avoidance=0.0, cost_raster_exponent=1):
+    """
+    Generate line footprint
+
+    """
+    import FLM_DynamicLineFootprintFullStep
+
+    print("Processing line footprint: ", out_footprint)
+    argv = [None] * 13
+    argv[0] = in_center_line
+    argv[1] = in_chm_raster
+    argv[2] = str(max_line_width)
+    argv[3] = str(expand_shrink_range)
+    argv[4] = str(process_segments)
+    argv[5] = out_footprint
+    argv[6] = str(offset_line_distance)
+    argv[7] = str(canopy_percentile)
+    argv[8] = str(canopy_thresh_percentage)
+    argv[9] = str(tree_search_radius)
+    argv[10] = str(max_line_distance)
+    argv[11] = str(canopy_avoidance)
+    argv[12] = str(cost_raster_exponent)
+
+    if not os.path.exists(in_center_line):
+        print("Input line file {} not exists, ignore.".format(in_center_line))
+        return
+
+    if not os.path.exists(in_chm_raster):
+        print("Input CHM file {} not exists, ignore.".format(in_chm_raster))
+        return
+
+    if os.path.exists(out_footprint):
+        print("Dynamic Footprint file {} already exists, ignore.".format(out_footprint))
+        return
+
+    FLM_DynamicLineFootprintFullStep.main(argv)
 
 
 def lineAttribute(sampling_type, in_line, in_footprint, in_chm, out_line_attribute,
