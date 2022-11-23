@@ -111,7 +111,6 @@ def Listline_forMatrix(cl_fc, process_segments, outWorkspace):
                 outListline.append([record[0], record[1]])
         del sCursor
 
-
     return [outListline, cl_fc]
 
 
@@ -154,7 +153,6 @@ def CC_call(input_line):
             "Something wrong getting parameter for line no.{}.......".format(str(input_line[0])))
         arcpy.AddMessage(e)
 
-
     try:
         # create a buffer for the input CL for clipping the CHM raster around the CL
         arcpy.Buffer_analysis(input_line[1], tempbuffer, "100 Meters", "FULL", "ROUND",
@@ -188,18 +186,15 @@ def CC_call(input_line):
     FLM_CC_CostRaster = outWorkspace + "\\FLM_CC_CostRaster" + str(input_line[0])
 
     # Process: Turn CHM into a Canopy Closure (CC) map
-
     arcpy.gp.Con_sa(chm_raster, 1, Output_Canopy_Raster, 0, "VALUE > " + str(Min_Canopy_Height))
 
     # Process: CC Mean
     # arcpy.AddMessage("Calculating Focal Mean...")
     arcpy.gp.FocalStatistics_sa(Output_Canopy_Raster, FLM_CC_Mean, Tree_Search_Area, "MEAN")
 
-
     # Process: CC StDev
     # arcpy.AddMessage("Calculating Focal StDev..")
     arcpy.gp.FocalStatistics_sa(Output_Canopy_Raster, FLM_CC_StDev, Tree_Search_Area, "STD")
-
 
     # Process: Euclidean Distance
     # arcpy.AddMessage("Calculating Euclidean Distance From Canopy...")
@@ -208,7 +203,6 @@ def CC_call(input_line):
     smoothCost = (float(Max_Line_Distance) - arcpy.Raster(FLM_CC_EucRaster))
     smoothCost = Con(smoothCost > 0, smoothCost, 0) / float(Max_Line_Distance)
     smoothCost.save(FLM_CC_SmoothRaster)
-
 
     # Process: Cost Raster Calculation
     # arcpy.AddMessage("Calculating Cost Raster for FID:{}......".format(input_line[1]))
@@ -239,8 +233,6 @@ def CC_call(input_line):
     Canopy_Raster = Raster_CC
     Cost_Raster = outRas
     del aM, aaM, bM, cM, dM, eM
-
-
 
     # TODO: this is constant, but need to be investigated.
     ################################# Input Test Corridor Threshold here #############################################
@@ -403,7 +395,6 @@ def CC_call(input_line):
     #flmc.log("Processing line {} done".format(fileSeg))
     print("Processing line {} done".format(fileSeg))
 
-
     # Clean temporary files
     try:
         arcpy.Delete_management(fileSeg)
@@ -434,7 +425,6 @@ def CC_call(input_line):
     del outRas
 
     return footprint  # list of polygons
-
 
 
 def main(argv=None):
@@ -481,9 +471,6 @@ def main(argv=None):
     global Corridor_Threshold_Field
     global Canopy_Threshold_Field
 
-
-
-
     f = open(outWorkspace + "\\params.txt", "w")
     f.write(Centerline_Feature_Class + "\n")
     f.write(CHM_Raster + "\n")
@@ -502,7 +489,6 @@ def main(argv=None):
         arcpy.CheckOutExtension("3D")
         
         arcpy.CheckOutExtension("Spatial")
-        
 
     except Exception as e:
         print("e") 
@@ -561,19 +547,15 @@ def main(argv=None):
             segment_all_Cal_DynCC.append(seg)
     print("Start generate Dynamic Footprint........")
 
-
     pool = multiprocessing.Pool(processes=flmc.GetCores())
 
     flmc.log("Multiprocessing for dynamic canopy cost raster...")
     flmc.log("Using {} CPU cores".format(flmc.GetCores()))
 
-
     footprints = pool.map(CC_call, segment_all_Cal_DynCC)
 
     pool.close()
     pool.join()
-
-   
 
     flmc.log("Merging footprints...")
 
