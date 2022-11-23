@@ -1,2 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<metadata xml:lang="en"><Esri><CreaDate>20221021</CreaDate><CreaTime>09570300</CreaTime><ArcGISFormat>1.0</ArcGISFormat><SyncOnce>TRUE</SyncOnce><DataProperties><lineage><Process ToolSource="c:\program files\arcgis\pro\Resources\ArcToolbox\toolboxes\Spatial Analyst Tools.tbx\Con" Date="20221021" Time="095703">Con C:/FLM/flm-Richard/Examples/Inputs/Example_CHM_Raster.tif 1 C:\FLM\flm-Richard\Examples\Outputs\Canopy.tif 0 "VALUE &gt; 0.5"</Process></lineage></DataProperties></Esri></metadata>
