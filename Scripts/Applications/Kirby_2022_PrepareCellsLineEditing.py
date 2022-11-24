@@ -5,10 +5,6 @@ import inspect
 
 import datetime
 import arcpy
-from arcpy.sa import *
-from arcpy.da import *
-
-from shutil import copyfile
 
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
