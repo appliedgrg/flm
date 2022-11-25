@@ -940,10 +940,10 @@ def Percentile_Call(workspaceName, outWorkspace, Centerline_Feature_Class, Outpu
     All_buffer_simCl = r"memory/buffer_simCL"
     arcpy.Buffer_analysis(Temp_Splited_simplify_cl,All_buffer_simCl, "2.0 Meters", "FULL", "FLAT", "NONE",  None, "PLANAR")
 
-    arcpy.SpatialJoin_analysis(before_updated_Percentile_CL,
-                               All_buffer_simCl,Percentile_CL,
-                               "JOIN_ONE_TO_MANY", "KEEP_ALL",None,"WITHIN_CLEMENTINI", None, '')
-
+#    arcpy.SpatialJoin_analysis(before_updated_Percentile_CL, All_buffer_simCl,Percentile_CL,
+#                           "JOIN_ONE_TO_MANY", "KEEP_ALL",None,"WITHIN_CLEMENTINI", None, '')
+    arcpy.SpatialJoin_analysis(before_updated_Percentile_CL, All_buffer_simCl,Percentile_CL,
+                               "JOIN_ONE_TO_MANY", "KEEP_ALL",None, "CLOSEST", "0.3 Meters", '')
     print("Updating Percentile Statistic into CL attributes Done.")
 
     Percentile_SimplifiedCL = os.path.abspath(os.path.dirname(Output_Footprint) + "/" \
