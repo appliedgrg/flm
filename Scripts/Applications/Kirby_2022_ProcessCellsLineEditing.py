@@ -14,8 +14,6 @@ from arcpy.sa import *
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import FLM_Tools
 
-line_file_prefix = ""
-
 
 def setLayerStyle(layer, lineColor, lineWidth, fillColor=None):
     """Set layer style for aprx project"""
@@ -105,7 +103,6 @@ def ProcessCell(cellFolder, siteLetter, paramsList, lineType):
     cellPathCHM = os.path.join(basePath, cellFolder, 'CHM')
     cellPathLines = os.path.join(basePath, cellFolder, 'Lines')
 
-    global line_file_prefix
     input_raster = os.path.join(cellPathCHM, 'CHM_Kirby_Site' + siteLetter + r'.tif')
     input_line = os.path.join(cellPathLines, 'seedpoints_Site' + siteLetter + r'.shp')
 
@@ -185,7 +182,6 @@ def ProcessCells(cells, paramsList, basePath, discriminateLineType=False):
 
 
 def main():
-
     """ Prepare input seismic lines and raster for each cell"""
     # Set arcpy environment variables
     arcpy.env.overwriteOutput = True
@@ -207,8 +203,6 @@ def main():
                   "default": ("0.5", "1.5", "1.5", "0.0", "1", "15", "32", "True", r"")}
 
     discriminateLineType = False
-    global line_file_prefix
-    line_file_prefix = "Cinput_CHM"
     ProcessCells(cells, paramsList, basePath, discriminateLineType)
 
 
