@@ -192,8 +192,8 @@ def groupIntersections(lines):
             # Add line to groups based on proximity of two end points to group
             pt_start = {"point": [point_list[0].X, point_list[0].Y], "lines": [[line[0], 0, {"lineNo": line[1]}]]}
             pt_end = {"point": [point_list[-1].X, point_list[-1].Y], "lines": [[line[0], -1, {"lineNo": line[1]}]]}
-            appendToGroup(pt_start, vertex_grp, line[2]['UID'])
-            appendToGroup(pt_end, vertex_grp, line[2]['UID'])
+            appendToGroup(pt_start, vertex_grp, line[2]['FID'])
+            appendToGroup(pt_end, vertex_grp, line[2]['FID'])
     except Exception as e:
         traceback.print_exc()
 
@@ -322,8 +322,8 @@ def leastCostPath(Cost_Raster, anchors, Line_Processing_Radius):
         centerline = [None]
         return centerline
 
-    # lineNo = uuid.uuid4().hex  # random line No.
-    lineNo = os.getpid()
+    lineNo = uuid.uuid4().hex  # random line No.
+    # lineNo = os.getpid()
 
     outWorkspaceMem = r"memory"
     arcpy.env.workspace = r"memory"
