@@ -60,7 +60,6 @@ def PathFile(path):
 
 
 def CopyParallel(plyP, sLength):
-
     part = plyP.getPart(0)
     lArray = arcpy.Array()
     rArray = arcpy.Array()
@@ -198,7 +197,6 @@ def Listline_forMatrix(cl_fc, process_segments, outWorkspace):
         outListline = out_list
 
         cl_fc = os.path.normpath(r"memory/splitedCL")
-
     else:
         # make a copy the original feature class for the results
         arcpy.FeatureClassToFeatureClass_conversion(cl_fc, r"memory/", "splitedCL")
@@ -210,7 +208,6 @@ def Listline_forMatrix(cl_fc, process_segments, outWorkspace):
             for record in sCursor:
                 outListline.append([record[0], record[1]])
         del sCursor
-
 
     return [outListline, cl_fc]
 
@@ -238,17 +235,12 @@ def Forest_Matrix_Percentile_S(seg_all, chm, Canopy_Percentile, CanopyTh_Percent
     if ProcessSegments:
         OFID = "SLnID"
         whereclausel = OFID + " = " + str(seg_all[0]) + " And Buf_Side = 'LEFT'"
-
         whereclauser = OFID + " = " + str(seg_all[0]) + " And Buf_Side = 'RIGHT'"
-
         record_ID = seg_all[0]
-
     else:
         OFID = "InLine_FID"
         whereclausel = OFID + " = " + str(seg_all[0] - 1) + " And Buf_Side = 'LEFT'"
-
         whereclauser = OFID + " = " + str(seg_all[0] - 1) + " And Buf_Side = 'RIGHT'"
-
         record_ID = seg_all[0]
 
     try:
@@ -260,14 +252,11 @@ def Forest_Matrix_Percentile_S(seg_all, chm, Canopy_Percentile, CanopyTh_Percent
         arcpy.MakeFeatureLayer_management(pointsAlongParallelLine, "Point_CanThr_Right" + currentRecord, whereclauser)
 
         nl_fcR = "Point_CanThr_Right" + currentRecord
-
-
     except Exception as e:
         print("Selecting Surrounding points of line feature ID: {} failed.".format(str(seg_all[0])))
         print(e)
 
     try:
-
         with arcpy.da.SearchCursor(nl_fcL, [OFID, "Z", "SHAPE@"]) as uCursor1L:
             CHM_listL = []
 
@@ -318,11 +307,10 @@ def Forest_Matrix_Percentile_S(seg_all, chm, Canopy_Percentile, CanopyTh_Percent
 
 # TODO: 'update_simpCL' Can be deleted
 def update_simpCL(seg,fieldName,split_simCL, wherecluase):
-    #mutliprocess updating for simplified CL
-    #problem occurs when multi-access 'split_simCL' dataset, error: Cannot acquire lock
+    # mutliprocess updating for simplified CL
+    # problem occurs when multi-access 'split_simCL' dataset, error: Cannot acquire lock
     print("Updating Line:{}.".format(seg[0]-1))
     # print(fieldName)
-
 
     try:
         sqlcluase = "{}={}".format(wherecluase,seg[0] - 1)
@@ -345,7 +333,6 @@ def update_simpCL(seg,fieldName,split_simCL, wherecluase):
     # arcpy.SelectLayerByAttribute_management(split_simCL, "CLEAR_SELECTION", sqlcluase)
     try:
         for row in upcursor:
-
             row[1] = seg[1]
             row[2] = seg[2]
             row[3] = seg[3]
@@ -364,10 +351,8 @@ def update_simpCL(seg,fieldName,split_simCL, wherecluase):
             upcursor.updateRow(row)
 
         del upcursor
-
     except Exception as e:
         print(e)
-
         print("Cannot Update simpCL for simple CL {}".format(seg[0]))
 
 def CC_call(input_line):
@@ -716,7 +701,6 @@ def Percentile_Call(workspaceName, outWorkspace, Centerline_Feature_Class, Outpu
     arcpy.env.overwriteOutput = True
     cl_fc = Centerline_Feature_Class
 
-
     Canopy_Percentile_value = int(Canopy_Percentile)
     Canopy_Percentile_Field = "P" + str(Canopy_Percentile_value) + "_R" + str(Search_R)
     CanopyTh_Field = "CanTh_Ht"  # assign new field name for computed Canopy Threshold height
@@ -733,14 +717,12 @@ def Percentile_Call(workspaceName, outWorkspace, Centerline_Feature_Class, Outpu
     else:
         ProcMode = "_WholeLinePro"
 
-
     # create a simplify centerlines from input centerlines for parallel copy
     print("Simplify input centerline......")
     simplify_cl = r"memory/simplify_CL"
     with arcpy.EnvManager(transferGDBAttributeProperties="NOT_TRANSFER_GDB_ATTRIBUTE_PROPERTIES"):
         arcpy.SimplifyLine_cartography(cl_fc, simplify_cl,
                                        "BEND_SIMPLIFY", "5 Meters", "RESOLVE_ERRORS", None, "CHECK", None)
-
 
     # Prepare list of all input centerline for multiprocessing
     print("Lines Setup for input centerline.....")
@@ -759,7 +741,6 @@ def Percentile_Call(workspaceName, outWorkspace, Centerline_Feature_Class, Outpu
     #arcpy.CopyFeatures_management(Splited_cl, Percentile_CL)
     arcpy.CopyFeatures_management(Splited_cl, before_updated_Percentile_CL)
 
-
     # Prepare list of all input simplified centerline for multiprocessing
     print("Lines Setup for input simplified centerline")
     simplify_Alllistline = Listline_forMatrix(simplify_cl, ProcessSegments, outWorkspace)
@@ -770,7 +751,6 @@ def Percentile_Call(workspaceName, outWorkspace, Centerline_Feature_Class, Outpu
     # addFields_forsimplified_line(Splited_simplify_cl, int(Search_R))
     addFields(Splited_simplify_cl, Canopy_Percentile_Field, CanopyTh_Field)
     arcpy.management.CalculateField(Splited_simplify_cl, "SLnID", "!OBJECTID!")
-
 
     workspace = os.path.dirname(Splited_simplify_cl)
     # create a copy parallel polyline class
@@ -822,7 +802,6 @@ def Percentile_Call(workspaceName, outWorkspace, Centerline_Feature_Class, Outpu
     edit.stopOperation()
     edit.stopEditing(True)
 
-
     # Get raster cell size equivalent for points interval
     CHMCellx = arcpy.GetRasterProperties_management(chm, "CELLSIZEX").getOutput(0)
 
@@ -861,7 +840,6 @@ def Percentile_Call(workspaceName, outWorkspace, Centerline_Feature_Class, Outpu
 
     arcpy.management.CalculateGeometryAttributes(mem_pointsAlongParallelLine, "Z POINT_Z", '', '', None, "SAME_AS_INPUT")
 
-
     pointsAlongParallelLine = os.path.dirname(Output_Footprint) + "/" \
                              + os.path.basename(Centerline_Feature_Class).rpartition('.')[0]  + ProcMode+ "_ParallelPts.shp"
     arcpy.CopyFeatures_management(mem_pointsAlongParallelLine, pointsAlongParallelLine)
@@ -890,9 +868,7 @@ def Percentile_Call(workspaceName, outWorkspace, Centerline_Feature_Class, Outpu
     pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
 
     with arcpy.da.Editor(os.path.dirname(pointsAlongParallelLine)) as edit:
-
         updated_simCL_list=pool.map(seg_line1, Alllistline)
-
         print("Updating Percentile Statistic into CL attributes........")
 
         for seg in updated_simCL_list:
@@ -911,7 +887,6 @@ def Percentile_Call(workspaceName, outWorkspace, Centerline_Feature_Class, Outpu
             # arcpy.SelectLayerByAttribute_management(split_simCL, "CLEAR_SELECTION", sqlcluase)
             try:
                 for row in upcursor:
-
                     row[1] = seg[1]
                     row[2] = seg[2]
                     row[3] = seg[3]
