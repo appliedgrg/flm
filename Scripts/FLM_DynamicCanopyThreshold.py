@@ -494,7 +494,14 @@ def Percentile_Call(workspaceName, outWorkspace, Centerline_Feature_Class, Outpu
 
     CHMCelly = arcpy.GetRasterProperties_management(chm, "CELLSIZEY").getOutput(0)
 
-    Cell_size = (round((int(CHMCellx) + int(CHMCelly)) / 2))
+    if (round((float(CHMCellx) + float(CHMCelly)) / 2)) <= 0:
+        Cell_size = 1.0
+    else:
+        Cell_size = (round((float(CHMCellx) + float(CHMCelly)) / 2))
+
+    # print(Cell_size)
+
+
     points_interval = str(Cell_size) + " Meters"
     # arcpy.AddMessage(points_interval)
 
