@@ -41,7 +41,8 @@ import multiprocessing
 
 import math
 from functools import partial
-from memory_profiler import profile
+# from memory_profiler import profile
+# from line_profiler import LineProfiler
 
 # ArcGIS imports
 import arcpy
@@ -355,6 +356,8 @@ def update_simpCL(seg,fieldName,split_simCL, wherecluase):
         print(e)
         print("Cannot Update simpCL for simple CL {}".format(seg[0]))
 
+
+
 def CC_call(input_line):
     outWorkspace = r"memory"
     arcpy.env.workspace = r"memory"
@@ -371,6 +374,8 @@ def CC_call(input_line):
         #     Min_Canopy_Height = 0.5
         if Min_Canopy_Height < 0.0:
            Min_Canopy_Height = 0.05
+
+        Min_Canopy_Height = 3.0
 
         Tree_Search_Area = "Circle " + str(float(input_line[4])) + " MAP"
         Max_Line_Distance = float(input_line[5])
@@ -394,7 +399,7 @@ def CC_call(input_line):
 
     try:
         # create a buffer for the input CL for clipping the CHM raster around the CL
-        arcpy.Buffer_analysis(input_line[1], tempbuffer, "100 Meters", "FULL", "ROUND",
+        arcpy.Buffer_analysis(input_line[1], tempbuffer, "50 Meters", "FULL", "ROUND",
                               "NONE", None, "PLANAR")
 
         with arcpy.da.SearchCursor(tempbuffer, ["SHAPE@"]) as sCursor:
@@ -415,8 +420,6 @@ def CC_call(input_line):
         arcpy.AddMessage(e)
         return
 
-    chm_raster = arcpy.Raster(CHMClipM)
-
     # Local variables:
     FLM_CC_EucRaster = outWorkspace + "\\FLM_CC_EucRaster" + str(input_line[0])
     FLM_CC_SmoothRaster = outWorkspace + "\\FLM_CC_SmoothRaster" + str(input_line[0])
@@ -425,6 +428,8 @@ def CC_call(input_line):
     FLM_CC_CostRaster = outWorkspace + "\\FLM_CC_CostRaster" + str(input_line[0])
 
     try:
+        chm_raster = arcpy.Raster(CHMClipM)
+
         # Process: Turn CHM into a Canopy Closure (CC) map
         arcpy.gp.Con_sa(chm_raster, 1, Output_Canopy_Raster, 0, "VALUE > " + str(Min_Canopy_Height))
 
@@ -458,21 +463,26 @@ def CC_call(input_line):
         Raster_Smooth = arcpy.Raster(FLM_CC_SmoothRaster)
         avoidance = max(min(float(CanopyAvoidance), 1), 0)
 
-        # Original formula as follow
-        # outRas = Power(Exp(Con((Raster_CC == 1), 1, Con((Raster_Mean + Raster_StDev <= 0), 0, (
-        # 			1 + (Raster_Mean - Raster_StDev) / (Raster_Mean + Raster_StDev)) / 2) * (
-        # 								   1 - avoidance) + Raster_Smooth * avoidance)), float(Cost_Raster_Exponent))
-
         # decomposite above formula to steps
+        USE_SINGLE_FOMULA = True
         with arcpy.EnvManager(snapRaster=chm_raster):
+            if USE_SINGLE_FOMULA:
+            # Original formula as follow
+                outRas = Power(Exp(Con((Raster_CC == 1), 1, Con((Raster_Mean + Raster_StDev <= 0), 0,
+                                                                (1 + (Raster_Mean - Raster_StDev) / (
+                                                                            Raster_Mean + Raster_StDev)) / 2) *
+                                       (1 - avoidance) + Raster_Smooth * avoidance)),
+                               float(Cost_Raster_Exponent))
+            else:
+                aM = (1 + (Raster_Mean - Raster_StDev) / (Raster_Mean + Raster_StDev)) / 2
+                aaM = (Raster_Mean + Raster_StDev)
+                bM = arcpy.sa.Con(aaM, 0, aM, "Value <= 0")
+                cM = bM * (1 - avoidance) + (Raster_Smooth * avoidance)
+                dM = arcpy.sa.Con(Raster_CC, 1, cM, "Value = 1")
+                eM = arcpy.sa.Exp(dM)
+                outRas = arcpy.sa.Power(eM, float(Cost_Raster_Exponent))
 
-            aM = (1 + (Raster_Mean - Raster_StDev) / (Raster_Mean + Raster_StDev)) / 2
-            aaM = (Raster_Mean + Raster_StDev)
-            bM = arcpy.sa.Con(aaM, 0, aM, "Value <= 0")
-            cM = bM * (1 - avoidance) + (Raster_Smooth * avoidance)
-            dM = arcpy.sa.Con(Raster_CC, 1, cM, "Value = 1")
-            eM = arcpy.sa.Exp(dM)
-            outRas = arcpy.sa.Power(eM, float(Cost_Raster_Exponent))
+                del aM, aaM, bM, cM, dM, eM
     except Exception as e:
         print(e)
         print(input_line)
@@ -480,7 +490,10 @@ def CC_call(input_line):
 
     Canopy_Raster = Raster_CC
     Cost_Raster = outRas
-    del aM, aaM, bM, cM, dM, eM
+
+    # Save canopy and cost rasters to local storage
+    # arcpy.Raster(Canopy_Raster).save(os.path.join(flmc.GetWorkspace(workspaceName), r'Canopy' + str(input_line[0]) + r'.tif'))
+    # arcpy.Raster(Cost_Raster).save(os.path.join(flmc.GetWorkspace(workspaceName), r'Cost' + str(input_line[0]) + r'.tif'))
 
     # TODO: this is constant, but need to be investigated.
     ################################# Input Test Corridor Threshold here #############################################
@@ -689,6 +702,16 @@ def CC_call(input_line):
 
     return footprint  # list of polygons
 
+
+# def CC_call(input_line):
+#     profiler = line_profiler.LineProfiler(CC_call_old)
+#     call = '_CC_call(input_line)'
+#     turns = profiler.run(call)
+#     profiler.dump_stats('profile_' + str(input_line) + '.lprof')
+#     return (turns)
+
+# solve pickle error https://github.com/pythonprofilers/memory_profiler/issues/148
+# change CC_call to _CC_call first and enable next sentences
 # decorated_worker = profile(_CC_call)
 # def CC_call(*args, **kwargs):
 #     return decorated_worker(*args, **kwargs)
@@ -807,7 +830,8 @@ def Percentile_Call(workspaceName, outWorkspace, Centerline_Feature_Class, Outpu
 
     CHMCelly = arcpy.GetRasterProperties_management(chm, "CELLSIZEY").getOutput(0)
 
-    Cell_size = 100 * (float(CHMCellx) + float(CHMCelly)) / 2
+    # Use sampling interval of minimum of 1.0
+    Cell_size = max(1.0, (float(CHMCellx) + float(CHMCelly))/2)
     points_interval = str(Cell_size) + " Meters"
     # arcpy.AddMessage(points_interval)
 
@@ -1035,17 +1059,21 @@ def main(argv=None):
             segment_all_Cal_DynCC.append(seg)
     print("Start generate Dynamic Footprint........")
 
-
     pool = multiprocessing.Pool(processes=flmc.GetCores())
 
     flmc.log("Multiprocessing for dynamic canopy cost raster...")
     flmc.log("Using {} CPU cores".format(flmc.GetCores()))
 
-
     footprints = pool.map(CC_call, segment_all_Cal_DynCC)
 
     pool.close()
     pool.join()
+
+    # Code for line profiler
+    # lp = LineProfiler()
+    # lp_wrapper = lp(CC_call)
+    # lp_wrapper(segment_all_Cal_DynCC[0])
+    # lp.print_stats(output_unit=1e-03)
 
     flmc.log("Merging footprints...")
 
